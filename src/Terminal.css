@@ -1,0 +1,70 @@
+/* src/Terminal.css */
+.terminal {
+  background-color: #0f111a;
+  color: rgb(151, 151, 151);
+  font-family: 'Courier New', Courier, monospace;
+  padding: 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.terminal-output {
+  margin: 5px 0;
+  white-space: pre-wrap;
+}
+
+.terminal-input {
+  display: flex;
+  align-items: center;
+}
+
+.terminal-input input {
+  background: none;
+  border: none;
+  color: #d0d0d0;
+  font-weight: bold;
+  font-size: medium;
+  font-family: 'Courier New', Courier, monospace;
+  outline: none;
+  flex: 1;
+}
+
+.prompt {
+  color: #f8c555;
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+.terminal-input input::placeholder {
+  color: #555;
+  font-weight: bold;
+}
+
+.command-keyword {
+  color: #00ff00;
+  font-weight: 600;
+  font-style: oblique;
+}
+
+.hostname {
+  color: #00ff00; /* This is the green color for rafey.ai */
+}
+
+
+/* colors */
+.base-color {
+  color: white;
+}
+
+.brown {
+  color: #f8c555
+}
+
+.green {
+  color: #00ff00
+}
