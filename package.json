@@ -1,5 +1,5 @@
 {
-  "name": "portfolio-terminal",
+  "name": "portfolio",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,6 +12,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
     "typewriter-effect": "^2.21.0"
   },
   "devDependencies": {
