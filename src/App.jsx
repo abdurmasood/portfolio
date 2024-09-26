@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from 'react';
-import Terminal from './Terminal';
+import Terminal from './components/Terminal/Terminal.jsx';
 import './App.css';
 
 function App() {
