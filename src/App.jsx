@@ -3,6 +3,7 @@ import React from 'react';
 import Terminal from './components/Terminal/Terminal.jsx';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Music from './components/Music/Music.jsx';
+import ArtistPage from './components/Music/ArtistPage.jsx';
 import './App.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Terminal />} />
           <Route path="/music" element={<Music />} />
+          <Route path="/artist" element={<ArtistPage />} />
         </Routes>
       </Router>
     </div>
