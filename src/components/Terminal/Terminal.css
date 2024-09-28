@@ -1,7 +1,7 @@
 /* src/Terminal.css */
 .terminal {
-  background-color: #0f111a;
-  color: white;
+  background-color: #0D1117;
+  /* color: white; */
   font-family: 'Courier New', Courier, monospace;
   padding: 15px;
   border-radius: 5px;
@@ -43,7 +43,7 @@
 }
 
 .terminal-input input::placeholder {
-  color: #555;
+  /* color: #555; */
   font-weight: bold;
 }
 

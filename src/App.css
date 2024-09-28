@@ -1,6 +1,6 @@
-/* body {
-  background-color: #0f111a;
-  color: #ffffff;
+body {
+  background-color: #0D1117;
+  /* color: #ffffff; */
   margin: 0;
   font-family: 'Courier New', Courier, monospace;
 }
@@ -19,11 +19,11 @@
 .typewriter-wrapper {
   font-size: 20px; 
   text-align: center; 
-  color: #858585; 
+  /* color: #858585;  */
   margin-bottom: 20px; 
 }
 
 .Terminal {
   width: 100%;
   height: 100%;
-} */
+}

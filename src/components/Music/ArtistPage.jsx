@@ -1,75 +1,127 @@
-import React, { useEffect, useState } from 'react'
-import { motion, useAnimation } from "framer-motion"
-import Timeline from "./timeline"
-import Background3D from "./3DBackground"
+import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
+import { motion, useAnimation, AnimatePresence } from "framer-motion"
+
+const Timeline = lazy(() => import("./timeline"))
+const Background3D = lazy(() => import("./3D/3DBackground"))
+
+const MemoizedTimeline = React.memo(Timeline)
 
 function ArtistPage() {
+  const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
+  const [show3DBackground, setShow3DBackground] = useState(false)
   const backgroundControls = useAnimation()
+  const journeySectionControls = useAnimation()
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowTimeline(true), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (showTimeline) {
-      setTimeout(() => backgroundControls.start("visible"), 3000)
+  const startAnimations = useCallback(() => {
+    const animationSequence = async () => {
+      setIsLoading(false)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setShow3DBackground(true)
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      journeySectionControls.start("visible")
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setShowTimeline(true)
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      backgroundControls.start("visible")
     }
-  }, [showTimeline, backgroundControls])
+    
+    animationSequence()
+  }, [journeySectionControls, backgroundControls])
 
-  const timelineEvents = [
-    { year: 1990, event: "Born in New York City" },
-    { year: 2000, event: "Won first art competition in elementary school" },
-    { year: 2012, event: "Graduated from art school with honors" },
-    { year: 2015, event: "Commissioned for public mural in city center" },
-    { year: 2023, event: "International art tour across Europe" },
-  ]
+  useEffect(() => {
+    // Preload the lazy components
+    Promise.all([
+      import("./timeline"),
+      import("./3D/3DBackground")
+    ]).then(() => {
+      startAnimations()
+    })
+  }, [startAnimations])
+
+  const timelineEvents = useMemo(() => [
+    { year: 2006, event: "Picked up a guitar for the first time" },
+    { year: 2011, event: "Started his journey touring as a cover artist in Pakistan" },
+    { year: 2016, event: "Moved to London & started focusing on his lyrical expression" },
+    { year: 2022, event: "Incorporation + getting signed to Studio X" },
+    { year: 2025, event: "Release date of his debut album" },
+  ], [])
 
   const fadeIn = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 1 } }
-  }
-
-  const backgroundFadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
       y: 0, 
       transition: { 
-        duration: 1,
+        duration: 0.5,
         ease: "easeOut"
       } 
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-screen bg-[#0D1117] flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-[#4ADE80] text-2xl"
+        >
+          Loading...
+        </motion.div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen w-screen bg-[#0D1117] text-white flex flex-col relative overflow-hidden font-mono">
-      <Background3D />
-      <div className="absolute inset-0 bg-[#0D1117] opacity-90 z-0"></div>
-      <main className="flex-grow flex flex-col items-center justify-start p-6 relative z-10 overflow-y-auto">
+      <AnimatePresence>
+        {show3DBackground && (
+          <Suspense fallback={null}>
+            <motion.div
+              key="background"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+              className="absolute inset-0 z-0"
+            >
+              <Background3D />
+            </motion.div>
+          </Suspense>
+        )}
+      </AnimatePresence>
+      <div className="absolute inset-0 bg-[#0D1117] opacity-90 z-10"></div>
+      <main className="flex-grow flex flex-col items-center justify-start p-6 relative z-20 overflow-y-auto">
         <div className="w-full max-w-6xl mx-auto">
           <motion.section 
             className="mb-12 w-full"
             initial="hidden"
-            animate="visible"
+            animate={journeySectionControls}
             variants={fadeIn}
           >
-            <h2 className="text-4xl font-semibold mb-12 text-center text-[#4ADE80]">My Artistic Journey</h2>
-            {showTimeline && <Timeline events={timelineEvents} />}
+            <h2 className="text-4xl font-semibold mb-12 text-center text-[#4ADE80]">Artistic Journey</h2>
+            <AnimatePresence>
+              {showTimeline && (
+                <Suspense fallback={null}>
+                  <MemoizedTimeline events={timelineEvents} />
+                </Suspense>
+              )}
+            </AnimatePresence>
           </motion.section>
           <motion.section 
             className="mt-16 w-full"
             initial="hidden"
             animate={backgroundControls}
-            variants={backgroundFadeIn}
+            variants={fadeIn}
           >
             <h2 className="text-3xl font-semibold mb-8 text-center text-[#4ADE80]">Background</h2>
             <p className="text-white text-lg text-center max-w-4xl mx-auto mb-6">
-              As a passionate artist with over two decades of experience, I've dedicated my life to exploring the
-              boundaries of visual expression. My journey began in the vibrant streets of New York City, where I was
-              exposed to a rich tapestry of cultures and artistic styles from an early age. This diverse background has
-              profoundly influenced my work, which often blends traditional techniques with contemporary themes.
+             Rafey, also known by is stage name "Ramé Sivano", is a 27 year old artist/music producer from London. He started his journey
             </p>
             <p className="text-white text-lg text-center max-w-4xl mx-auto">
               Throughout my career, I've experimented with various mediums, from oil painting and sculpture to digital
