@@ -3,8 +3,9 @@ const educationDescription = "Education Description";
 const experienceDescription = "Experience Description";
 const projectDescription = "Project Description";
 const originDescription = "Origin Description";
-const musicDescription = "Music Description";
+const musicDescription = "description  journey\n\nUsage: music &lt;journey&gt;";
 const chatDescription = "coming soon";
+const catDescription = "Usage: cat &lt;file-name&gt;";
 const readMeDescription = `
  __  __     ______     __         __         ______        __     __     ______     ______     __         _____    
 /\\ \\_\\ \\   /\\  ___\\   /\\ \\       /\\ \\       /\\  __ \\      /\\ \\  _ \\ \\   /\\  __ \\   /\\  == \\   /\\ \\       /\\  __-.  
@@ -22,5 +23,6 @@ export {
     originDescription,
     musicDescription,
     chatDescription,
+    catDescription,
     readMeDescription
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Terminal.css';
-import { aboutDescription, educationDescription, experienceDescription, projectDescription, originDescription, chatDescription, musicDescription, readMeDescription } from '../../utls/descriptions';
+import { aboutDescription, educationDescription, experienceDescription, projectDescription, originDescription, chatDescription, musicDescription, readMeDescription, catDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 
@@ -22,6 +22,10 @@ const Terminal = () => {
   const executableCommands = [
     'about', 'education', 'experience', 'projects', 'origins', 'music', 'help', 'chat', 'cat about.txt', 'cat education.txt', 'cat experience.txt', 'cat projects.txt', 'cat origins.txt', 'cat music.txt', 'cat README.txt'
   ];
+
+  const nonExecutableCommands = [
+    'pwd', 'cd', 'mkdir', 'grep', 'rm', 'exit', 
+  ]
 
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
@@ -67,69 +71,78 @@ const Terminal = () => {
     if (e.key === 'Enter') {
       const command = input.trim();
       let output = '';
+      
+      if (nonExecutableCommands.includes(command)) {
+        output = "Permission denied";
+      } else {
 
-      switch (command) {
-        case 'help':
-          output = 'Available commands: help, clear, about';
-          break;
+        switch (command) {
+          case 'help':
+            output = 'Available commands: help, clear, about';
+            break;
 
-        case 'clear':
-          setHistory('');
-          setInput('');
-          setPossibleMatches([]);
-          return;
-        
-        case 'cat about.txt':
-        case 'about':
-          output = aboutDescription;
-          break;
-
-        case 'cat education.txt':
-        case 'education':
-          output = educationDescription;
-          break
-
-        case 'cat experience.txt':
-        case 'experience':
-          output = experienceDescription;
-          break;
-        
-        case 'cat projects.txt':
-        case 'projects':
-          output = projectDescription;
-          break;
-        
-        case 'cat origins.txt':
-        case 'origins':
-          output = originDescription;
-          break;
-
-        case 'cat music.txt':
-        case 'music':
-          output = musicDescription;
-          break;
-
-        case 'music journey':
-          navigate('/music');
+          case 'clear':
+            setHistory('');
+            setInput('');
+            setPossibleMatches([]);
+            return;
           
-        case 'chat':
-          output = chatDescription;
-          break;
+          case 'cat about.txt':
+          case 'about':
+            output = aboutDescription;
+            break;
 
-        case 'cat README.txt':
-          output = readMeDescription;
-          break;
+          case 'cat education.txt':
+          case 'education':
+            output = educationDescription;
+            break
 
-        case 'ls':
-          output = 'about.txt   education.txt   experience.txt    projects.txt\norigins.txt   music.txt   README.txt';
-          break;
-
-        case '':
-          output = '';
-          break;
+          case 'cat experience.txt':
+          case 'experience':
+            output = experienceDescription;
+            break;
           
-        default:
-          output = `'${command}' is not a recognized command.`;
+          case 'cat projects.txt':
+          case 'projects':
+            output = projectDescription;
+            break;
+          
+          case 'cat origins.txt':
+          case 'origins':
+            output = originDescription;
+            break;
+
+          case 'cat music.txt':
+          case 'music':
+            output = musicDescription;
+            break;
+
+          case 'music journey':
+            navigate('/journey');
+
+          case 'chat':
+            output = chatDescription;
+            break;
+
+          case 'cat':
+            output = catDescription;
+            break;
+
+          case 'cat README.txt':
+            output = readMeDescription;
+            break;
+
+          case 'ls':
+            output = 'about.txt   education.txt   experience.txt    projects.txt\norigins.txt   music.txt   README.txt';
+            break;
+
+          case '':
+            output = '';
+            break;
+            
+          default:
+            output = `Command not found: '${command}'`;
+        }
       }
 
       if (output === '') {
