@@ -1,9 +1,9 @@
-const aboutDescription = "About Description";
+const aboutDescription = "Rafey is a 27 year self taught developer with a passion for building. Some of notable achievevements include: - 1st in the world in the game of chess (FIDE)";
 const educationDescription = "Education Description";
 const experienceDescription = "Experience Description";
 const projectDescription = "Project Description";
 const originDescription = "Origin Description";
-const musicDescription = "description  journey\n\nUsage: music &lt;journey&gt;";
+const musicDescription = "description  journey\n\nUsage: music &lt;option&gt;";
 const chatDescription = "coming soon";
 const catDescription = "Usage: cat &lt;file-name&gt;";
 const readMeDescription = `

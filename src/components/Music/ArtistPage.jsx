@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
+import MusicPlayer from './MusicPlayer'
+
 
 const Timeline = lazy(() => import("./timeline"))
 const Background3D = lazy(() => import("./3D/3DBackground"))
@@ -79,6 +81,7 @@ function ArtistPage() {
 
   return (
     <div className="min-h-screen w-screen bg-[#0D1117] text-white flex flex-col relative overflow-hidden font-mono">
+      <MusicPlayer/>
       <AnimatePresence>
         {show3DBackground && (
           <Suspense fallback={null}>

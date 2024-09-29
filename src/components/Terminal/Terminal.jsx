@@ -4,9 +4,7 @@ import { aboutDescription, educationDescription, experienceDescription, projectD
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 
-
 const Terminal = () => {
-
   const navigate = useNavigate();
 
   const initialMessages = [
@@ -25,7 +23,7 @@ const Terminal = () => {
 
   const nonExecutableCommands = [
     'pwd', 'cd', 'mkdir', 'grep', 'rm', 'exit', 
-  ]
+  ];
 
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
@@ -53,8 +51,8 @@ const Terminal = () => {
   const [possibleMatches, setPossibleMatches] = useState([]);
   const [lastCommand, setLastCommand] = useState('');
   const [tabPressCount, setTabPressCount] = useState(0);
-  const [commandHistory, setCommandHistory] = useState([]); // Store the command history
-  const [historyIndex, setHistoryIndex] = useState(-1); // To navigate through the command history
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
   useEffect(() => {
     const fullMessage = initialMessages.join('\n') + '\n';
@@ -72,13 +70,20 @@ const Terminal = () => {
       const command = input.trim();
       let output = '';
       
-      if (nonExecutableCommands.includes(command)) {
-        output = "Permission denied";
+      // Check for non-executable commands and their variations
+      if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
+        if (command === 'pwd' || command === 'exit') {
+          output = `${command}: Permission denied`;
+        } else if (command.startsWith('cd') || command.startsWith('mkdir') || command.startsWith('grep') || command.startsWith('rm')) {
+          output = `${command}: Permission denied`;
+        } else if (command.startsWith('pwd ') || command.startsWith('exit ')) {
+          const invalidCommand = command.split(' ')[1];
+          output = `${invalidCommand} : The term ${invalidCommand} is not recognized as the name of a cmdlet, function, script file, or operable program.`;
+        }
       } else {
-
         switch (command) {
           case 'help':
-            output = 'Available commands: help, clear, about';
+            output = 'Available commands: about, education, experience, projects, origins, music, help, chat';
             break;
 
           case 'clear':
@@ -95,7 +100,7 @@ const Terminal = () => {
           case 'cat education.txt':
           case 'education':
             output = educationDescription;
-            break
+            break;
 
           case 'cat experience.txt':
           case 'experience':
@@ -119,6 +124,7 @@ const Terminal = () => {
 
           case 'music journey':
             navigate('/journey');
+            break;
 
           case 'chat':
             output = chatDescription;
@@ -151,9 +157,8 @@ const Terminal = () => {
         setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${command}\n${output}\n`);
       }
 
-      // Add the command to the history
       setCommandHistory(prevHistory => [...prevHistory, command]);
-      setHistoryIndex(-1); // Reset the index
+      setHistoryIndex(-1);
       setInput('');
       setPossibleMatches([]);
       setTabPressCount(0);
@@ -162,9 +167,8 @@ const Terminal = () => {
 
     // Handle Tab for autocompletion
     if (e.key === 'Tab') {
-      e.preventDefault(); // Prevent default tab behavior
+      e.preventDefault();
 
-      // If the input is exactly 'cat', do nothing
       if (input === 'cat') {
         setTabPressCount(0);
         return;
@@ -183,16 +187,14 @@ const Terminal = () => {
         setPossibleMatches(matchingCommands);
         setLastCommand(input);
 
-        // Filter out commands starting with 'cat' for display
         const visibleMatches = matchingCommands.filter(cmd => !cmd.startsWith('cat'));
 
-        // Display all possible completions only if tab is pressed twice
         if (tabPressCount === 1) {
           if (visibleMatches.length > 0) {
             const output = visibleMatches.join('    ');
             setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${input}\n${output}\n`);
           }
-          setTabPressCount(0); // Reset the tab count
+          setTabPressCount(0);
         } else {
           setTabPressCount((prevCount) => prevCount + 1);
         }
@@ -257,9 +259,9 @@ const Terminal = () => {
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
-              setTabPressCount(0); // Reset tab count on input change
-              setPossibleMatches([]); // Reset possible matches on input change
-              setHistoryIndex(-1); // Reset history index on input change
+              setTabPressCount(0);
+              setPossibleMatches([]);
+              setHistoryIndex(-1);
             }}
             onKeyDown={handleKeyDown}
             autoFocus
