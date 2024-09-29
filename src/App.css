@@ -1,6 +1,5 @@
 body {
   background-color: #0D1117;
-  /* color: #ffffff; */
   margin: 0;
   font-family: 'Courier New', Courier, monospace;
 }
@@ -19,11 +18,42 @@ body {
 .typewriter-wrapper {
   font-size: 20px; 
   text-align: center; 
-  /* color: #858585;  */
   margin-bottom: 20px; 
 }
 
 .Terminal {
   width: 100%;
   height: 100%;
+}
+
+/* Dark Theme Scrollbar Styles */
+/* Webkit browsers like Chrome, Safari */
+::-webkit-scrollbar {
+  width: 8px;  /* Reduced from 12px to 8px */
+}
+
+::-webkit-scrollbar-track {
+  background: #161B22;
+  border-radius: 10px;  /* Rounded track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #30363D;
+  border-radius: 10px;  /* Fully rounded thumb */
+  border: 2px solid #161B22;  /* Reduced border for thinner appearance */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #3F4751;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #30363D #161B22;
+}
+
+/* For Internet Explorer and Edge */
+body {
+  -ms-overflow-style: none;
 }

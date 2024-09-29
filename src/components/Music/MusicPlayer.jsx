@@ -37,7 +37,7 @@ const MusicPlayer = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+    <div className="fixed bottom-4 right-6 z-50 flex flex-col items-end">
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-2 max-w-xs" role="alert">
           <span className="block sm:inline">{error}</span>
