@@ -122,7 +122,7 @@ function ArtistPage() {
             <h2 className="text-3xl font-semibold mb-8 text-center text-[#4ADE80]">Background</h2>
             <p className="text-white text-lg text-center max-w-4xl mx-auto mb-6">
              Rafey, also known by is stage name "Ramé Sivano", is a 27 year old artist/music producer from London. He started his journey into music at the age of 10. He spent his early years solidifying
-             a firm footing in the independent music scene in Pakistan by touring across the country as a cover artist. 2016 saw him move to London in pursuit of a better future. That is when rafey took a break from
+             a firm footing in the independent music scene in Pakistan by touring across the country as a cover artist. 2016 saw him move to London in pursuit of a better future. That is when Rafey took a break from
              touring to focus on his lyrical expression.
             </p>
             <p className="text-white text-lg text-center max-w-4xl mx-auto">
