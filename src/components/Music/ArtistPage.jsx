@@ -46,7 +46,7 @@ function ArtistPage() {
     { year: 2006, event: "Picked up a guitar for the first time" },
     { year: 2011, event: "Started his journey touring as a cover artist in Pakistan" },
     { year: 2016, event: "Moved to London & started focusing on his lyrical expression" },
-    { year: 2022, event: "Incorporation + getting signed to Studio X" },
+    { year: 2022, event: "Incorporated his own record label & got signed to Studio X" },
     { year: 2025, event: "Release date of his debut album" },
   ], [])
 
@@ -121,13 +121,12 @@ function ArtistPage() {
           >
             <h2 className="text-3xl font-semibold mb-8 text-center text-[#4ADE80]">Background</h2>
             <p className="text-white text-lg text-center max-w-4xl mx-auto mb-6">
-             Rafey, also known by is stage name "Ramé Sivano", is a 27 year old artist/music producer from London. He started his journey
+             Rafey, also known by is stage name "Ramé Sivano", is a 27 year old artist/music producer from London. He started his journey into music at the age of 10. He spent his early years solidifying
+             a firm footing in the independent music scene in Pakistan by touring across the country as a cover artist. 2016 saw him move to London in pursuit of a better future. That is when rafey took a break from
+             touring to focus on his lyrical expression.
             </p>
             <p className="text-white text-lg text-center max-w-4xl mx-auto">
-              Throughout my career, I've experimented with various mediums, from oil painting and sculpture to digital
-              art and mixed media installations. My work has been featured in galleries across the country and has
-              earned recognition in several international exhibitions. I'm constantly pushing myself to evolve as an
-              artist, drawing inspiration from nature, urban landscapes, and the human experience.
+              After spending half a decade honing his his skills as a producer and finding his sound, he got signed to Studio X & he is set to release his debut album in November of 2025.
             </p>
           </motion.section>
         </div>

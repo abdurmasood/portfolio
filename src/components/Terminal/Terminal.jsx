@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import './Terminal.css';
 import { aboutDescription, educationDescription, experienceDescription, projectDescription, originDescription, chatDescription, musicDescription, readMeDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
+import { useNavigate } from 'react-router-dom';
+
 
 const Terminal = () => {
+
+  const navigate = useNavigate();
+
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
     "<span class='grey'>----</span>",
@@ -103,7 +108,10 @@ const Terminal = () => {
         case 'music':
           output = musicDescription;
           break;
-        
+
+        case 'music journey':
+          navigate('/music');
+          
         case 'chat':
           output = chatDescription;
           break;
