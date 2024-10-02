@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 
 const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(null);
   const audioRef = useRef(null);
-  // Updated audio source path
   const audioSrc = "/background-music.mp3";
 
   useEffect(() => {
@@ -45,9 +44,10 @@ const MusicPlayer = () => {
       )}
       <button
         onClick={togglePlayPause}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline"
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 rounded-full focus:outline-none focus:shadow-outline"
+        aria-label={isPlaying ? "Mute audio" : "Play audio"}
       >
-        {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+        {isPlaying ? <Volume2 size={24} /> : <VolumeX size={24} />}
       </button>
       <audio ref={audioRef} src={audioSrc} loop />
     </div>
