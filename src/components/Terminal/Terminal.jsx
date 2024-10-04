@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Terminal.css';
-import { aboutDescription, educationDescription, experienceDescription, projectDescription, originDescription, chatDescription, musicDescription, readMeDescription, catDescription } from '../../utls/descriptions';
+import { aboutDescription, educationDescription, experienceDescription, projectsOptions, projectsDescription, originDescription, chatDescription, musicOptions, musicDescription, readMeDescription, catDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 
@@ -109,7 +109,15 @@ const Terminal = () => {
           
           case 'cat projects.txt':
           case 'projects':
-            output = projectDescription;
+            output = projectsOptions;
+            break;
+
+          case 'projects description':
+            output = projectsDescription;
+            break
+
+          case 'projects show':
+            navigate('/projects');
             break;
           
           case 'cat origins.txt':
@@ -119,11 +127,15 @@ const Terminal = () => {
 
           case 'cat music.txt':
           case 'music':
-            output = musicDescription;
+            output = musicOptions;
             break;
 
           case 'music journey':
             navigate('/journey');
+            break;
+
+          case 'music description':
+            output = musicDescription;
             break;
 
           case 'chat':

@@ -23,7 +23,7 @@ const geometries = [
   new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16)
 ]
 
-const ProjectShape = React.memo(({ project, initialPosition, geometry, onProjectClick, isActive, onClosePopup }) => {
+const ProjectShape = React.memo(({ project, initialPosition, geometry, onProjectClick, isActive, onClosePopup, loadProgress }) => {
   const groupRef = useRef()
   const meshRef = useRef()
   const textRef = useRef()
@@ -65,9 +65,11 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
     if (meshRef.current) {
       meshRef.current.rotation.x += delta * 0.2
       meshRef.current.rotation.y += delta * 0.2
+      meshRef.current.scale.setScalar(scale * loadProgress)
     }
     if (textRef.current) {
       textRef.current.position.y = -1.7 + Math.sin((state.clock.elapsedTime + randomOffset) * randomFrequency) * randomAmplitude
+      textRef.current.scale.setScalar(loadProgress)
     }
   })
 
@@ -131,7 +133,7 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
 
 ProjectShape.displayName = 'ProjectShape'
 
-function Scene({ onProjectClick, activeProject, onClosePopup }) {
+function Scene({ onProjectClick, activeProject, onClosePopup, loadProgress }) {
   const [shapes, setShapes] = useState([])
 
   useEffect(() => {
@@ -153,8 +155,8 @@ function Scene({ onProjectClick, activeProject, onClosePopup }) {
 
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
+      <ambientLight intensity={0.5 * loadProgress} />
+      <pointLight position={[10, 10, 10]} intensity={loadProgress} />
       <CustomOrbitControls />
       {shapes.map((shape) => (
         <ProjectShape
@@ -165,9 +167,10 @@ function Scene({ onProjectClick, activeProject, onClosePopup }) {
           onProjectClick={onProjectClick}
           isActive={activeProject?.id === shape.project.id}
           onClosePopup={onClosePopup}
+          loadProgress={loadProgress}
         />
       ))}
-      <Stars />
+      <Stars opacity={loadProgress} />
     </>
   )
 }
@@ -217,7 +220,7 @@ const CustomOrbitControls = () => {
   )
 }
 
-const Stars = React.memo(() => {
+const Stars = React.memo(({ opacity }) => {
   const starsRef = useRef()
   
   const [geometry, material, stars] = useMemo(() => {
@@ -231,7 +234,7 @@ const Stars = React.memo(() => {
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
-    const material = new THREE.PointsMaterial({ color: 0x888888, size: 0.1 })
+    const material = new THREE.PointsMaterial({ color: 0x888888, size: 0.1, transparent: true })
     const stars = new THREE.Points(geometry, material)
 
     return [geometry, material, stars]
@@ -241,6 +244,7 @@ const Stars = React.memo(() => {
     if (starsRef.current) {
       starsRef.current.rotation.x += 0.0001
       starsRef.current.rotation.y += 0.0001
+      material.opacity = opacity
     }
   })
 
@@ -252,6 +256,7 @@ Stars.displayName = 'Stars'
 const ProjectsPage = () => {
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
+  const [loadProgress, setLoadProgress] = useState(0)
 
   const toggleInstructions = useCallback(() => {
     setShowInstructions(prev => !prev)
@@ -266,34 +271,52 @@ const ProjectsPage = () => {
   }, [])
 
   useEffect(() => {
+    const startTime = Date.now()
+    const duration = 2000 // 2 seconds for the animation
+
+    const animateIn = () => {
+      const elapsedTime = Date.now() - startTime
+      const progress = Math.min(elapsedTime / duration, 1)
+      setLoadProgress(progress)
+
+      if (progress < 1) {
+        requestAnimationFrame(animateIn)
+      }
+    }
+
+    requestAnimationFrame(animateIn)
+  }, [])
+
+  useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault()
     document.addEventListener('contextmenu', handleContextMenu)
     return () => document.removeEventListener('contextmenu', handleContextMenu)
   }, [])
 
   return (
-    <div className="w-screen h-screen bg-black text-white font-mono">
+    <div className="w-screen h-screen bg-black text-white font-mono" style={{ opacity: loadProgress }}>
       <Canvas camera={{ position: [0, 0, 20], fov: 60 }}>
         <Scene 
           onProjectClick={handleProjectClick} 
           activeProject={activeProject}
           onClosePopup={handleClosePopup}
+          loadProgress={loadProgress}
         />
       </Canvas>
       <button
         className="absolute bottom-4 left-4 bg-white text-black px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors"
         onClick={toggleInstructions}
+        style={{ opacity: loadProgress }}
       >
         Instructions
       </button>
       {showInstructions && (
-        <div className="absolute bottom-16 left-4 bg-black bg-opacity-75 p-4 rounded-md max-w-xs">
+        <div className="absolute bottom-16 left-4 bg-black bg-opacity-75 p-4 rounded-md max-w-xs" style={{ opacity: loadProgress }}>
           <ul className="list-disc pl-5 space-y-2">
             <li className="text-sm"><strong className="text-[#39FF14]">LEFT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
             <li className="text-sm"><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move the camera sideways.</li>
             <li className="text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
             <li className="text-sm"><strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
-            <li className="text-sm"><strong className="text-[#39FF14]">HOVER</strong> over shapes to highlight and enlarge them.</li>
           </ul>
         </div>
       )}
