@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import './Terminal.css';
-import {projectsOptions, projectsDescription, musicOptions, musicDescription, readMeDescription, catDescription, bioDescription} from '../../utls/descriptions';
+import { projectsOptions, projectsDescription, musicOptions, musicDescription, readMeDescription, catDescription, bioDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
+import { useTerminal } from './TerminalContext';
 
 const Terminal = () => {
   const navigate = useNavigate();
+  const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
+
+  const [showHistory, setShowHistory] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [showTypewriterMessage, setShowTypewriterMessage] = useState(false);
+  const [possibleMatches, setPossibleMatches] = useState([]);
+  const [lastCommand, setLastCommand] = useState('');
+  const [tabPressCount, setTabPressCount] = useState(0);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [initialMessage, setInitialMessage] = useState('');
 
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
@@ -16,16 +27,6 @@ const Terminal = () => {
     "<span class='grey'>But until then, you can type the commands below for details.</span>",
     "<span class='grey'>----</span>"
   ];
-
-  const executableCommands = [
-    'bio', 'projects', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
-  ];
-
-  const nonExecutableCommands = [
-    'pwd', 'cd', 'mkdir', 'grep', 'rm', 'exit', 
-  ]
-
-  const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
   const commandDescriptions = [
     "<span class='command-keyword'>bio</span>          - Rafey's biography",
@@ -40,34 +41,32 @@ const Terminal = () => {
     ""
   ];
 
-  const [history, setHistory] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [showTypewriterMessage, setShowTypewriterMessage] = useState(true);
-  const [input, setInput] = useState('');
-  const [possibleMatches, setPossibleMatches] = useState([]);
-  const [lastCommand, setLastCommand] = useState('');
-  const [tabPressCount, setTabPressCount] = useState(0);
-  const [commandHistory, setCommandHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  const executableCommands = [
+    'bio', 'projects', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
+  ];
+
+  const nonExecutableCommands = [
+    'pwd', 'cd', 'mkdir', 'grep', 'rm', 'exit', 
+  ];
+
+  const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
   useEffect(() => {
-    const fullMessage = initialMessages.join('\n') + '\n';
-    setHistory(fullMessage);
-  }, []);
-
-  const updateInitialMessageWithCommands = () => {
-    const execCommands = commandDescriptions.join('\n') + '\n';
-    const fullMessage = history.concat(execCommands);
-    setHistory(fullMessage);
-  };
+    if (history === '') {
+      const fullMessage = initialMessages.join('\n') + '\n' + commandDescriptions.join('\n') + '\n';
+      setInitialMessage(fullMessage);
+      setShowTypewriterMessage(true);
+    } else {
+      setShowHistory(true);
+      setShowPrompt(true);
+    }
+  }, [history]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       const command = input.trim();
       let output = '';
       
-      // Check for non-executable commands and their variations
       if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
         if (command === 'pwd' || command === 'exit') {
           output = `${command}: Permission denied`;
@@ -80,7 +79,7 @@ const Terminal = () => {
       } else {
         switch (command) {
           case 'help':
-            output = 'Available commands: bio, projects, music, help, chat';
+            output = commandDescriptions.join('\n');
             break;
 
           case 'clear':
@@ -108,7 +107,7 @@ const Terminal = () => {
 
           case 'music':
             navigate('/journey');
-            break;
+            return;
 
           case 'cat':
             output = catDescription;
@@ -149,7 +148,6 @@ const Terminal = () => {
       setLastCommand('');
     }
 
-    // Handle Tab for autocompletion
     if (e.key === 'Tab') {
       e.preventDefault();
 
@@ -187,7 +185,6 @@ const Terminal = () => {
       }
     }
 
-    // Handle Up Arrow for command history
     if (e.key === 'ArrowUp') {
       if (commandHistory.length > 0) {
         const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
@@ -196,7 +193,6 @@ const Terminal = () => {
       }
     }
 
-    // Handle Down Arrow for command history
     if (e.key === 'ArrowDown') {
       if (commandHistory.length > 0) {
         const newIndex = historyIndex === -1 ? 0 : Math.min(commandHistory.length - 1, historyIndex + 1);
@@ -209,20 +205,19 @@ const Terminal = () => {
   return (
     <div className="terminal">
       <div className="terminal-output">
-        {history && showTypewriterMessage && (
+        {showTypewriterMessage && (
           <Jarvis
-            text={history}
+            text={initialMessage}
             onComplete={() => {
-              setShowPrompt(true);
+              setHistory(initialMessage);
               setShowTypewriterMessage(false);
-              updateInitialMessageWithCommands();
               setShowHistory(true);
+              setShowPrompt(true);
             }}
             options={{ delay: 60 }}
           />
         )}
-
-        {showHistory && (
+        {showHistory && !showTypewriterMessage && (
           <div
             className='terminal-output'
             dangerouslySetInnerHTML={{ __html: history }}

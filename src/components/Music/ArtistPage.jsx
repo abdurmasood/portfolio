@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
+import { useNavigate } from 'react-router-dom'
 import MusicPlayer from './MusicPlayer'
 
 const Timeline = lazy(() => import("./timeline"))
@@ -8,6 +9,7 @@ const Background3D = lazy(() => import("./3D/3DBackground"))
 const MemoizedTimeline = React.memo(Timeline)
 
 function ArtistPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
   const [show3DBackground, setShow3DBackground] = useState(false)
@@ -77,6 +79,12 @@ function ArtistPage() {
   return (
     <div className="min-h-screen w-screen bg-[#0D1117] text-white flex flex-col relative overflow-hidden font-mono">
       <MusicPlayer/>
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-4 left-4 z-30 bg-[#4ADE80] text-black px-4 py-2 rounded"
+      >
+        Back to Terminal
+      </button>
       <AnimatePresence>
         {show3DBackground && (
           <Suspense fallback={null}>
