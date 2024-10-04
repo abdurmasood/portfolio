@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Terminal.css';
-import { aboutDescription, educationDescription, experienceDescription, projectsOptions, projectsDescription, originDescription, chatDescription, musicOptions, musicDescription, readMeDescription, catDescription } from '../../utls/descriptions';
+import {projectsOptions, projectsDescription, musicOptions, musicDescription, readMeDescription, catDescription, bioDescription} from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 
@@ -18,24 +18,21 @@ const Terminal = () => {
   ];
 
   const executableCommands = [
-    'about', 'education', 'experience', 'projects', 'origins', 'music', 'help', 'chat', 'cat about.txt', 'cat education.txt', 'cat experience.txt', 'cat projects.txt', 'cat origins.txt', 'cat music.txt', 'cat README.txt'
+    'bio', 'projects', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
   ];
 
   const nonExecutableCommands = [
     'pwd', 'cd', 'mkdir', 'grep', 'rm', 'exit', 
-  ];
+  ]
 
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
   const commandDescriptions = [
-    "<span class='command-keyword'>about</span>        - about Abdur Rafey Masood",
-    "<span class='command-keyword'>education</span>    - education background",
-    "<span class='command-keyword'>experience</span>   - work experience",
+    "<span class='command-keyword'>bio</span>          - Rafey's biography",
     "<span class='command-keyword'>projects</span>     - projects he's worked on",
-    "<span class='command-keyword'>origins</span>      - where he was born & raised",
     "<span class='command-keyword'>music</span>        - Rafey's journey as a producer/artist",
+    "<span class='command-keyword'>contact</span>      - Get in touch",
     "<span class='command-keyword'>help</span>         - display all the commands",
-    "<span class='command-keyword'>chat</span>         - ask me anything else",
     "",
     "Tab          => autocompletes the command",
     "Up Arrow     => go back to previous command",
@@ -83,7 +80,7 @@ const Terminal = () => {
       } else {
         switch (command) {
           case 'help':
-            output = 'Available commands: about, education, experience, projects, origins, music, help, chat';
+            output = 'Available commands: bio, projects, music, help, chat';
             break;
 
           case 'clear':
@@ -92,21 +89,11 @@ const Terminal = () => {
             setPossibleMatches([]);
             return;
           
-          case 'cat about.txt':
-          case 'about':
-            output = aboutDescription;
+          case 'cat bio.txt':
+          case 'bio':
+            output = bioDescription;
             break;
 
-          case 'cat education.txt':
-          case 'education':
-            output = educationDescription;
-            break;
-
-          case 'cat experience.txt':
-          case 'experience':
-            output = experienceDescription;
-            break;
-          
           case 'cat projects.txt':
           case 'projects':
             output = projectsOptions;
@@ -120,11 +107,6 @@ const Terminal = () => {
             navigate('/projects');
             break;
           
-          case 'cat origins.txt':
-          case 'origins':
-            output = originDescription;
-            break;
-
           case 'cat music.txt':
           case 'music':
             output = musicOptions;
@@ -138,10 +120,6 @@ const Terminal = () => {
             output = musicDescription;
             break;
 
-          case 'chat':
-            output = chatDescription;
-            break;
-
           case 'cat':
             output = catDescription;
             break;
@@ -151,7 +129,11 @@ const Terminal = () => {
             break;
 
           case 'ls':
-            output = 'about.txt   education.txt   experience.txt    projects.txt\norigins.txt   music.txt   README.txt';
+            output = 'bio.txt   projects.txt   music.txt   README.txt';
+            break;
+
+          case 'contact':
+            // enter code here to open the mail app and send email to abdurrafeym@gmail.com
             break;
 
           case '':

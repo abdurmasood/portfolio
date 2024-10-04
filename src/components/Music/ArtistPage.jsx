@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import MusicPlayer from './MusicPlayer'
 
-
 const Timeline = lazy(() => import("./timeline"))
 const Background3D = lazy(() => import("./3D/3DBackground"))
 
@@ -12,7 +11,6 @@ function ArtistPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
   const [show3DBackground, setShow3DBackground] = useState(false)
-  const backgroundControls = useAnimation()
   const journeySectionControls = useAnimation()
 
   const startAnimations = useCallback(() => {
@@ -26,13 +24,10 @@ function ArtistPage() {
       
       await new Promise(resolve => setTimeout(resolve, 500))
       setShowTimeline(true)
-      
-      await new Promise(resolve => setTimeout(resolve, 500))
-      backgroundControls.start("visible")
     }
     
     animationSequence()
-  }, [journeySectionControls, backgroundControls])
+  }, [journeySectionControls])
 
   useEffect(() => {
     // Preload the lazy components
@@ -115,22 +110,6 @@ function ArtistPage() {
                 </Suspense>
               )}
             </AnimatePresence>
-          </motion.section>
-          <motion.section 
-            className="mt-16 w-full"
-            initial="hidden"
-            animate={backgroundControls}
-            variants={fadeIn}
-          >
-            <h2 className="text-3xl font-semibold mb-8 text-center text-[#4ADE80]">Background</h2>
-            <p className="text-white text-lg text-center max-w-4xl mx-auto mb-6">
-             Rafey, also known by is stage name "Ramé Sivano", is a 27 year old artist/music producer from London. He started his journey into music at the age of 10. He spent his early years solidifying
-             a firm footing in the independent music scene in Pakistan by touring across the country as a cover artist. 2016 saw him move to London in pursuit of a better future. That is when Rafey took a break from
-             touring to focus on his lyrical expression.
-            </p>
-            <p className="text-white text-lg text-center max-w-4xl mx-auto">
-              After spending half a decade honing his his skills as a producer and finding his sound, he got signed to Studio X & he is set to release his debut album in November of 2025.
-            </p>
           </motion.section>
         </div>
       </main>
