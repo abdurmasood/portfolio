@@ -95,29 +95,19 @@ const Terminal = () => {
             break;
 
           case 'cat projects.txt':
+            output = 'Use the command "projects" for all project details';
+            break;
+            
           case 'projects':
-            output = projectsOptions;
+            navigate('/projects');            
             break;
 
-          case 'projects description':
-            output = projectsDescription;
-            break
-
-          case 'projects show':
-            navigate('/projects');
-            break;
-          
           case 'cat music.txt':
+            output = 'Use the command "music" for Rafey\'s journey as a producer';
+            break;
+
           case 'music':
-            output = musicOptions;
-            break;
-
-          case 'music journey':
             navigate('/journey');
-            break;
-
-          case 'music description':
-            output = musicDescription;
             break;
 
           case 'cat':
