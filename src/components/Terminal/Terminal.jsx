@@ -17,28 +17,28 @@ const Terminal = () => {
   const [tabPressCount, setTabPressCount] = useState(0);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [initialMessage, setInitialMessage] = useState('');
+  const [hasShownTypewriter, setHasShownTypewriter] = useState(false);
 
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
+    "<span class='grey'>My name is Jarvis, I am Rafey's virtual assistant.</span>",
     "<span class='grey'>----</span>",
-    "<span class='grey'>My name is Jarvis, Rafey's personal AI assistant.</span>",
-    "",
-    "<span class='grey'>Soon I'll be able to answer any of your questions in natural language.</span>",
-    "<span class='grey'>But until then, you can type the commands below for details.</span>",
-    "<span class='grey'>----</span>"
+    "<span class='grey'>Rafey is a full-stack developer with a focus on Artificial Intelligence.</span>",
+    "<span class='grey'>Type 'help' to learn more about him.</span>",
+    "<span class='grey'>----</span>",
+    ""
   ];
 
   const commandDescriptions = [
-    "<span class='command-keyword'>bio</span>          - Rafey's biography",
-    "<span class='command-keyword'>projects</span>     - projects he's worked on",
-    "<span class='command-keyword'>music</span>        - Rafey's journey as a producer/artist",
-    "<span class='command-keyword'>contact</span>      - Get in touch",
-    "<span class='command-keyword'>help</span>         - display all the commands",
+    "<span class='command-keyword'>bio</span>          - background, education and work experience",
+    "<span class='command-keyword'>projects</span>     - programs/applications he has built",
+    "<span class='command-keyword'>music</span>        - his journey as a producer/artist",
+    "<span class='command-keyword'>contact</span>      - get in touch",
     "",
-    "Tab          => autocompletes the command",
-    "Up Arrow     => go back to previous command",
-    "clear        => clear the terminal",
-    ""
+    "<span class='dark-grey'>tab          - autocompletes the command</span>",
+    "<span class='dark-grey'>up arrow     - go back to previous command</span>",
+    "<span class='dark-grey'>clear        - clear the terminal</span>",
+    "<span class='dark-grey'>help         - display all commands</span>",
   ];
 
   const executableCommands = [
@@ -52,15 +52,15 @@ const Terminal = () => {
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
   useEffect(() => {
-    if (history === '') {
-      const fullMessage = initialMessages.join('\n') + '\n' + commandDescriptions.join('\n') + '\n';
-      setInitialMessage(fullMessage);
+    if (history === '' && !hasShownTypewriter) {
+      setInitialMessage(initialMessages.join('\n'));
       setShowTypewriterMessage(true);
-    } else {
+      setHasShownTypewriter(true);
+    } else if (history !== '' && !showTypewriterMessage) {
       setShowHistory(true);
       setShowPrompt(true);
     }
-  }, [history]);
+  }, [history, hasShownTypewriter, showTypewriterMessage]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -86,6 +86,8 @@ const Terminal = () => {
             setHistory('');
             setInput('');
             setPossibleMatches([]);
+            setShowHistory(true);
+            setShowPrompt(true);
             return;
           
           case 'cat bio.txt':
@@ -107,7 +109,7 @@ const Terminal = () => {
 
           case 'music':
             navigate('/journey');
-            return;
+            break;
 
           case 'cat':
             output = catDescription;
@@ -225,7 +227,7 @@ const Terminal = () => {
         )}
       </div>
 
-      {showPrompt && (
+      {showPrompt && !showTypewriterMessage && (
         <div className="terminal-input">
           <span className="prompt">
             visitor
