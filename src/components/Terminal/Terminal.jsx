@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Terminal.css';
 import { projectsOptions, projectsDescription, musicOptions, musicDescription, readMeDescription, catDescription, bioDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
@@ -8,6 +8,7 @@ import { useTerminal } from './TerminalContext';
 const Terminal = () => {
   const navigate = useNavigate();
   const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
+  const terminalRef = useRef(null);
 
   const [showHistory, setShowHistory] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -35,10 +36,10 @@ const Terminal = () => {
     "<span class='command-keyword'>music</span>        - his journey as a producer/artist",
     "<span class='command-keyword'>contact</span>      - get in touch",
     "",
-    "<span class='dark-grey'>tab          - autocompletes the command</span>",
-    "<span class='dark-grey'>up arrow     - go back to previous command</span>",
-    "<span class='dark-grey'>clear        - clear the terminal</span>",
-    "<span class='dark-grey'>help         - display all commands</span>",
+    "<span class='grey'>tab          - autocompletes the command</span>",
+    "<span class='grey'>up arrow     - go back to previous command</span>",
+    "<span class='grey'>clear        - clear the terminal</span>",
+    "<span class='grey'>help         - display all commands</span>",
   ];
 
   const executableCommands = [
@@ -62,19 +63,29 @@ const Terminal = () => {
     }
   }, [history, hasShownTypewriter, showTypewriterMessage]);
 
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [history]);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       const command = input.trim();
       let output = '';
+      let isError = false;
       
       if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
         if (command === 'pwd' || command === 'exit') {
           output = `${command}: Permission denied`;
+          isError = true;
         } else if (command.startsWith('cd') || command.startsWith('mkdir') || command.startsWith('grep') || command.startsWith('rm')) {
           output = `${command}: Permission denied`;
+          isError = true;
         } else if (command.startsWith('pwd ') || command.startsWith('exit ')) {
           const invalidCommand = command.split(' ')[1];
           output = `${invalidCommand} : The term ${invalidCommand} is not recognized as the name of a cmdlet, function, script file, or operable program.`;
+          isError = true;
         }
       } else {
         switch (command) {
@@ -124,23 +135,28 @@ const Terminal = () => {
             break;
 
           case 'contact':
-            // enter code here to open the mail app and send email to abdurrafeym@gmail.com
+            output = 'EMAIL: abdurrafeym@gmail.com'
             break;
 
           case '':
+            // For empty command, we'll just add the prompt
             output = '';
             break;
             
           default:
             output = `Command not found: '${command}'`;
+            isError = true;
         }
       }
 
-      if (output === '') {
-        setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${command}${output}\n`);
-      } else {
-        setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${command}\n${output}\n`);
-      }
+      const commandPrompt = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
+      const commandOutput = `${commandPrompt} ${command}`;
+      const formattedOutput = isError ? `<span class='error-text'>${output}</span>` : output;
+
+      // Update history for all commands, always adding a new line
+      setHistory((prevHistory) => {
+        return `${prevHistory}${commandOutput}\n${formattedOutput ? formattedOutput + '\n' : ''}`;
+      });
 
       setCommandHistory(prevHistory => [...prevHistory, command]);
       setHistoryIndex(-1);
@@ -205,7 +221,7 @@ const Terminal = () => {
   };
 
   return (
-    <div className="terminal">
+    <div className="terminal" ref={terminalRef}>
       <div className="terminal-output">
         {showTypewriterMessage && (
           <Jarvis
