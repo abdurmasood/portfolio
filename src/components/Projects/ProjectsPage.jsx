@@ -3,6 +3,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Float, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
+import TerminalIcon from './../Terminal/TerminalIcon'  // Assuming you've saved the TerminalIcon component in a separate file
+import { useNavigate } from 'react-router-dom';
 
 const projects = [
   { id: 1, title: "about", description: "About Abdur Rafey Masood" },
@@ -268,6 +270,7 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
 }
 
 const ProjectsPage = () => {
+  const navigate = useNavigate();
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -283,6 +286,14 @@ const ProjectsPage = () => {
   const handleClosePopup = useCallback(() => {
     setActiveProject(null)
   }, [])
+
+  const handleTerminalClick = useCallback(() => {
+    // Navigate to the home page
+    // If you're using React Router, you might do something like:
+    navigate('/');
+    // console.log('Navigating to home page')
+  }, [])
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -334,6 +345,8 @@ const ProjectsPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <TerminalIcon onClick={handleTerminalClick} />
 
       <AnimatePresence>
         {isLoaded && (
