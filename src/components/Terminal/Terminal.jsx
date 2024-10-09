@@ -4,6 +4,7 @@ import { projectsOptions, projectsDescription, musicOptions, musicDescription, r
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 import { useTerminal } from './TerminalContext';
+import LoadingBar from './../Projects/LoadingBar'; // Import the LoadingBar component
 
 const Terminal = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Terminal = () => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [initialMessage, setInitialMessage] = useState('');
   const [hasShownTypewriter, setHasShownTypewriter] = useState(false);
+  const [showLoadingBar, setShowLoadingBar] = useState(false);
 
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
@@ -111,7 +113,11 @@ const Terminal = () => {
             break;
             
           case 'projects':
-            navigate('/projects');            
+            setShowLoadingBar(true);
+            setTimeout(() => {
+              setShowLoadingBar(false);
+              navigate('/projects');
+            }, 5500);
             break;
 
           case 'cat music.txt':
@@ -222,48 +228,54 @@ const Terminal = () => {
 
   return (
     <div className="terminal" ref={terminalRef}>
-      <div className="terminal-output">
-        {showTypewriterMessage && (
-          <Jarvis
-            text={initialMessage}
-            onComplete={() => {
-              setHistory(initialMessage);
-              setShowTypewriterMessage(false);
-              setShowHistory(true);
-              setShowPrompt(true);
-            }}
-            options={{ delay: 60 }}
-          />
-        )}
-        {showHistory && !showTypewriterMessage && (
-          <div
-            className='terminal-output'
-            dangerouslySetInnerHTML={{ __html: history }}
-          />
-        )}
-      </div>
+      {showLoadingBar ? (
+        <LoadingBar />
+      ) : (
+        <>
+          <div className="terminal-output">
+            {showTypewriterMessage && (
+              <Jarvis
+                text={initialMessage}
+                onComplete={() => {
+                  setHistory(initialMessage);
+                  setShowTypewriterMessage(false);
+                  setShowHistory(true);
+                  setShowPrompt(true);
+                }}
+                options={{ delay: 60 }}
+              />
+            )}
+            {showHistory && !showTypewriterMessage && (
+              <div
+                className='terminal-output'
+                dangerouslySetInnerHTML={{ __html: history }}
+              />
+            )}
+          </div>
 
-      {showPrompt && !showTypewriterMessage && (
-        <div className="terminal-input">
-          <span className="prompt">
-            visitor
-            <span className='base-color'>@</span>
-            <span className='hostname'>rafey.ai</span>
-            <span className='base-color'>:~$</span>
-          </span>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              setTabPressCount(0);
-              setPossibleMatches([]);
-              setHistoryIndex(-1);
-            }}
-            onKeyDown={handleKeyDown}
-            autoFocus
-          />
-        </div>
+          {showPrompt && !showTypewriterMessage && (
+            <div className="terminal-input">
+              <span className="prompt">
+                visitor
+                <span className='base-color'>@</span>
+                <span className='hostname'>rafey.ai</span>
+                <span className='base-color'>:~$</span>
+              </span>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  setTabPressCount(0);
+                  setPossibleMatches([]);
+                  setHistoryIndex(-1);
+                }}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
