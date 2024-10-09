@@ -2,11 +2,32 @@ import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import { useNavigate } from 'react-router-dom'
 import MusicPlayer from './MusicPlayer'
+import { Terminal } from 'lucide-react'
 
 const Timeline = lazy(() => import("./timeline"))
 const Background3D = lazy(() => import("./3D/3DBackground"))
 
 const MemoizedTimeline = React.memo(Timeline)
+
+const TerminalIcon = ({ onClick }) => {
+  return (
+    <motion.div
+      className="absolute top-4 left-4 cursor-pointer z-30"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.5 }}
+    >
+      <Terminal
+        size={32}
+        color="#4ADE80"
+        onClick={onClick}
+        className="hover:text-white transition-colors duration-200"
+      />
+    </motion.div>
+  );
+};
 
 function ArtistPage() {
   const navigate = useNavigate();
@@ -61,6 +82,10 @@ function ArtistPage() {
     }
   }
 
+  const handleTerminalClick = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen w-screen bg-[#0D1117] flex items-center justify-center">
@@ -79,12 +104,7 @@ function ArtistPage() {
   return (
     <div className="min-h-screen w-screen bg-[#0D1117] text-white flex flex-col relative overflow-hidden font-mono">
       <MusicPlayer/>
-      <button
-        onClick={() => navigate(-1)}
-        className="absolute top-4 left-4 z-30 bg-[#4ADE80] text-black px-4 py-2 rounded"
-      >
-        Back to Terminal
-      </button>
+      <TerminalIcon onClick={handleTerminalClick} />
       <AnimatePresence>
         {show3DBackground && (
           <Suspense fallback={null}>

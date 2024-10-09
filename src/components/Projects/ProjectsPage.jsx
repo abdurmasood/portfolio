@@ -290,7 +290,7 @@ const ProjectsPage = () => {
   const handleTerminalClick = useCallback(() => {
     // Navigate to the home page
     // If you're using React Router, you might do something like:
-    navigate('/');
+    navigate(-1);
     // console.log('Navigating to home page')
   }, [])
 
