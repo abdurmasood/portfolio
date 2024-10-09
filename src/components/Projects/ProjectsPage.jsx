@@ -7,13 +7,13 @@ import TerminalIcon from './../Terminal/TerminalIcon'  // Assuming you've saved 
 import { useNavigate } from 'react-router-dom';
 
 const projects = [
-  { id: 1, title: "about", description: "About Abdur Rafey Masood" },
-  { id: 2, title: "education", description: "Education background" },
-  { id: 3, title: "experience", description: "Work experience" },
-  { id: 4, title: "projects", description: "Projects he's worked on" },
-  { id: 5, title: "origins", description: "Where he was born & raised" },
-  { id: 6, title: "music", description: "Rafey's journey as a producer/artist" },
-  { id: 7, title: "help", description: "Display all the commands" },
+  { id: 1, title: "HeartSync", description: "About Abdur Rafey Masood" },
+  { id: 2, title: "NeuroScan", description: "Education background" },
+  { id: 3, title: "Nannie.ai", description: "Work experience" },
+  { id: 4, title: "Sat Comms", description: "Projects he's worked on" },
+  { id: 5, title: "GAP", description: "Where he was born & raised" },
+  { id: 6, title: "Rate Watch", description: "Rafey's journey as a producer/artist" },
+  { id: 7, title: "Assisty.io", description: "Display all the commands" },
 ]
 
 const geometries = [
