@@ -30,10 +30,11 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
   const groupRef = useRef()
   const meshRef = useRef()
   const textRef = useRef()
+  const popupRef = useRef()
   const [hovered, setHovered] = useState(false)
   const [touched, setTouched] = useState(false)
   const [scale, setScale] = useState(1)
-  const { viewport } = useThree()
+  const { viewport, camera } = useThree()
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(geometry), [geometry])
@@ -77,15 +78,30 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
       textRef.current.position.y = -1.7 + Math.sin((state.clock.elapsedTime + randomOffset) * randomFrequency) * randomAmplitude
       textRef.current.scale.setScalar(opacity)
     }
+    if (popupRef.current && groupRef.current) {
+      // Convert the object's position to screen space
+      const vector = new THREE.Vector3()
+      groupRef.current.getWorldPosition(vector)
+      vector.project(camera)
+
+      // Convert to 2D screen space
+      const x = (vector.x * 0.5 + 0.5) * viewport.width
+      const y = (vector.y * -0.5 + 0.5) * viewport.height
+
+      // Determine if the geometry is on the left or right side of the screen
+      const isLeftSide = x < viewport.width / 2
+
+      // Position the popup to the right or left of the geometry
+      const offsetX = isLeftSide ? 5 : -35 
+      const popupX = x + offsetX
+      const popupY = y
+
+      // Update popup position
+      popupRef.current.style.transform = `translate(${isLeftSide ? '0' : '-100%'}, -50%) translate(${popupX}px,${popupY}px)`
+    }
   })
 
   const isHighlighted = hovered || touched
-
-  const getPopupPosition = useCallback(() => {
-    const angle = Math.atan2(initialPosition[1], initialPosition[0])
-    const isRightSide = Math.abs(angle) < Math.PI / 2
-    return isRightSide ? [-12, 2, 0] : [2, 2, 0]
-  }, [initialPosition])
 
   return (
     <group ref={groupRef} position={initialPosition}>
@@ -116,8 +132,8 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
           </Text>
         </group>
         {isActive && (
-          <Html position={getPopupPosition()}>
-            <div className="popup-container">
+          <Html>
+            <div ref={popupRef} className="popup-container" style={{ position: 'absolute', pointerEvents: 'auto' }}>
               <div 
                 className="popup-content bg-black bg-opacity-75 text-white p-3 sm:p-4 rounded-md shadow-lg relative"
                 style={{
@@ -141,7 +157,6 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">{project.title}</h3>
                 <p className="text-xs sm:text-sm">{project.description}</p>
               </div>
-              <div className="popup-arrow"></div>
             </div>
           </Html>
         )}
