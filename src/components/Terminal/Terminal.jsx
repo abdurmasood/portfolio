@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Terminal.css';
-import { projectsOptions, projectsDescription, musicOptions, musicDescription, readMeDescription, catDescription, bioDescription } from '../../utls/descriptions';
+import {readMeDescription, catDescription, bioDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 import { useTerminal } from './TerminalContext';
@@ -148,7 +148,7 @@ const Terminal = () => {
               output = `email: abdurrafeym@gmail.com
 linkedin: Abdur Rafey M.
 
-Usage: open &lt;contact-option&gt;`;
+Usage: open &lt;contact-option&gt; (e.g. open email)`;
               break;
     
             case 'open linkedin':
@@ -157,7 +157,8 @@ Usage: open &lt;contact-option&gt;`;
               break;
 
             case 'open email':
-              output = 'TBD'
+              window.location.href = `mailto:abdurrafeym@gmail.com?subject=Hi👋&body=Hi Rafey, i'm ___ and I work in ___. Would love to chat!`
+              output = 'Opening email application...';
               break;
 
           case '':
