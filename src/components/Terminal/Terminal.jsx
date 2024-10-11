@@ -1,24 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Terminal.css';
-import { aboutDescription, educationDescription, experienceDescription, projectsOptions, projectsDescription, originDescription, chatDescription, musicOptions, musicDescription, readMeDescription, catDescription } from '../../utls/descriptions';
+import {readMeDescription, catDescription, bioDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
+import { useTerminal } from './TerminalContext';
+import LoadingBar from './../Projects/LoadingBar'; // Import the LoadingBar component
 
 const Terminal = () => {
   const navigate = useNavigate();
+  const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
+  const terminalRef = useRef(null);
+
+  const [showHistory, setShowHistory] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [showTypewriterMessage, setShowTypewriterMessage] = useState(false);
+  const [possibleMatches, setPossibleMatches] = useState([]);
+  const [lastCommand, setLastCommand] = useState('');
+  const [tabPressCount, setTabPressCount] = useState(0);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [initialMessage, setInitialMessage] = useState('');
+  const [hasShownTypewriter, setHasShownTypewriter] = useState(false);
+  const [showLoadingBar, setShowLoadingBar] = useState(false);
 
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
+    "<span class='grey'>My name is Jarvis, I am Rafey's virtual assistant.</span>",
     "<span class='grey'>----</span>",
-    "<span class='grey'>My name is Jarvis, Rafey's personal AI assistant.</span>",
+    "<span class='grey'>Rafey is a full-stack developer with a focus on Artificial Intelligence.</span>",
+    "<span class='grey'>Type 'help' to learn more about him.</span>",
+    "<span class='grey'>----</span>",
+    ""
+  ];
+
+  const commandDescriptions = [
+    "<span class='command-keyword'>bio</span>          - background, education and work experience",
+    "<span class='command-keyword'>projects</span>     - programs/applications he has built",
+    "<span class='command-keyword'>music</span>        - his journey as a producer/artist",
+    "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
+    "<span class='command-keyword'>contact</span>      - get in touch",
     "",
-    "<span class='grey'>Soon I'll be able to answer any of your questions in natural language.</span>",
-    "<span class='grey'>But until then, you can type the commands below for details.</span>",
-    "<span class='grey'>----</span>"
+    "<span class='grey'>up arrow     => go back to previous command</span>",
+    "<span class='grey'>clear        => clear the terminal</span>",
+    "<span class='grey'>help         => display all commands</span>",
   ];
 
   const executableCommands = [
-    'about', 'education', 'experience', 'projects', 'origins', 'music', 'help', 'chat', 'cat about.txt', 'cat education.txt', 'cat experience.txt', 'cat projects.txt', 'cat origins.txt', 'cat music.txt', 'cat README.txt'
+    'bio', 'projects', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
   ];
 
   const nonExecutableCommands = [
@@ -27,119 +54,82 @@ const Terminal = () => {
 
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
-  const commandDescriptions = [
-    "<span class='command-keyword'>about</span>        - about Abdur Rafey Masood",
-    "<span class='command-keyword'>education</span>    - education background",
-    "<span class='command-keyword'>experience</span>   - work experience",
-    "<span class='command-keyword'>projects</span>     - projects he's worked on",
-    "<span class='command-keyword'>origins</span>      - where he was born & raised",
-    "<span class='command-keyword'>music</span>        - Rafey's journey as a producer/artist",
-    "<span class='command-keyword'>help</span>         - display all the commands",
-    "<span class='command-keyword'>chat</span>         - ask me anything else",
-    "",
-    "Tab          => autocompletes the command",
-    "Up Arrow     => go back to previous command",
-    "clear        => clear the terminal",
-    ""
-  ];
-
-  const [history, setHistory] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [showTypewriterMessage, setShowTypewriterMessage] = useState(true);
-  const [input, setInput] = useState('');
-  const [possibleMatches, setPossibleMatches] = useState([]);
-  const [lastCommand, setLastCommand] = useState('');
-  const [tabPressCount, setTabPressCount] = useState(0);
-  const [commandHistory, setCommandHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  useEffect(() => {
+    if (history === '' && !hasShownTypewriter) {
+      setInitialMessage(initialMessages.join('\n'));
+      setShowTypewriterMessage(true);
+      setHasShownTypewriter(true);
+    } else if (history !== '' && !showTypewriterMessage) {
+      setShowHistory(true);
+      setShowPrompt(true);
+    }
+  }, [history, hasShownTypewriter, showTypewriterMessage]);
 
   useEffect(() => {
-    const fullMessage = initialMessages.join('\n') + '\n';
-    setHistory(fullMessage);
-  }, []);
-
-  const updateInitialMessageWithCommands = () => {
-    const execCommands = commandDescriptions.join('\n') + '\n';
-    const fullMessage = history.concat(execCommands);
-    setHistory(fullMessage);
-  };
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [history]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       const command = input.trim();
       let output = '';
+      let isError = false;
       
-      // Check for non-executable commands and their variations
       if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
         if (command === 'pwd' || command === 'exit') {
           output = `${command}: Permission denied`;
+          isError = true;
         } else if (command.startsWith('cd') || command.startsWith('mkdir') || command.startsWith('grep') || command.startsWith('rm')) {
           output = `${command}: Permission denied`;
+          isError = true;
         } else if (command.startsWith('pwd ') || command.startsWith('exit ')) {
           const invalidCommand = command.split(' ')[1];
           output = `${invalidCommand} : The term ${invalidCommand} is not recognized as the name of a cmdlet, function, script file, or operable program.`;
+          isError = true;
         }
       } else {
         switch (command) {
           case 'help':
-            output = 'Available commands: about, education, experience, projects, origins, music, help, chat';
+            output = commandDescriptions.join('\n');
             break;
 
           case 'clear':
             setHistory('');
             setInput('');
             setPossibleMatches([]);
+            setShowHistory(true);
+            setShowPrompt(true);
             return;
           
-          case 'cat about.txt':
-          case 'about':
-            output = aboutDescription;
+          case 'cat bio.txt':
+          case 'bio':
+            output = bioDescription;
             break;
 
-          case 'cat education.txt':
-          case 'education':
-            output = educationDescription;
-            break;
-
-          case 'cat experience.txt':
-          case 'experience':
-            output = experienceDescription;
-            break;
-          
           case 'cat projects.txt':
+            output = 'Use the command "projects" for all project details';
+            break;
+            
           case 'projects':
-            output = projectsOptions;
+            setShowLoadingBar(true);
+            setTimeout(() => {
+              setShowLoadingBar(false);
+              navigate('/projects');
+            }, 5500);
             break;
 
-          case 'projects description':
-            output = projectsDescription;
-            break
-
-          case 'projects show':
-            navigate('/projects');
-            break;
-          
-          case 'cat origins.txt':
-          case 'origins':
-            output = originDescription;
+          case 'blog':
+            navigate('/blog')
             break;
 
           case 'cat music.txt':
+            output = 'Use the command "music" for Rafey\'s journey as a producer';
+            break;
+
           case 'music':
-            output = musicOptions;
-            break;
-
-          case 'music journey':
             navigate('/journey');
-            break;
-
-          case 'music description':
-            output = musicDescription;
-            break;
-
-          case 'chat':
-            output = chatDescription;
             break;
 
           case 'cat':
@@ -151,23 +141,45 @@ const Terminal = () => {
             break;
 
           case 'ls':
-            output = 'about.txt   education.txt   experience.txt    projects.txt\norigins.txt   music.txt   README.txt';
+            output = 'bio.txt   projects.txt   music.txt   README.txt';
             break;
 
+            case 'contact':
+              output = `email: abdurrafeym@gmail.com
+linkedin: Abdur Rafey M.
+
+Usage: open &lt;contact-option&gt; (e.g. open email)`;
+              break;
+    
+            case 'open linkedin':
+              window.open('https://www.linkedin.com/in/abdur-rafey-masood/', '_blank');
+              output = 'Opening LinkedIn profile in a new tab...';
+              break;
+
+            case 'open email':
+              window.location.href = `mailto:abdurrafeym@gmail.com?subject=Hi👋&body=Hi Rafey, i'm ___ and I work in ___. Would love to chat!`
+              output = 'Opening email application...';
+              break;
+
           case '':
+            // For empty command, we'll just add the prompt
             output = '';
             break;
             
           default:
             output = `Command not found: '${command}'`;
+            isError = true;
         }
       }
 
-      if (output === '') {
-        setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${command}${output}\n`);
-      } else {
-        setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${command}\n${output}\n`);
-      }
+      const commandPrompt = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
+      const commandOutput = `${commandPrompt} ${command}`;
+      const formattedOutput = isError ? `<span class='error-text'>${output}</span>` : output;
+
+      // Update history for all commands, always adding a new line
+      setHistory((prevHistory) => {
+        return `${prevHistory}${commandOutput}\n${formattedOutput ? formattedOutput + '\n' : ''}`;
+      });
 
       setCommandHistory(prevHistory => [...prevHistory, command]);
       setHistoryIndex(-1);
@@ -177,7 +189,6 @@ const Terminal = () => {
       setLastCommand('');
     }
 
-    // Handle Tab for autocompletion
     if (e.key === 'Tab') {
       e.preventDefault();
 
@@ -215,7 +226,6 @@ const Terminal = () => {
       }
     }
 
-    // Handle Up Arrow for command history
     if (e.key === 'ArrowUp') {
       if (commandHistory.length > 0) {
         const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
@@ -224,7 +234,6 @@ const Terminal = () => {
       }
     }
 
-    // Handle Down Arrow for command history
     if (e.key === 'ArrowDown') {
       if (commandHistory.length > 0) {
         const newIndex = historyIndex === -1 ? 0 : Math.min(commandHistory.length - 1, historyIndex + 1);
@@ -235,50 +244,55 @@ const Terminal = () => {
   };
 
   return (
-    <div className="terminal">
-      <div className="terminal-output">
-        {history && showTypewriterMessage && (
-          <Jarvis
-            text={history}
-            onComplete={() => {
-              setShowPrompt(true);
-              setShowTypewriterMessage(false);
-              updateInitialMessageWithCommands();
-              setShowHistory(true);
-            }}
-            options={{ delay: 60 }}
-          />
-        )}
+    <div className="terminal" ref={terminalRef}>
+      {showLoadingBar ? (
+        <LoadingBar />
+      ) : (
+        <>
+          <div className="terminal-output">
+            {showTypewriterMessage && (
+              <Jarvis
+                text={initialMessage}
+                onComplete={() => {
+                  setHistory(initialMessage);
+                  setShowTypewriterMessage(false);
+                  setShowHistory(true);
+                  setShowPrompt(true);
+                }}
+                options={{ delay: 60 }}
+              />
+            )}
+            {showHistory && !showTypewriterMessage && (
+              <div
+                className='terminal-output'
+                dangerouslySetInnerHTML={{ __html: history }}
+              />
+            )}
+          </div>
 
-        {showHistory && (
-          <div
-            className='terminal-output'
-            dangerouslySetInnerHTML={{ __html: history }}
-          />
-        )}
-      </div>
-
-      {showPrompt && (
-        <div className="terminal-input">
-          <span className="prompt">
-            visitor
-            <span className='base-color'>@</span>
-            <span className='hostname'>rafey.ai</span>
-            <span className='base-color'>:~$</span>
-          </span>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              setTabPressCount(0);
-              setPossibleMatches([]);
-              setHistoryIndex(-1);
-            }}
-            onKeyDown={handleKeyDown}
-            autoFocus
-          />
-        </div>
+          {showPrompt && !showTypewriterMessage && (
+            <div className="terminal-input">
+              <span className="prompt">
+                visitor
+                <span className='base-color'>@</span>
+                <span className='hostname'>rafey.ai</span>
+                <span className='base-color'>:~$</span>
+              </span>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  setTabPressCount(0);
+                  setPossibleMatches([]);
+                  setHistoryIndex(-1);
+                }}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

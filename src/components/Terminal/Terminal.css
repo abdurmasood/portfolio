@@ -71,5 +71,13 @@
 }
 
 .grey {
-  color: #979797
+  color: #808080
+}
+
+.dark-grey {
+  color: #848884
+}
+
+.error-text {
+  color: #CC0000;
 }

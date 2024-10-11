@@ -2,15 +2,18 @@ import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Float, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { motion, AnimatePresence } from 'framer-motion'
+import TerminalIcon from './../Terminal/TerminalIcon'  // Assuming you've saved the TerminalIcon component in a separate file
+import { useNavigate } from 'react-router-dom';
 
 const projects = [
-  { id: 1, title: "about", description: "About Abdur Rafey Masood" },
-  { id: 2, title: "education", description: "Education background" },
-  { id: 3, title: "experience", description: "Work experience" },
-  { id: 4, title: "projects", description: "Projects he's worked on" },
-  { id: 5, title: "origins", description: "Where he was born & raised" },
-  { id: 6, title: "music", description: "Rafey's journey as a producer/artist" },
-  { id: 7, title: "help", description: "Display all the commands" },
+  { id: 1, title: "HeartSync", description: "About Abdur Rafey Masood" },
+  { id: 2, title: "NeuroScan", description: "Education background" },
+  { id: 3, title: "Nannie.ai", description: "Work experience" },
+  { id: 4, title: "Sat Comms", description: "Projects he's worked on" },
+  { id: 5, title: "GAP", description: "Where he was born & raised" },
+  { id: 6, title: "Rate Watch", description: "Rafey's journey as a producer/artist" },
+  { id: 7, title: "Assisty.io", description: "Display all the commands" },
 ]
 
 const geometries = [
@@ -23,7 +26,7 @@ const geometries = [
   new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16)
 ]
 
-const ProjectShape = React.memo(({ project, initialPosition, geometry, onProjectClick, isActive, onClosePopup, loadProgress }) => {
+const ProjectShape = React.memo(({ project, initialPosition, geometry, onProjectClick, isActive, onClosePopup, opacity }) => {
   const groupRef = useRef()
   const meshRef = useRef()
   const textRef = useRef()
@@ -65,11 +68,11 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
     if (meshRef.current) {
       meshRef.current.rotation.x += delta * 0.2
       meshRef.current.rotation.y += delta * 0.2
-      meshRef.current.scale.setScalar(scale * loadProgress)
+      meshRef.current.scale.setScalar(scale * opacity)
     }
     if (textRef.current) {
       textRef.current.position.y = -1.7 + Math.sin((state.clock.elapsedTime + randomOffset) * randomFrequency) * randomAmplitude
-      textRef.current.scale.setScalar(loadProgress)
+      textRef.current.scale.setScalar(opacity)
     }
   })
 
@@ -132,48 +135,6 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
 })
 
 ProjectShape.displayName = 'ProjectShape'
-
-function Scene({ onProjectClick, activeProject, onClosePopup, loadProgress }) {
-  const [shapes, setShapes] = useState([])
-
-  useEffect(() => {
-    const initialShapes = projects.map((project, index) => {
-      const angle = (index / projects.length) * Math.PI * 2
-      const radius = 7.7
-      return {
-        project,
-        position: [
-          Math.cos(angle) * radius,
-          Math.sin(angle) * radius,
-          0
-        ],
-        geometry: geometries[index]
-      }
-    })
-    setShapes(initialShapes)
-  }, [])
-
-  return (
-    <>
-      <ambientLight intensity={0.5 * loadProgress} />
-      <pointLight position={[10, 10, 10]} intensity={loadProgress} />
-      <CustomOrbitControls />
-      {shapes.map((shape) => (
-        <ProjectShape
-          key={shape.project.id}
-          project={shape.project}
-          initialPosition={shape.position}
-          geometry={shape.geometry}
-          onProjectClick={onProjectClick}
-          isActive={activeProject?.id === shape.project.id}
-          onClosePopup={onClosePopup}
-          loadProgress={loadProgress}
-        />
-      ))}
-      <Stars opacity={loadProgress} />
-    </>
-  )
-}
 
 const CustomOrbitControls = () => {
   const { camera, gl } = useThree()
@@ -253,10 +214,66 @@ const Stars = React.memo(({ opacity }) => {
 
 Stars.displayName = 'Stars'
 
+const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
+  const [shapes, setShapes] = useState([])
+  const [opacity, setOpacity] = useState(0)
+
+  useEffect(() => {
+    const initialShapes = projects.map((project, index) => {
+      const angle = (index / projects.length) * Math.PI * 2
+      const radius = 7.7
+      return {
+        project,
+        position: [
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          0
+        ],
+        geometry: geometries[index]
+      }
+    })
+    setShapes(initialShapes)
+
+    // Animate opacity
+    const fadeIn = () => {
+      setOpacity(prevOpacity => {
+        const newOpacity = Math.min(prevOpacity + 0.05, 1)
+        if (newOpacity < 1) {
+          requestAnimationFrame(fadeIn)
+        }
+        return newOpacity
+      })
+    }
+    requestAnimationFrame(fadeIn)
+  }, [])
+
+  return (
+    <>
+      <ambientLight intensity={0.5 * opacity} />
+      <pointLight position={[10, 10, 10]} intensity={opacity} />
+      <CustomOrbitControls />
+      {shapes.map((shape) => (
+        <ProjectShape
+          key={shape.project.id}
+          project={shape.project}
+          initialPosition={shape.position}
+          geometry={shape.geometry}
+          onProjectClick={onProjectClick}
+          isActive={activeProject?.id === shape.project.id}
+          onClosePopup={onClosePopup}
+          opacity={opacity}
+        />
+      ))}
+      <Stars opacity={opacity} />
+    </>
+  )
+}
+
 const ProjectsPage = () => {
+  const navigate = useNavigate();
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
-  const [loadProgress, setLoadProgress] = useState(0)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const toggleInstructions = useCallback(() => {
     setShowInstructions(prev => !prev)
@@ -270,21 +287,16 @@ const ProjectsPage = () => {
     setActiveProject(null)
   }, [])
 
+  const handleTerminalClick = useCallback(() => {
+    navigate(-1);
+  }, [])
+
   useEffect(() => {
-    const startTime = Date.now()
-    const duration = 2000 // 2 seconds for the animation
+    const timer = setTimeout(() => {
+      setIsLoaded(true)
+    }, 100) // Small delay to ensure smooth transition
 
-    const animateIn = () => {
-      const elapsedTime = Date.now() - startTime
-      const progress = Math.min(elapsedTime / duration, 1)
-      setLoadProgress(progress)
-
-      if (progress < 1) {
-        requestAnimationFrame(animateIn)
-      }
-    }
-
-    requestAnimationFrame(animateIn)
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -293,33 +305,79 @@ const ProjectsPage = () => {
     return () => document.removeEventListener('contextmenu', handleContextMenu)
   }, [])
 
+  const canvasVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 1.5, ease: 'easeOut' } }
+  }
+
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 1 } }
+  }
+
+  const instructionsVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
+  }
+
   return (
-    <div className="w-screen h-screen bg-black text-white font-mono" style={{ opacity: loadProgress }}>
-      <Canvas camera={{ position: [0, 0, 20], fov: 60 }}>
-        <Scene 
-          onProjectClick={handleProjectClick} 
-          activeProject={activeProject}
-          onClosePopup={handleClosePopup}
-          loadProgress={loadProgress}
-        />
-      </Canvas>
-      <button
-        className="absolute bottom-4 left-4 bg-white text-black px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors"
-        onClick={toggleInstructions}
-        style={{ opacity: loadProgress }}
-      >
-        Instructions
-      </button>
-      {showInstructions && (
-        <div className="absolute bottom-16 left-4 bg-black bg-opacity-75 p-4 rounded-md max-w-xs" style={{ opacity: loadProgress }}>
-          <ul className="list-disc pl-5 space-y-2">
-            <li className="text-sm"><strong className="text-[#39FF14]">LEFT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
-            <li className="text-sm"><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move the camera sideways.</li>
-            <li className="text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
-            <li className="text-sm"><strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
-          </ul>
-        </div>
-      )}
+    <div className="w-screen h-screen bg-black text-white font-mono">
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            key="canvas-container"
+            initial="hidden"
+            animate="visible"
+            variants={canvasVariants}
+            className="w-full h-full"
+          >
+            <Canvas camera={{ position: [0, 0, 20], fov: 60 }}>
+              <Scene 
+                onProjectClick={handleProjectClick} 
+                activeProject={activeProject}
+                onClosePopup={handleClosePopup}
+              />
+            </Canvas>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <TerminalIcon onClick={handleTerminalClick} />
+
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.button
+            key="instructions-button"
+            className="absolute bottom-4 left-4 bg-white text-black px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors"
+            onClick={toggleInstructions}
+            variants={buttonVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            Instructions
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInstructions && (
+          <motion.div
+            key="instructions-panel"
+            className="absolute bottom-16 left-4 bg-black bg-opacity-75 p-4 rounded-md max-w-xs"
+            variants={instructionsVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <ul className="list-disc pl-5 space-y-2">
+              <li className="text-sm"><strong className="text-[#39FF14]">LEFT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
+              <li className="text-sm"><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move the camera sideways.</li>
+              <li className="text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
+              <li className="text-sm"><strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
