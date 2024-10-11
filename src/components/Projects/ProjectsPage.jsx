@@ -37,7 +37,9 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
 
   const handlePointerOver = useCallback(() => setHovered(true), [])
   const handlePointerOut = useCallback(() => setHovered(false), [])
-  const handleClick = useCallback(() => {
+  
+  const handleClick = useCallback((event) => {
+    event.stopPropagation()
     if (isActive) {
       onClosePopup()
     } else {
@@ -49,25 +51,14 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
   const randomAmplitude = useMemo(() => Math.random() * 0.07 + 0.03, [])
   const randomFrequency = useMemo(() => Math.random() * 1 + 1, [])
 
-  useEffect(() => {
-    let frameId
-    const animateScale = () => {
-      setScale(current => {
-        const target = hovered ? 1.2 : 1
-        const newScale = current + (target - current) * 0.1
-        if (Math.abs(newScale - target) < 0.001) return target
-        frameId = requestAnimationFrame(animateScale)
-        return newScale
-      })
-    }
-    frameId = requestAnimationFrame(animateScale)
-    return () => cancelAnimationFrame(frameId)
-  }, [hovered])
-
   useFrame((state, delta) => {
     if (meshRef.current) {
       meshRef.current.rotation.x += delta * 0.2
       meshRef.current.rotation.y += delta * 0.2
+      setScale(current => {
+        const target = hovered ? 1.2 : 1
+        return THREE.MathUtils.lerp(current, target, 0.1)
+      })
       meshRef.current.scale.setScalar(scale * opacity)
     }
     if (textRef.current) {
@@ -117,7 +108,7 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 }}
               >
                 <button 
-                  onClick={onClosePopup}
+                  onClick={(e) => { e.stopPropagation(); onClosePopup(); }}
                   className="absolute top-1 right-2 sm:top-2 sm:right-4 text-white hover:text-gray-300 bg-transparent border-none cursor-pointer text-base sm:text-lg focus:outline-none"
                   style={{ lineHeight: 1 }}
                 >
@@ -134,6 +125,8 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
     </group>
   )
 })
+
+ProjectShape.displayName = 'ProjectShape'
 
 const CustomOrbitControls = () => {
   const { camera, gl } = useThree()
@@ -169,7 +162,6 @@ const CustomOrbitControls = () => {
 
     const handleTouchStart = (event) => {
       if (event.touches.length === 1) {
-        event.preventDefault() // Prevent default behavior like zooming
         const touch = event.touches[0]
         touchStartRef.current = { x: touch.clientX, y: touch.clientY }
         
@@ -199,7 +191,7 @@ const CustomOrbitControls = () => {
 
     gl.domElement.addEventListener('wheel', handleWheel)
     if (isTouchDevice) {
-      gl.domElement.addEventListener('touchstart', handleTouchStart, { passive: false })
+      gl.domElement.addEventListener('touchstart', handleTouchStart, { passive: true })
       gl.domElement.addEventListener('touchmove', handleTouchMove, { passive: false })
       gl.domElement.addEventListener('touchend', handleTouchEnd)
     }
@@ -226,8 +218,7 @@ const CustomOrbitControls = () => {
         RIGHT: THREE.MOUSE.PAN
       }}
       touchButtons={{
-        ONE: THREE.TOUCH.ROTATE,
-        TWO: THREE.TOUCH.DOLLY_PAN
+        ONE: THREE.TOUCH.ROTATE
       }}
       minDistance={5}
       maxDistance={50}
