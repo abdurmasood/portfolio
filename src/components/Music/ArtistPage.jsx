@@ -1,18 +1,39 @@
 import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
+import { useNavigate } from 'react-router-dom'
 import MusicPlayer from './MusicPlayer'
+import { Terminal } from 'lucide-react'
 
-
-const Timeline = lazy(() => import("./timeline"))
+const Timeline = lazy(() => import("./Timeline"))
 const Background3D = lazy(() => import("./3D/3DBackground"))
 
 const MemoizedTimeline = React.memo(Timeline)
 
+const TerminalIcon = ({ onClick }) => {
+  return (
+    <motion.div
+      className="absolute top-2 left-2 sm:top-4 sm:left-4 cursor-pointer z-30"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.5 }}
+    >
+      <Terminal
+        size={24}
+        color="#4ADE80"
+        onClick={onClick}
+        className="hover:text-white transition-colors duration-200"
+      />
+    </motion.div>
+  );
+};
+
 function ArtistPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
   const [show3DBackground, setShow3DBackground] = useState(false)
-  const backgroundControls = useAnimation()
   const journeySectionControls = useAnimation()
 
   const startAnimations = useCallback(() => {
@@ -26,18 +47,15 @@ function ArtistPage() {
       
       await new Promise(resolve => setTimeout(resolve, 500))
       setShowTimeline(true)
-      
-      await new Promise(resolve => setTimeout(resolve, 500))
-      backgroundControls.start("visible")
     }
     
     animationSequence()
-  }, [journeySectionControls, backgroundControls])
+  }, [journeySectionControls])
 
   useEffect(() => {
     // Preload the lazy components
     Promise.all([
-      import("./timeline"),
+      import("./Timeline"),
       import("./3D/3DBackground")
     ]).then(() => {
       startAnimations()
@@ -64,6 +82,10 @@ function ArtistPage() {
     }
   }
 
+  const handleTerminalClick = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen w-screen bg-[#0D1117] flex items-center justify-center">
@@ -71,7 +93,7 @@ function ArtistPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-[#4ADE80] text-2xl"
+          className="text-[#4ADE80] text-xl sm:text-2xl"
         >
           Loading...
         </motion.div>
@@ -82,6 +104,7 @@ function ArtistPage() {
   return (
     <div className="min-h-screen w-screen bg-[#0D1117] text-white flex flex-col relative overflow-hidden font-mono">
       <MusicPlayer/>
+      <TerminalIcon onClick={handleTerminalClick} />
       <AnimatePresence>
         {show3DBackground && (
           <Suspense fallback={null}>
@@ -99,15 +122,15 @@ function ArtistPage() {
         )}
       </AnimatePresence>
       <div className="absolute inset-0 bg-[#0D1117] opacity-90 z-10"></div>
-      <main className="flex-grow flex flex-col items-center justify-start p-6 relative z-20 overflow-y-auto">
+      <main className="flex-grow flex flex-col items-center justify-start p-4 sm:p-6 relative z-20 overflow-y-auto">
         <div className="w-full max-w-6xl mx-auto">
           <motion.section 
-            className="mb-12 w-full"
+            className="mb-8 sm:mb-12 w-full"
             initial="hidden"
             animate={journeySectionControls}
             variants={fadeIn}
           >
-            <h2 className="text-4xl font-semibold mb-12 text-center text-[#4ADE80]">Artistic Journey</h2>
+            <h2 className="text-3xl sm:text-4xl font-semibold mb-8 sm:mb-12 text-center text-[#4ADE80]">Artistic Journey</h2>
             <AnimatePresence>
               {showTimeline && (
                 <Suspense fallback={null}>
@@ -115,22 +138,6 @@ function ArtistPage() {
                 </Suspense>
               )}
             </AnimatePresence>
-          </motion.section>
-          <motion.section 
-            className="mt-16 w-full"
-            initial="hidden"
-            animate={backgroundControls}
-            variants={fadeIn}
-          >
-            <h2 className="text-3xl font-semibold mb-8 text-center text-[#4ADE80]">Background</h2>
-            <p className="text-white text-lg text-center max-w-4xl mx-auto mb-6">
-             Rafey, also known by is stage name "Ramé Sivano", is a 27 year old artist/music producer from London. He started his journey into music at the age of 10. He spent his early years solidifying
-             a firm footing in the independent music scene in Pakistan by touring across the country as a cover artist. 2016 saw him move to London in pursuit of a better future. That is when Rafey took a break from
-             touring to focus on his lyrical expression.
-            </p>
-            <p className="text-white text-lg text-center max-w-4xl mx-auto">
-              After spending half a decade honing his his skills as a producer and finding his sound, he got signed to Studio X & he is set to release his debut album in November of 2025.
-            </p>
           </motion.section>
         </div>
       </main>

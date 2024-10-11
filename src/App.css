@@ -1,18 +1,25 @@
-body {
+body, html {
   background-color: #0D1117;
   margin: 0;
+  padding: 0;
   font-family: 'Courier New', Courier, monospace;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #0D1117;
 }
 
 .App {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  flex-direction: column; 
+  flex-direction: column;
 }
 
 .typewriter-wrapper {
@@ -29,18 +36,18 @@ body {
 /* Dark Theme Scrollbar Styles */
 /* Webkit browsers like Chrome, Safari */
 ::-webkit-scrollbar {
-  width: 8px;  /* Reduced from 12px to 8px */
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background: #161B22;
-  border-radius: 10px;  /* Rounded track */
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: #30363D;
-  border-radius: 10px;  /* Fully rounded thumb */
-  border: 2px solid #161B22;  /* Reduced border for thinner appearance */
+  border-radius: 10px;
+  border: 2px solid #161B22;
 }
 
 ::-webkit-scrollbar-thumb:hover {
