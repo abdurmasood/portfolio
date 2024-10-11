@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import MusicPlayer from './MusicPlayer'
 import { Terminal } from 'lucide-react'
 
-const Timeline = lazy(() => import("./timeline"))
+const Timeline = lazy(() => import("./Timeline"))
 const Background3D = lazy(() => import("./3D/3DBackground"))
 
 const MemoizedTimeline = React.memo(Timeline)
@@ -55,7 +55,7 @@ function ArtistPage() {
   useEffect(() => {
     // Preload the lazy components
     Promise.all([
-      import("./timeline"),
+      import("./Timeline"),
       import("./3D/3DBackground")
     ]).then(() => {
       startAnimations()
