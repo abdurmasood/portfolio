@@ -94,7 +94,7 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
         </group>
         <group ref={textRef} position={[0, -1.7, 0]}>
           <Text
-            fontSize={0.45}
+            fontSize={0.35}
             color="#FFFFFF"
             anchorX="center"
             anchorY="middle"
@@ -108,22 +108,23 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
           <Html position={[0, 2, 0]}>
             <div className="popup-container">
               <div 
-                className="popup-content bg-black bg-opacity-75 text-white p-4 rounded-md shadow-lg relative"
+                className="popup-content bg-black bg-opacity-75 text-white p-3 sm:p-4 rounded-md shadow-lg relative"
                 style={{
                   width: '200px',
+                  maxWidth: '80vw',
                   animation: 'easeIn 0.3s ease-out',
                   animationFillMode: 'forwards'
                 }}
               >
                 <button 
                   onClick={onClosePopup}
-                  className="absolute top-2 right-4 text-white hover:text-gray-300 bg-transparent border-none cursor-pointer text-lg focus:outline-none"
+                  className="absolute top-1 right-2 sm:top-2 sm:right-4 text-white hover:text-gray-300 bg-transparent border-none cursor-pointer text-base sm:text-lg focus:outline-none"
                   style={{ lineHeight: 1 }}
                 >
                   ✕
                 </button>
-                <h3 className="text-lg font-bold mb-2">{project.title}</h3>
-                <p className="text-sm">{project.description}</p>
+                <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">{project.title}</h3>
+                <p className="text-xs sm:text-sm">{project.description}</p>
               </div>
               <div className="popup-arrow"></div>
             </div>
@@ -134,11 +135,22 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
   )
 })
 
-ProjectShape.displayName = 'ProjectShape'
-
 const CustomOrbitControls = () => {
   const { camera, gl } = useThree()
   const controlsRef = useRef()
+  const [isPanning, setIsPanning] = useState(false)
+  const lastTapRef = useRef(0)
+  const touchStartRef = useRef({ x: 0, y: 0 })
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)
+    }
+    checkTouchDevice()
+    window.addEventListener('resize', checkTouchDevice)
+    return () => window.removeEventListener('resize', checkTouchDevice)
+  }, [])
 
   useEffect(() => {
     const handleWheel = (event) => {
@@ -148,32 +160,74 @@ const CustomOrbitControls = () => {
         camera.getWorldDirection(direction)
         
         if (event.deltaY > 0) {
-          // Move backward
           camera.position.addScaledVector(direction, -moveSpeed)
         } else {
-          // Move forward
           camera.position.addScaledVector(direction, moveSpeed)
         }
       }
     }
 
+    const handleTouchStart = (event) => {
+      if (event.touches.length === 1) {
+        event.preventDefault() // Prevent default behavior like zooming
+        const touch = event.touches[0]
+        touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+        
+        const currentTime = new Date().getTime()
+        const tapLength = currentTime - lastTapRef.current
+        if (tapLength < 300 && tapLength > 0) {
+          setIsPanning(true)
+        }
+        lastTapRef.current = currentTime
+      }
+    }
+
+    const handleTouchMove = (event) => {
+      if (isPanning && event.touches.length === 1) {
+        const touch = event.touches[0]
+        const movementX = touch.clientX - touchStartRef.current.x
+        const movementY = touch.clientY - touchStartRef.current.y
+        camera.position.x -= movementX * 0.01
+        camera.position.y += movementY * 0.01
+        touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+      }
+    }
+
+    const handleTouchEnd = () => {
+      setIsPanning(false)
+    }
+
     gl.domElement.addEventListener('wheel', handleWheel)
+    if (isTouchDevice) {
+      gl.domElement.addEventListener('touchstart', handleTouchStart, { passive: false })
+      gl.domElement.addEventListener('touchmove', handleTouchMove, { passive: false })
+      gl.domElement.addEventListener('touchend', handleTouchEnd)
+    }
 
     return () => {
       gl.domElement.removeEventListener('wheel', handleWheel)
+      if (isTouchDevice) {
+        gl.domElement.removeEventListener('touchstart', handleTouchStart)
+        gl.domElement.removeEventListener('touchmove', handleTouchMove)
+        gl.domElement.removeEventListener('touchend', handleTouchEnd)
+      }
     }
-  }, [camera, gl])
+  }, [camera, gl, isPanning, isTouchDevice])
 
   return (
     <OrbitControls
       ref={controlsRef}
       enableZoom={false}
-      enableRotate={true}
-      enablePan={true}
+      enableRotate={!isPanning}
+      enablePan={!isTouchDevice}
       mouseButtons={{
         LEFT: THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: THREE.MOUSE.PAN
+      }}
+      touchButtons={{
+        ONE: THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN
       }}
       minDistance={5}
       maxDistance={50}
@@ -274,6 +328,7 @@ const ProjectsPage = () => {
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const toggleInstructions = useCallback(() => {
     setShowInstructions(prev => !prev)
@@ -289,7 +344,7 @@ const ProjectsPage = () => {
 
   const handleTerminalClick = useCallback(() => {
     navigate(-1);
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -303,6 +358,15 @@ const ProjectsPage = () => {
     const handleContextMenu = (e) => e.preventDefault()
     document.addEventListener('contextmenu', handleContextMenu)
     return () => document.removeEventListener('contextmenu', handleContextMenu)
+  }, [])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   const canvasVariants = {
@@ -331,24 +395,25 @@ const ProjectsPage = () => {
             variants={canvasVariants}
             className="w-full h-full"
           >
-            <Canvas camera={{ position: [0, 0, 20], fov: 60 }}>
+            <Canvas camera={{ position: [0, 0, isMobile ? 25 : 20], fov: 60 }}>
               <Scene 
                 onProjectClick={handleProjectClick} 
                 activeProject={activeProject}
                 onClosePopup={handleClosePopup}
               />
+              <CustomOrbitControls />
             </Canvas>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <TerminalIcon onClick={handleTerminalClick} />
+      <TerminalIcon onClick={handleTerminalClick} className="absolute top-2 left-2 sm:top-4 sm:left-4" />
 
       <AnimatePresence>
         {isLoaded && (
           <motion.button
             key="instructions-button"
-            className="absolute bottom-4 left-4 bg-white text-black px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors"
+            className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-white text-black px-2 py-1 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm hover:bg-gray-200 transition-colors"
             onClick={toggleInstructions}
             variants={buttonVariants}
             initial="hidden"
@@ -363,17 +428,25 @@ const ProjectsPage = () => {
         {showInstructions && (
           <motion.div
             key="instructions-panel"
-            className="absolute bottom-16 left-4 bg-black bg-opacity-75 p-4 rounded-md max-w-xs"
+            className="absolute bottom-12 sm:bottom-16 left-2 sm:left-4 bg-black bg-opacity-75 p-3 sm:p-4 rounded-md max-w-[90vw] sm:max-w-xs"
             variants={instructionsVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
           >
-            <ul className="list-disc pl-5 space-y-2">
-              <li className="text-sm"><strong className="text-[#39FF14]">LEFT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
-              <li className="text-sm"><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move the camera sideways.</li>
-              <li className="text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
-              <li className="text-sm"><strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
+            <ul className="list-disc pl-4 sm:pl-5 space-y-1 sm:space-y-2">
+              <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">SWIPE</strong> or <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
+              <li className="text-xs sm:text-sm">
+                {isMobile ? (
+                  <><strong className="text-[#39FF14]">DOUBLE-TAP</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move sideways.</>
+                ) : (
+                  <><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move sideways.</>
+                )}
+              </li>
+              {!isMobile && (
+                <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
+              )}
+              <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">TAP</strong> or <strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
             </ul>
           </motion.div>
         )}
