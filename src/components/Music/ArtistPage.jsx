@@ -12,7 +12,7 @@ const MemoizedTimeline = React.memo(Timeline)
 const TerminalIcon = ({ onClick }) => {
   return (
     <motion.div
-      className="absolute top-4 left-4 cursor-pointer z-30"
+      className="absolute top-2 left-2 sm:top-4 sm:left-4 cursor-pointer z-30"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       initial={{ opacity: 0, y: -20 }}
@@ -20,7 +20,7 @@ const TerminalIcon = ({ onClick }) => {
       transition={{ duration: 0.3, delay: 0.5 }}
     >
       <Terminal
-        size={32}
+        size={24}
         color="#4ADE80"
         onClick={onClick}
         className="hover:text-white transition-colors duration-200"
@@ -93,7 +93,7 @@ function ArtistPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-[#4ADE80] text-2xl"
+          className="text-[#4ADE80] text-xl sm:text-2xl"
         >
           Loading...
         </motion.div>
@@ -122,15 +122,15 @@ function ArtistPage() {
         )}
       </AnimatePresence>
       <div className="absolute inset-0 bg-[#0D1117] opacity-90 z-10"></div>
-      <main className="flex-grow flex flex-col items-center justify-start p-6 relative z-20 overflow-y-auto">
+      <main className="flex-grow flex flex-col items-center justify-start p-4 sm:p-6 relative z-20 overflow-y-auto">
         <div className="w-full max-w-6xl mx-auto">
           <motion.section 
-            className="mb-12 w-full"
+            className="mb-8 sm:mb-12 w-full"
             initial="hidden"
             animate={journeySectionControls}
             variants={fadeIn}
           >
-            <h2 className="text-4xl font-semibold mb-12 text-center text-[#4ADE80]">Artistic Journey</h2>
+            <h2 className="text-3xl sm:text-4xl font-semibold mb-8 sm:mb-12 text-center text-[#4ADE80]">Artistic Journey</h2>
             <AnimatePresence>
               {showTimeline && (
                 <Suspense fallback={null}>
