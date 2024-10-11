@@ -324,11 +324,12 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
 }
 
 const ProjectsPage = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [screenSize, setScreenSize] = useState({ width: window.innerWidth, height: window.innerHeight })
 
   const toggleInstructions = useCallback(() => {
     setShowInstructions(prev => !prev)
@@ -343,13 +344,13 @@ const ProjectsPage = () => {
   }, [])
 
   const handleTerminalClick = useCallback(() => {
-    navigate(-1);
+    navigate(-1)
   }, [navigate])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true)
-    }, 100) // Small delay to ensure smooth transition
+    }, 100)
 
     return () => clearTimeout(timer)
   }, [])
@@ -361,13 +362,36 @@ const ProjectsPage = () => {
   }, [])
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768)
+    const checkTouchDevice = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    const handleResize = () => {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
+    }
+    checkTouchDevice()
+    window.addEventListener('resize', () => {
+      checkTouchDevice()
+      handleResize()
+    })
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  const cameraPosition = useMemo(() => {
+    // Base zoom level
+    let zoomLevel = 20
+
+    // Adjust zoom level based on screen size
+    if (screenSize.width <= 480) {  // For very small screens (e.g., iPhone SE)
+      zoomLevel = 36
+    } else if (screenSize.width <= 768) {  // For general mobile screens
+      zoomLevel = 28
+    } else if (screenSize.width <= 1024) {  // For tablets and small laptops
+      zoomLevel = 25
+    }
+
+    // You might need to adjust these values based on your specific layout
+    return [0, 0, zoomLevel]
+  }, [screenSize])
 
   const canvasVariants = {
     hidden: { opacity: 0 },
@@ -395,7 +419,7 @@ const ProjectsPage = () => {
             variants={canvasVariants}
             className="w-full h-full"
           >
-            <Canvas camera={{ position: [0, 0, isMobile ? 25 : 20], fov: 60 }}>
+            <Canvas camera={{ position: cameraPosition, fov: 60 }}>
               <Scene 
                 onProjectClick={handleProjectClick} 
                 activeProject={activeProject}
@@ -437,13 +461,13 @@ const ProjectsPage = () => {
             <ul className="list-disc pl-4 sm:pl-5 space-y-1 sm:space-y-2">
               <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">SWIPE</strong> or <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
               <li className="text-xs sm:text-sm">
-                {isMobile ? (
+                {isTouchDevice ? (
                   <><strong className="text-[#39FF14]">DOUBLE-TAP</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move sideways.</>
                 ) : (
                   <><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move sideways.</>
                 )}
               </li>
-              {!isMobile && (
+              {!isTouchDevice && (
                 <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
               )}
               <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">TAP</strong> or <strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
