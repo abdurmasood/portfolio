@@ -81,6 +81,12 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
 
   const isHighlighted = hovered || touched
 
+  const getPopupPosition = useCallback(() => {
+    const angle = Math.atan2(initialPosition[1], initialPosition[0])
+    const isRightSide = Math.abs(angle) < Math.PI / 2
+    return isRightSide ? [-12, 2, 0] : [2, 2, 0]
+  }, [initialPosition])
+
   return (
     <group ref={groupRef} position={initialPosition}>
       <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
@@ -110,7 +116,7 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
           </Text>
         </group>
         {isActive && (
-          <Html position={[0, 2, 0]}>
+          <Html position={getPopupPosition()}>
             <div className="popup-container">
               <div 
                 className="popup-content bg-black bg-opacity-75 text-white p-3 sm:p-4 rounded-md shadow-lg relative"
