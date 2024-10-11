@@ -39,7 +39,7 @@ const Terminal = () => {
     "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
     "<span class='command-keyword'>contact</span>      - get in touch",
     "",
-    "<span class='grey'>up arrow     => go back to previous command</span>",
+    "<span class='grey'>up arrow     => back to last command</span>",
     "<span class='grey'>clear        => clear the terminal</span>",
     "<span class='grey'>help         => display all commands</span>",
   ];
@@ -144,7 +144,6 @@ const Terminal = () => {
             break;
 
           case 'cat README.txt':
-          case 'Cat README.txt':
             output = readMeDescription;
             break;
 
