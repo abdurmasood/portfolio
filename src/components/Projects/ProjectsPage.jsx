@@ -31,34 +31,46 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
   const meshRef = useRef()
   const textRef = useRef()
   const [hovered, setHovered] = useState(false)
+  const [touched, setTouched] = useState(false)
   const [scale, setScale] = useState(1)
+  const { viewport } = useThree()
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(geometry), [geometry])
 
-  const handlePointerOver = useCallback(() => setHovered(true), [])
-  const handlePointerOut = useCallback(() => setHovered(false), [])
+  const handlePointerOver = useCallback(() => {
+    if (!isMobile) setHovered(true)
+  }, [isMobile])
+
+  const handlePointerOut = useCallback(() => {
+    if (!isMobile) setHovered(false)
+  }, [isMobile])
   
   const handleClick = useCallback((event) => {
     event.stopPropagation()
     if (isActive) {
       onClosePopup()
+      setTouched(false)
     } else {
       onProjectClick(project)
+      if (isMobile) setTouched(true)
     }
-  }, [isActive, onClosePopup, onProjectClick, project])
+  }, [isActive, onClosePopup, onProjectClick, project, isMobile])
 
   const randomOffset = useMemo(() => Math.random() * 10, [])
   const randomAmplitude = useMemo(() => Math.random() * 0.07 + 0.03, [])
   const randomFrequency = useMemo(() => Math.random() * 1 + 1, [])
 
+  useEffect(() => {
+    if (!isActive) setTouched(false)
+  }, [isActive])
+
   useFrame((state, delta) => {
     if (meshRef.current) {
       meshRef.current.rotation.x += delta * 0.2
       meshRef.current.rotation.y += delta * 0.2
-      setScale(current => {
-        const target = hovered ? 1.2 : 1
-        return THREE.MathUtils.lerp(current, target, 0.1)
-      })
+      const targetScale = (hovered || touched) ? 1.2 : 1
+      setScale(current => THREE.MathUtils.lerp(current, targetScale, 0.1))
       meshRef.current.scale.setScalar(scale * opacity)
     }
     if (textRef.current) {
@@ -66,6 +78,8 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
       textRef.current.scale.setScalar(opacity)
     }
   })
+
+  const isHighlighted = hovered || touched
 
   return (
     <group ref={groupRef} position={initialPosition}>
@@ -77,10 +91,10 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
             onPointerOver={handlePointerOver}
             onPointerOut={handlePointerOut}
           >
-            <meshBasicMaterial color={hovered ? '#39FF14' : '#FFFFFF'} wireframe />
+            <meshBasicMaterial color={isHighlighted ? '#39FF14' : '#FFFFFF'} wireframe />
           </mesh>
           <lineSegments geometry={edgesGeometry}>
-            <lineBasicMaterial color={hovered ? '#39FF14' : '#FFFFFF'} />
+            <lineBasicMaterial color={isHighlighted ? '#39FF14' : '#FFFFFF'} />
           </lineSegments>
         </group>
         <group ref={textRef} position={[0, -1.7, 0]}>
@@ -108,7 +122,11 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 }}
               >
                 <button 
-                  onClick={(e) => { e.stopPropagation(); onClosePopup(); }}
+                  onClick={(e) => { 
+                    e.stopPropagation()
+                    onClosePopup()
+                    setTouched(false)
+                  }}
                   className="absolute top-1 right-2 sm:top-2 sm:right-4 text-white hover:text-gray-300 bg-transparent border-none cursor-pointer text-base sm:text-lg focus:outline-none"
                   style={{ lineHeight: 1 }}
                 >
