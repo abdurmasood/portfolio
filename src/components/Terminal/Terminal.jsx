@@ -33,9 +33,9 @@ const Terminal = () => {
   ];
 
   const commandDescriptions = [
-    "<span class='command-keyword'>bio</span>          - background, education and work experience",
-    "<span class='command-keyword'>projects</span>     - programs/applications he has built",
-    "<span class='command-keyword'>music</span>        - his journey as a producer/artist",
+    "<span class='command-keyword'>bio</span>          - background & education",
+    "<span class='command-keyword'>projects</span>     - applications he's developed",
+    "<span class='command-keyword'>music</span>        - his journey as a producer",
     "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
     "<span class='command-keyword'>contact</span>      - get in touch",
     "",
@@ -105,6 +105,7 @@ const Terminal = () => {
           
           case 'cat bio.txt':
           case 'bio':
+          case 'Bio':
             output = bioDescription;
             break;
 
@@ -113,6 +114,7 @@ const Terminal = () => {
             break;
             
           case 'projects':
+          case 'Projects':
             setShowLoadingBar(true);
             setTimeout(() => {
               setShowLoadingBar(false);
@@ -121,6 +123,7 @@ const Terminal = () => {
             break;
 
           case 'blog':
+          case 'Blog':
             navigate('/blog')
             break;
 
@@ -129,6 +132,7 @@ const Terminal = () => {
             break;
 
           case 'music':
+          case 'Music':
             navigate('/journey');
             break;
 
@@ -145,6 +149,7 @@ const Terminal = () => {
             break;
 
             case 'contact':
+            case 'Contact':
               output = `email: abdurrafeym@gmail.com
 linkedin: Abdur Rafey M.
 
