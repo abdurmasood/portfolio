@@ -34,7 +34,7 @@ const Terminal = () => {
 
   const commandDescriptions = [
     "<span class='command-keyword'>bio</span>          - background & education",
-    "<span class='command-keyword'>projects</span>     - applications he's developed",
+    "<span class='command-keyword'>projects</span>     - body of work",
     "<span class='command-keyword'>music</span>        - his journey as a producer",
     "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
     "<span class='command-keyword'>contact</span>      - get in touch",
@@ -92,10 +92,12 @@ const Terminal = () => {
       } else {
         switch (command) {
           case 'help':
+          case 'Help':
             output = commandDescriptions.join('\n');
             break;
 
           case 'clear':
+          case 'Clear':
             setHistory('');
             setInput('');
             setPossibleMatches([]);
@@ -137,10 +139,12 @@ const Terminal = () => {
             break;
 
           case 'cat':
+          case 'Cat':
             output = catDescription;
             break;
 
           case 'cat README.txt':
+          case 'Cat README.txt':
             output = readMeDescription;
             break;
 
@@ -157,11 +161,15 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
               break;
     
             case 'open linkedin':
+            case 'Open linkedin':
+            case 'Open Linkedin':
               window.open('https://www.linkedin.com/in/abdur-rafey-masood/', '_blank');
               output = 'Opening LinkedIn profile in a new tab...';
               break;
 
             case 'open email':
+            case 'Open email':
+            case 'Open Email':
               window.location.href = `mailto:abdurrafeym@gmail.com?subject=Hi👋&body=Hi Rafey, i'm ___ and I work in ___. Would love to chat!`
               output = 'Opening email application...';
               break;
