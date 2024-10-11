@@ -36,12 +36,12 @@ const Terminal = () => {
     "<span class='command-keyword'>bio</span>          - background, education and work experience",
     "<span class='command-keyword'>projects</span>     - programs/applications he has built",
     "<span class='command-keyword'>music</span>        - his journey as a producer/artist",
+    "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
     "<span class='command-keyword'>contact</span>      - get in touch",
     "",
-    "<span class='grey'>tab          - autocompletes the command</span>",
-    "<span class='grey'>up arrow     - go back to previous command</span>",
-    "<span class='grey'>clear        - clear the terminal</span>",
-    "<span class='grey'>help         - display all commands</span>",
+    "<span class='grey'>up arrow     => go back to previous command</span>",
+    "<span class='grey'>clear        => clear the terminal</span>",
+    "<span class='grey'>help         => display all commands</span>",
   ];
 
   const executableCommands = [
@@ -120,6 +120,10 @@ const Terminal = () => {
             }, 5500);
             break;
 
+          case 'blog':
+            navigate('/blog')
+            break;
+
           case 'cat music.txt':
             output = 'Use the command "music" for Rafey\'s journey as a producer';
             break;
@@ -140,9 +144,21 @@ const Terminal = () => {
             output = 'bio.txt   projects.txt   music.txt   README.txt';
             break;
 
-          case 'contact':
-            output = 'EMAIL: abdurrafeym@gmail.com'
-            break;
+            case 'contact':
+              output = `email: abdurrafeym@gmail.com
+linkedin: Abdur Rafey M.
+
+Usage: open &lt;contact-option&gt;`;
+              break;
+    
+            case 'open linkedin':
+              window.open('https://www.linkedin.com/in/abdur-rafey-masood/', '_blank');
+              output = 'Opening LinkedIn profile in a new tab...';
+              break;
+
+            case 'open email':
+              output = 'TBD'
+              break;
 
           case '':
             // For empty command, we'll just add the prompt

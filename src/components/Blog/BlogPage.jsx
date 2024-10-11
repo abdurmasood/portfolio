@@ -32,7 +32,7 @@ function BlogPage() {
   const [selectedPost, setSelectedPost] = useState(null);
 
   return (
-    <div className="min-h-screen w-screen"> {/* Full-page background */}
+    <div className="min-h-screen w-screen">
       <div className="max-w-4xl mx-auto text-gray-300 p-8 font-mono">
         <h1 className="text-4xl font-bold mb-8 text-green-500">Rafey's Blog</h1>
         
