@@ -4,6 +4,7 @@ import { TerminalProvider } from './components/Terminal/TerminalContext.jsx';
 import Terminal from './components/Terminal/Terminal.jsx';
 import ArtistPage from './components/Music/ArtistPage.jsx';
 import ProjectsPage from './components/Projects/ProjectsPage.jsx';
+import BlogPage from './components/Blog/BlogPage.jsx';
 
 import './App.css';
 
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<Terminal />} />
             <Route path="/journey" element={<ArtistPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/blog" element={<BlogPage/>}/>
           </Routes>
         </Router>
       </div>
