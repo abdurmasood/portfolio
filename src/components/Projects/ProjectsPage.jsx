@@ -30,51 +30,78 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
   const groupRef = useRef()
   const meshRef = useRef()
   const textRef = useRef()
+  const popupRef = useRef()
   const [hovered, setHovered] = useState(false)
+  const [touched, setTouched] = useState(false)
   const [scale, setScale] = useState(1)
+  const { viewport, camera } = useThree()
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(geometry), [geometry])
 
-  const handlePointerOver = useCallback(() => setHovered(true), [])
-  const handlePointerOut = useCallback(() => setHovered(false), [])
-  const handleClick = useCallback(() => {
+  const handlePointerOver = useCallback(() => {
+    if (!isMobile) setHovered(true)
+  }, [isMobile])
+
+  const handlePointerOut = useCallback(() => {
+    if (!isMobile) setHovered(false)
+  }, [isMobile])
+  
+  const handleClick = useCallback((event) => {
+    event.stopPropagation()
     if (isActive) {
       onClosePopup()
+      setTouched(false)
     } else {
       onProjectClick(project)
+      if (isMobile) setTouched(true)
     }
-  }, [isActive, onClosePopup, onProjectClick, project])
+  }, [isActive, onClosePopup, onProjectClick, project, isMobile])
 
   const randomOffset = useMemo(() => Math.random() * 10, [])
   const randomAmplitude = useMemo(() => Math.random() * 0.07 + 0.03, [])
   const randomFrequency = useMemo(() => Math.random() * 1 + 1, [])
 
   useEffect(() => {
-    let frameId
-    const animateScale = () => {
-      setScale(current => {
-        const target = hovered ? 1.2 : 1
-        const newScale = current + (target - current) * 0.1
-        if (Math.abs(newScale - target) < 0.001) return target
-        frameId = requestAnimationFrame(animateScale)
-        return newScale
-      })
-    }
-    frameId = requestAnimationFrame(animateScale)
-    return () => cancelAnimationFrame(frameId)
-  }, [hovered])
+    if (!isActive) setTouched(false)
+  }, [isActive])
 
   useFrame((state, delta) => {
     if (meshRef.current) {
       meshRef.current.rotation.x += delta * 0.2
       meshRef.current.rotation.y += delta * 0.2
+      const targetScale = (hovered || touched) ? 1.2 : 1
+      setScale(current => THREE.MathUtils.lerp(current, targetScale, 0.1))
       meshRef.current.scale.setScalar(scale * opacity)
     }
     if (textRef.current) {
       textRef.current.position.y = -1.7 + Math.sin((state.clock.elapsedTime + randomOffset) * randomFrequency) * randomAmplitude
       textRef.current.scale.setScalar(opacity)
     }
+    if (popupRef.current && groupRef.current) {
+      // Convert the object's position to screen space
+      const vector = new THREE.Vector3()
+      groupRef.current.getWorldPosition(vector)
+      vector.project(camera)
+
+      // Convert to 2D screen space
+      const x = (vector.x * 0.5 + 0.5) * viewport.width
+      const y = (vector.y * -0.5 + 0.5) * viewport.height
+
+      // Determine if the geometry is on the left or right side of the screen
+      const isLeftSide = x < viewport.width / 2
+
+      // Position the popup to the right or left of the geometry
+      const offsetX = isLeftSide ? 5 : -35 
+      const popupX = x + offsetX
+      const popupY = y
+
+      // Update popup position
+      popupRef.current.style.transform = `translate(${isLeftSide ? '0' : '-100%'}, -50%) translate(${popupX}px,${popupY}px)`
+    }
   })
+
+  const isHighlighted = hovered || touched
 
   return (
     <group ref={groupRef} position={initialPosition}>
@@ -86,10 +113,10 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
             onPointerOver={handlePointerOver}
             onPointerOut={handlePointerOut}
           >
-            <meshBasicMaterial color={hovered ? '#39FF14' : '#FFFFFF'} wireframe />
+            <meshBasicMaterial color={isHighlighted ? '#39FF14' : '#FFFFFF'} wireframe />
           </mesh>
           <lineSegments geometry={edgesGeometry}>
-            <lineBasicMaterial color={hovered ? '#39FF14' : '#FFFFFF'} />
+            <lineBasicMaterial color={isHighlighted ? '#39FF14' : '#FFFFFF'} />
           </lineSegments>
         </group>
         <group ref={textRef} position={[0, -1.7, 0]}>
@@ -105,8 +132,8 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
           </Text>
         </group>
         {isActive && (
-          <Html position={[0, 2, 0]}>
-            <div className="popup-container">
+          <Html>
+            <div ref={popupRef} className="popup-container" style={{ position: 'absolute', pointerEvents: 'auto' }}>
               <div 
                 className="popup-content bg-black bg-opacity-75 text-white p-3 sm:p-4 rounded-md shadow-lg relative"
                 style={{
@@ -117,7 +144,11 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 }}
               >
                 <button 
-                  onClick={onClosePopup}
+                  onClick={(e) => { 
+                    e.stopPropagation()
+                    onClosePopup()
+                    setTouched(false)
+                  }}
                   className="absolute top-1 right-2 sm:top-2 sm:right-4 text-white hover:text-gray-300 bg-transparent border-none cursor-pointer text-base sm:text-lg focus:outline-none"
                   style={{ lineHeight: 1 }}
                 >
@@ -126,7 +157,6 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">{project.title}</h3>
                 <p className="text-xs sm:text-sm">{project.description}</p>
               </div>
-              <div className="popup-arrow"></div>
             </div>
           </Html>
         )}
@@ -134,6 +164,8 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
     </group>
   )
 })
+
+ProjectShape.displayName = 'ProjectShape'
 
 const CustomOrbitControls = () => {
   const { camera, gl } = useThree()
@@ -169,7 +201,6 @@ const CustomOrbitControls = () => {
 
     const handleTouchStart = (event) => {
       if (event.touches.length === 1) {
-        event.preventDefault() // Prevent default behavior like zooming
         const touch = event.touches[0]
         touchStartRef.current = { x: touch.clientX, y: touch.clientY }
         
@@ -199,7 +230,7 @@ const CustomOrbitControls = () => {
 
     gl.domElement.addEventListener('wheel', handleWheel)
     if (isTouchDevice) {
-      gl.domElement.addEventListener('touchstart', handleTouchStart, { passive: false })
+      gl.domElement.addEventListener('touchstart', handleTouchStart, { passive: true })
       gl.domElement.addEventListener('touchmove', handleTouchMove, { passive: false })
       gl.domElement.addEventListener('touchend', handleTouchEnd)
     }
@@ -226,8 +257,7 @@ const CustomOrbitControls = () => {
         RIGHT: THREE.MOUSE.PAN
       }}
       touchButtons={{
-        ONE: THREE.TOUCH.ROTATE,
-        TWO: THREE.TOUCH.DOLLY_PAN
+        ONE: THREE.TOUCH.ROTATE
       }}
       minDistance={5}
       maxDistance={50}
