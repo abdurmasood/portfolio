@@ -1,38 +1,13 @@
 import React, { useState } from 'react';
 import { ChevronRight, Clock } from 'lucide-react';
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "Getting Started with AI",
-    excerpt: "An introduction to the world of Artificial Intelligence and its impact on modern technology.",
-    date: "2023-05-15",
-    content: "Artificial Intelligence is revolutionizing the tech industry. This post explores the basics of AI, its current applications, and future potential.",
-    minutesRead: 5
-  },
-  {
-    id: 2,
-    title: "The Future of Full-Stack Development",
-    excerpt: "Exploring the evolving landscape of full-stack development and emerging technologies.",
-    date: "2023-05-20",
-    content: "As technology evolves, the role of full-stack developers is changing. This article discusses new tools, frameworks, and methodologies shaping the future of web development.",
-    minutesRead: 7
-  },
-  {
-    id: 3,
-    title: "Music Production in the Digital Age",
-    excerpt: "How technology is transforming the music industry and empowering independent artists.",
-    date: "2023-05-25",
-    content: "Digital tools have revolutionized music production, allowing artists to create professional-quality tracks from home studios. This post examines the impact of technology on music creation and distribution.",
-    minutesRead: 6
-  }
-];
+import ReactMarkdown from 'react-markdown';
+import blogPosts from './blogData';
 
 function BlogPage() {
   const [selectedPost, setSelectedPost] = useState(null);
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-screen">
       <div className="max-w-4xl mx-auto text-gray-300 p-4 sm:p-6 md:p-8 font-mono">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-green-500">Rafey's Blog</h1>
         
@@ -49,7 +24,9 @@ function BlogPage() {
                     <span>{post.minutesRead} min read</span>
                   </div>
                 </div>
-                <p className="mb-3 sm:mb-4 text-sm sm:text-base">{post.excerpt}</p>
+                <ReactMarkdown className="mb-3 sm:mb-4 text-sm sm:text-base prose prose-invert prose-sm max-w-none">
+                  {post.excerpt}
+                </ReactMarkdown>
                 <span 
                   onClick={() => setSelectedPost(post)}
                   className="flex items-center text-green-500 hover:text-green-400 transition-colors cursor-pointer text-sm sm:text-base"
@@ -76,9 +53,9 @@ function BlogPage() {
                 <span>{selectedPost.minutesRead} min read</span>
               </div>
             </div>
-            <div className="prose prose-invert prose-green prose-sm sm:prose-base">
-              <p>{selectedPost.content}</p>
-            </div>
+            <ReactMarkdown className="prose prose-invert prose-green prose-sm sm:prose-base max-w-none">
+              {selectedPost.content}
+            </ReactMarkdown>
           </div>
         )}
       </div>

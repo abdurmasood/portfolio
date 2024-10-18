@@ -7,13 +7,13 @@ import TerminalIcon from './../Terminal/TerminalIcon'  // Assuming you've saved 
 import { useNavigate } from 'react-router-dom';
 
 const projects = [
-  { id: 1, title: "HeartSync", description: "About Abdur Rafey Masood" },
-  { id: 2, title: "NeuroScan", description: "Education background" },
-  { id: 3, title: "Nannie.ai", description: "Work experience" },
-  { id: 4, title: "Sat Comms", description: "Projects he's worked on" },
-  { id: 5, title: "GAP", description: "Where he was born & raised" },
-  { id: 6, title: "Rate Watch", description: "Rafey's journey as a producer/artist" },
-  { id: 7, title: "Assisty.io", description: "Display all the commands" },
+  { id: 1, title: "Arrythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
+  { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies." },
+  { id: 3, title: "Home-Work", description: "Used Google Gemini & GCP to bulid a web application with the aim to find grammatical errors in student homework." },
+  { id: 4, title: "Leaf Line", description: "Coded python library for a leading space company to ensure fast, secure, and efficient data transmission between ground stations and satellites in LEO." },
+  { id: 5, title: "Loan Coin", description: "Created blockchain based crowd lending platform to help women in rural areas set up businesses. Invited to pitch to the United Nations." },
+  { id: 6, title: "Hotel Price Tracker", description: "Used python scripting to automate the process of checking hotel prices to get the best deals." },
+  { id: 7, title: "Assisty", description: "Developed an AI-Powered spam classifier to detect fraudulent text messages and conversations using LLMs." },
 ]
 
 const geometries = [
