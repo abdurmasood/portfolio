@@ -12,6 +12,30 @@ const projectsOptions = "description  show\n\nUsage: project &lt;option&gt;";
 const projectsDescription = "Project Description";
 const musicOptions = "description  journey\n\nUsage: music &lt;option&gt;";
 const musicDescription = 'Music Description';
+const skillsDescription =  `Data Science:
+- Pandas
+- Matplotlib
+- Scikit Learn
+- Tensorflow
+- Transformers
+
+Foundation Models:
+- OpenAI
+- Llama
+- Google Gemini
+
+Cloud:
+- Amazon Web Services
+- Google Cloud
+
+Frontend:
+- React + Vite
+- Nextjs
+
+Backend:
+- Django
+- Flask`;
+
 const catDescription = "Usage: cat &lt;file-name&gt;";
 const readMeDescription = `
  __  __     ______     __         __         ______        __     __     ______     ______     __         _____    
@@ -29,5 +53,6 @@ export {
     musicOptions,
     musicDescription,
     catDescription,
-    readMeDescription
+    readMeDescription,
+    skillsDescription
 };

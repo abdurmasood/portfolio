@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Terminal.css';
-import {readMeDescription, catDescription, bioDescription } from '../../utls/descriptions';
+import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
 import { useNavigate } from 'react-router-dom';
 import { useTerminal } from './TerminalContext';
@@ -35,8 +35,9 @@ const Terminal = () => {
   const commandDescriptions = [
     "<span class='command-keyword'>bio</span>          - background & education",
     "<span class='command-keyword'>projects</span>     - body of work",
+    // "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
+    "<span class='command-keyword'>skills</span>       - tools he's worked with",
     "<span class='command-keyword'>music</span>        - his journey as a producer",
-    "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
     "<span class='command-keyword'>contact</span>      - get in touch",
     "",
     "<span class='grey'>up arrow     => back to last command</span>",
@@ -137,6 +138,11 @@ const Terminal = () => {
           case 'Music':
             navigate('/journey');
             break;
+
+          case 'skills':
+          case 'Skills':
+            output = skillsDescription;
+            break
 
           case 'cat':
           case 'Cat':
