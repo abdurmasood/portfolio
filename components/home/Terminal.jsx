@@ -210,7 +210,7 @@ const Terminal = () => {
             case 'contact':
             case 'Contact':
               output = `email: abdurrafeym@gmail.com
-linkedin: Abdur Rafey M.
+linkedin: A. Rafey Masood
 
 Usage: open &lt;contact-option&gt; (e.g. open email)`;
               break;
@@ -218,7 +218,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
             case 'open linkedin':
             case 'Open linkedin':
             case 'Open Linkedin':
-              window.open('https://www.linkedin.com/in/abdur-rafey-masood/', '_blank');
+              window.open('https://www.linkedin.com/in/arafeymasood/', '_blank');
               output = 'Opening LinkedIn profile in a new tab...';
               break;
 
