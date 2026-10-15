@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import TerminalIcon from '../../components/projects/TerminalIcon'
 
 const projects = [
-  { id: 1, title: "Arrythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
+  { id: 1, title: "Arrhythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
   { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies.", link: "https://topol.digitalacademy.nhs.uk/digital-fellowships/case-studies/haris-shuaib" },
   { id: 3, title: "Home-Work", description: "Used Google Gemini & GCP to bulid a web application with the aim to find grammatical errors in student homework.", disabled: true },
   { id: 4, title: "Leaf Line", description: "Coded python library for a leading space company to ensure fast, secure, and efficient data transmission between ground stations and satellites in LEO.", link: "https://leaf.space/leaf-line/" },
@@ -28,7 +28,74 @@ const geometries = [
   new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16)
 ]
 
-const ProjectShape = React.memo(({ project, initialPosition, geometry, onProjectClick, isActive, onClosePopup, opacity }) => {
+// Matches the home terminal (components/home/Terminal.css)
+const TERMINAL_FONT = 'var(--font-terminal), ui-monospace, monospace'
+const COMPACT_QUERY = '(max-width: 640px)'
+const PANEL_WIDTH = 262
+const PANEL_GAP = 48
+// Top of the panel sits just above the shape's centre, so it drops down past the
+// neighbour diagonally above instead of covering it
+const PANEL_TOP_OFFSET = -24
+const PANEL_EDGE_MARGIN = 16
+
+const POINTER_CONTROLS = `  drag          rotate
+  right-drag    pan
+  scroll        zoom
+  click         open a project`
+
+const TOUCH_CONTROLS = `  swipe         rotate
+  tap           open a project
+  double-tap    then drag to pan`
+
+// Explicit resets: globals.css still styles every <button> and <a>
+const QUIET_CONTROL = 'p-0 m-0 border-0 bg-transparent rounded-none font-normal transition-colors cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#8E8E8E]'
+const PANEL_SURFACE = 'bg-black border border-solid border-[#2A2A2A] text-[12px] leading-[1.6] text-[#D0D0D0]'
+
+const stopPropagation = (event) => event.stopPropagation()
+
+const ProjectDetails = ({ project, variant, onClose }) => {
+  const isSheet = variant === 'sheet'
+
+  return (
+    <motion.section
+      aria-label={project.title}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
+      onClick={stopPropagation}
+      onPointerDown={stopPropagation}
+      className={`${PANEL_SURFACE} ${isSheet ? 'fixed left-3 right-3 bottom-14 px-3.5 pt-0.5 pb-3.5' : 'px-3.5 pt-3 pb-3.5'}`}
+      style={isSheet ? undefined : { width: PANEL_WIDTH }}
+    >
+      <div className={`flex justify-between ${isSheet ? 'items-center' : 'items-baseline mb-1.5'}`}>
+        <span className="text-[13px]">{project.title}</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className={`${QUIET_CONTROL} text-[11px] text-[#8E8E8E] hover:text-[#D0D0D0] ${isSheet ? 'min-w-[44px] min-h-[44px] text-right' : ''}`}
+        >
+          {isSheet ? 'close' : 'esc'}
+        </button>
+      </div>
+      <p className="m-0 mb-2.5 text-[#8E8E8E]">{project.description}</p>
+      {project.link && (
+        <a
+          href={project.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={stopPropagation}
+          onPointerDown={stopPropagation}
+          className="font-normal text-[#D0D0D0] underline decoration-[#4A4A4A] underline-offset-[3px] hover:text-[#56D364] hover:decoration-[#56D364] transition-colors focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#8E8E8E]"
+        >
+          case study ↗
+        </a>
+      )}
+    </motion.section>
+  )
+}
+
+const ProjectShape = React.memo(({ project, initialPosition, geometry, onProjectClick, isActive, onClosePopup, opacity, isCompact }) => {
   const groupRef = useRef()
   const meshRef = useRef()
   const textRef = useRef()
@@ -36,7 +103,8 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
   const [hovered, setHovered] = useState(false)
   const [touched, setTouched] = useState(false)
   const [scale, setScale] = useState(1)
-  const { viewport, camera } = useThree()
+  const { size, camera } = useThree()
+  const projectedPosition = useMemo(() => new THREE.Vector3(), [])
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(geometry), [geometry])
@@ -60,6 +128,11 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
     }
   }, [isActive, onClosePopup, onProjectClick, project, isMobile])
 
+  const handlePanelClose = useCallback(() => {
+    onClosePopup()
+    setTouched(false)
+  }, [onClosePopup])
+
   const randomOffset = useMemo(() => Math.random() * 10, [])
   const randomAmplitude = useMemo(() => Math.random() * 0.07 + 0.03, [])
   const randomFrequency = useMemo(() => Math.random() * 1 + 1, [])
@@ -81,25 +154,15 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
       textRef.current.scale.setScalar(opacity)
     }
     if (popupRef.current && groupRef.current) {
-      // Convert the object's position to screen space
-      const vector = new THREE.Vector3()
-      groupRef.current.getWorldPosition(vector)
-      vector.project(camera)
-
-      // Convert to 2D screen space
-      const x = (vector.x * 0.5 + 0.5) * viewport.width
-      const y = (vector.y * -0.5 + 0.5) * viewport.height
-
-      // Determine if the geometry is on the left or right side of the screen
-      const isLeftSide = x < viewport.width / 2
-
-      // Position the popup to the right or left of the geometry
-      const offsetX = isLeftSide ? 5 : -35 
-      const popupX = x + offsetX
-      const popupY = y
-
-      // Update popup position
-      popupRef.current.style.transform = `translate(${isLeftSide ? '0' : '-100%'}, -50%) translate(${popupX}px,${popupY}px)`
+      // <Html> already sits on the shape; only choose which side the panel opens on.
+      // size is in CSS pixels (viewport would be world units).
+      groupRef.current.getWorldPosition(projectedPosition)
+      projectedPosition.project(camera)
+      const screenX = (projectedPosition.x * 0.5 + 0.5) * size.width
+      const fitsOnRight = screenX + PANEL_GAP + PANEL_WIDTH <= size.width - PANEL_EDGE_MARGIN
+      popupRef.current.style.transform = fitsOnRight
+        ? `translate(${PANEL_GAP}px, ${PANEL_TOP_OFFSET}px)`
+        : `translate(calc(-100% - ${PANEL_GAP}px), ${PANEL_TOP_OFFSET}px)`
     }
   })
 
@@ -133,48 +196,15 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
             {project.title}
           </Text>
         </group>
-        {isActive && (
-          <Html>
-            <div ref={popupRef} className="popup-container" style={{ position: 'absolute', pointerEvents: 'auto' }}>
-              <div 
-                className="popup-content bg-black bg-opacity-75 text-white p-3 sm:p-4 rounded-md shadow-lg relative"
-                style={{
-                  width: '200px',
-                  maxWidth: '80vw',
-                  animation: 'easeIn 0.3s ease-out',
-                  animationFillMode: 'forwards'
-                }}
-              >
-                <button 
-                  onClick={(e) => { 
-                    e.stopPropagation()
-                    onClosePopup()
-                    setTouched(false)
-                  }}
-                  className="absolute top-1 right-2 sm:top-2 sm:right-4 text-white hover:text-gray-300 bg-transparent border-none cursor-pointer text-base sm:text-lg focus:outline-none"
-                  style={{ lineHeight: 1 }}
-                >
-                  ✕
-                </button>
-                <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2 pr-4">{project.title}</h3>
-                <p className="text-xs sm:text-sm">{project.description}</p>
-                {project.link && (
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="mt-2 inline-block text-[11px] leading-none text-white/45 underline decoration-white/25 underline-offset-[3px] hover:text-[#39FF14] hover:decoration-[#39FF14] transition-colors"
-                  >
-                    case study
-                  </a>
-                )}
-              </div>
-            </div>
-          </Html>
-        )}
       </Float>
+      {/* Outside <Float> so the panel stays steady while the shape bobs */}
+      {isActive && !isCompact && (
+        <Html>
+          <div ref={popupRef} style={{ position: 'absolute', pointerEvents: 'auto' }}>
+            <ProjectDetails project={project} variant="anchored" onClose={handlePanelClose} />
+          </div>
+        </Html>
+      )}
     </group>
   )
 })
@@ -312,7 +342,7 @@ const Stars = React.memo(({ opacity }) => {
 
 Stars.displayName = 'Stars'
 
-const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
+const Scene = ({ onProjectClick, activeProject, onClosePopup, isCompact }) => {
   const [shapes, setShapes] = useState([])
   const [opacity, setOpacity] = useState(0)
 
@@ -361,6 +391,7 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
           isActive={activeProject?.id === shape.project.id}
           onClosePopup={onClosePopup}
           opacity={opacity}
+          isCompact={isCompact}
         />
       ))}
       <Stars opacity={opacity} />
@@ -370,19 +401,23 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
 
 const Projects = () => {
   const router = useRouter()
-  const [showInstructions, setShowInstructions] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
+  const [isCompact, setIsCompact] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [screenSize, setScreenSize] = useState({ width: 0, height: 0 })
 
-  const toggleInstructions = useCallback(() => {
-    setShowInstructions(prev => !prev)
+  // Help and project details share the bottom of the screen on mobile, so only one is open at a time
+  const toggleHelp = useCallback(() => {
+    setShowHelp(prev => !prev)
+    setActiveProject(null)
   }, [])
 
   const handleProjectClick = useCallback((project) => {
     setActiveProject(project)
+    setShowHelp(false)
   }, [])
 
   const handleClosePopup = useCallback(() => {
@@ -401,6 +436,27 @@ const Projects = () => {
 
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    const compactQuery = window.matchMedia(COMPACT_QUERY)
+    const updateCompact = () => setIsCompact(compactQuery.matches)
+    updateCompact()
+    compactQuery.addEventListener('change', updateCompact)
+    return () => compactQuery.removeEventListener('change', updateCompact)
+  }, [])
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape') return
+      if (activeProject) {
+        setActiveProject(null)
+      } else {
+        setShowHelp(false)
+      }
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [activeProject])
 
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault()
@@ -457,7 +513,7 @@ const Projects = () => {
   }
 
   return (
-    <div className="w-screen h-screen bg-black text-white font-mono">
+    <div className="w-screen h-screen bg-black text-white font-mono" style={{ fontFamily: TERMINAL_FONT }}>
       <AnimatePresence>
         {mounted && isLoaded && (
           <motion.div
@@ -472,6 +528,7 @@ const Projects = () => {
                 onProjectClick={handleProjectClick} 
                 activeProject={activeProject}
                 onClosePopup={handleClosePopup}
+                isCompact={isCompact}
               />
               <CustomOrbitControls />
             </Canvas>
@@ -479,48 +536,50 @@ const Projects = () => {
         )}
       </AnimatePresence>
 
-      <TerminalIcon onClick={handleTerminalClick} className="absolute top-2 left-2 sm:top-4 sm:left-4" />
+      <TerminalIcon onClick={handleTerminalClick} />
+
+      {isCompact && activeProject && (
+        <ProjectDetails
+          key={activeProject.id}
+          project={activeProject}
+          variant="sheet"
+          onClose={handleClosePopup}
+        />
+      )}
 
       <AnimatePresence>
         {isLoaded && (
           <motion.button
-            key="instructions-button"
-            className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-white text-black px-2 py-1 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm hover:bg-gray-200 transition-colors"
-            onClick={toggleInstructions}
+            key="help-button"
+            type="button"
+            aria-expanded={showHelp}
+            aria-controls="projects-controls"
+            className={`${QUIET_CONTROL} absolute left-0.5 bottom-1 sm:left-2.5 sm:bottom-2 px-2.5 min-h-[44px] text-[12px] ${showHelp ? 'text-[#D0D0D0]' : 'text-[#8E8E8E] hover:text-[#D0D0D0]'}`}
+            onClick={toggleHelp}
             variants={buttonVariants}
             initial="hidden"
             animate="visible"
           >
-            Instructions
+            help
           </motion.button>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {showInstructions && (
-          <motion.div
-            key="instructions-panel"
-            className="absolute bottom-12 sm:bottom-16 left-2 sm:left-4 bg-black bg-opacity-75 p-3 sm:p-4 rounded-md max-w-[90vw] sm:max-w-xs"
+        {showHelp && (
+          <motion.section
+            key="help-panel"
+            id="projects-controls"
+            aria-label="Controls"
+            className={`${PANEL_SURFACE} absolute left-3 bottom-14 sm:left-5 sm:bottom-[52px] px-4 pt-3 pb-3.5 whitespace-pre`}
             variants={instructionsVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
           >
-            <ul className="list-disc pl-4 sm:pl-5 space-y-1 sm:space-y-2">
-              <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">SWIPE</strong> or <strong className="text-[#39FF14]">DRAG</strong> to rotate the view.</li>
-              <li className="text-xs sm:text-sm">
-                {isTouchDevice ? (
-                  <><strong className="text-[#39FF14]">DOUBLE-TAP</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move sideways.</>
-                ) : (
-                  <><strong className="text-[#39FF14]">RIGHT-CLICK</strong> and <strong className="text-[#39FF14]">DRAG</strong> to move sideways.</>
-                )}
-              </li>
-              {!isTouchDevice && (
-                <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">SCROLL</strong> to move forward and backward.</li>
-              )}
-              <li className="text-xs sm:text-sm"><strong className="text-[#39FF14]">TAP</strong> or <strong className="text-[#39FF14]">CLICK</strong> on a shape to view project details.</li>
-            </ul>
-          </motion.div>
+            Controls:{'\n\n'}
+            <span className="text-[#8E8E8E]">{isTouchDevice ? TOUCH_CONTROLS : POINTER_CONTROLS}</span>
+          </motion.section>
         )}
       </AnimatePresence>
     </div>
