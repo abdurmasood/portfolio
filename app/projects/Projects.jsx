@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import TerminalIcon from '../../components/projects/TerminalIcon'
 
 const projects = [
-  { id: 1, title: "Arrythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
+  { id: 1, title: "Arrhythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
   { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies.", link: "https://topol.digitalacademy.nhs.uk/digital-fellowships/case-studies/haris-shuaib" },
   { id: 3, title: "Home-Work", description: "Used Google Gemini & GCP to bulid a web application with the aim to find grammatical errors in student homework.", disabled: true },
   { id: 4, title: "Leaf Line", description: "Coded python library for a leading space company to ensure fast, secure, and efficient data transmission between ground stations and satellites in LEO.", link: "https://leaf.space/leaf-line/" },
