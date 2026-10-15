@@ -10,7 +10,7 @@ import TerminalIcon from '../../components/projects/TerminalIcon'
 
 const projects = [
   { id: 1, title: "Arrythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
-  { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies." },
+  { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies.", link: "https://topol.digitalacademy.nhs.uk/digital-fellowships/case-studies/haris-shuaib" },
   { id: 3, title: "Home-Work", description: "Used Google Gemini & GCP to bulid a web application with the aim to find grammatical errors in student homework." },
   { id: 4, title: "Leaf Line", description: "Coded python library for a leading space company to ensure fast, secure, and efficient data transmission between ground stations and satellites in LEO." },
   { id: 5, title: "Loan Coin", description: "Created blockchain based crowd lending platform to help women in rural areas set up businesses. Invited to pitch to the United Nations." },
@@ -156,8 +156,20 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 >
                   ✕
                 </button>
-                <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">{project.title}</h3>
+                <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2 pr-4">{project.title}</h3>
                 <p className="text-xs sm:text-sm">{project.description}</p>
+                {project.link && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="mt-2 inline-block text-[11px] leading-none text-white/45 underline decoration-white/25 underline-offset-[3px] hover:text-[#39FF14] hover:decoration-[#39FF14] transition-colors"
+                  >
+                    case study
+                  </a>
+                )}
               </div>
             </div>
           </Html>
