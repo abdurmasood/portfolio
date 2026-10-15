@@ -28,28 +28,28 @@ const Terminal = () => {
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
     "<span class='grey'>My name is Jarvis, I am Rafey's virtual assistant.</span>",
-    "<span class='grey'>----</span>",
+    "",
     "<span class='grey'>Rafey is a full-stack developer with a focus on Artificial Intelligence.</span>",
     "<span class='grey'>Type 'help' to learn more about him.</span>",
-    "<span class='grey'>----</span>",
+    "",
     ""
   ];
 
   const commandDescriptions = [
-    "<span class='command-keyword'>bio</span>          - background & education",
-    "<span class='command-keyword'>projects</span>     - body of work",
-    // "<span class='command-keyword'>blog</span>         - Rafey's latest thoughts",
-    "<span class='command-keyword'>skills</span>       - tools he's worked with",
-    "<span class='command-keyword'>music</span>        - his journey as a producer",
-    "<span class='command-keyword'>contact</span>      - get in touch",
+    "Available commands:",
     "",
-    "<span class='grey'>up arrow     => back to last command</span>",
-    "<span class='grey'>clear        => clear the terminal</span>",
-    "<span class='grey'>help         => display all commands</span>",
+    "  bio         background &amp; education",
+    "  projects    body of work",
+    // "  blog        Rafey's latest thoughts",
+    "  skills      tools he's worked with",
+    "  music       his journey as a producer",
+    "  contact     get in touch",
+    "",
+    "<span class='grey'>Use ↑ for history, tab to autocomplete, 'clear' to reset.</span>",
   ];
 
   const executableCommands = [
-    'bio', 'projects', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
+    'bio', 'projects', 'skills', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
   ];
 
   const nonExecutableCommands = [
