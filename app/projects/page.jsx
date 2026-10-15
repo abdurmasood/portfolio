@@ -2,11 +2,11 @@
 
 import dynamic from 'next/dynamic'
 
-const ProjectsPage = dynamic(
-  () => import('./ProjectsPage.jsx'),
+const Projects = dynamic(
+  () => import('./Projects.jsx'),
   { ssr: false }
 )
 
 export default function Page() {
-  return <ProjectsPage />
+  return <Projects />
 }

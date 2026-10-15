@@ -355,7 +355,7 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
   )
 }
 
-const ProjectsPage = () => {
+const Projects = () => {
   const router = useRouter()
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
@@ -514,4 +514,4 @@ const ProjectsPage = () => {
   )
 }
 
-export default ProjectsPage
+export default Projects
