@@ -1,10 +1,12 @@
+'use client'
+
 import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Float, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import TerminalIcon from './../Terminal/TerminalIcon'  // Assuming you've saved the TerminalIcon component in a separate file
-import { useNavigate } from 'react-router-dom';
 
 const projects = [
   { id: 1, title: "Arrythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
@@ -354,12 +356,13 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
 }
 
 const ProjectsPage = () => {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const [screenSize, setScreenSize] = useState({ width: window.innerWidth, height: window.innerHeight })
+  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 })
 
   const toggleInstructions = useCallback(() => {
     setShowInstructions(prev => !prev)
@@ -374,10 +377,11 @@ const ProjectsPage = () => {
   }, [])
 
   const handleTerminalClick = useCallback(() => {
-    navigate(-1)
-  }, [navigate])
+    router.back()
+  }, [router])
 
   useEffect(() => {
+    setMounted(true)
     const timer = setTimeout(() => {
       setIsLoaded(true)
     }, 100)
@@ -399,6 +403,7 @@ const ProjectsPage = () => {
       setScreenSize({ width: window.innerWidth, height: window.innerHeight })
     }
     checkTouchDevice()
+    handleResize()
     window.addEventListener('resize', () => {
       checkTouchDevice()
       handleResize()
@@ -441,7 +446,7 @@ const ProjectsPage = () => {
   return (
     <div className="w-screen h-screen bg-black text-white font-mono">
       <AnimatePresence>
-        {isLoaded && (
+        {mounted && isLoaded && (
           <motion.div
             key="canvas-container"
             initial="hidden"

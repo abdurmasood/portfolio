@@ -1,11 +1,14 @@
+'use client'
+
 import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import MusicPlayer from './MusicPlayer'
 import { Terminal } from 'lucide-react'
 
 const Timeline = lazy(() => import("./Timeline"))
-const Background3D = lazy(() => import("./3D/3DBackground"))
+const Background3D = dynamic(() => import("./3D/3DBackground"), { ssr: false })
 
 const MemoizedTimeline = React.memo(Timeline)
 
@@ -30,7 +33,7 @@ const TerminalIcon = ({ onClick }) => {
 };
 
 function ArtistPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
   const [show3DBackground, setShow3DBackground] = useState(false)
@@ -83,8 +86,8 @@ function ArtistPage() {
   }
 
   const handleTerminalClick = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
+    router.back();
+  }, [router]);
 
   if (isLoading) {
     return (

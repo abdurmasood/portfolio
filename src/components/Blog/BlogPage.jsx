@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react';
 import { ChevronRight, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
