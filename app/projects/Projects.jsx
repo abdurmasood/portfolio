@@ -320,7 +320,7 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
     const visibleProjects = projects.filter((project) => !project.disabled)
     const initialShapes = visibleProjects.map((project, index) => {
       const angle = (index / visibleProjects.length) * Math.PI * 2
-      const radius = 7.7
+      const radius = 7.7 * (visibleProjects.length / projects.length)
       return {
         project,
         position: [
