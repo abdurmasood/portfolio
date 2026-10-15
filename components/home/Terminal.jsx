@@ -248,6 +248,8 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
     }
 
     if (e.key === 'ArrowUp') {
+      // Stop the browser jumping the caret to the start of the input
+      e.preventDefault();
       if (commandHistory.length > 0) {
         const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
         setHistoryIndex(newIndex);
@@ -256,6 +258,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
     }
 
     if (e.key === 'ArrowDown') {
+      e.preventDefault();
       if (commandHistory.length > 0) {
         const newIndex = historyIndex === -1 ? 0 : Math.min(commandHistory.length - 1, historyIndex + 1);
         setHistoryIndex(newIndex);
