@@ -1,6 +1,5 @@
-import '../src/index.css'
-import '../src/App.css'
-import { TerminalProvider } from '../src/components/Terminal/TerminalContext.jsx'
+import './globals.css'
+import { TerminalProvider } from '../components/terminal/TerminalContext.jsx'
 
 export const metadata = {
   title: 'Jarvis',

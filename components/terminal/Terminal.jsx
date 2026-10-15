@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './Terminal.css';
-import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../utls/descriptions';
-import Jarvis from './../Jarvis/Jarvis.jsx'
+import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.jsx';
+import Typewriter from './Typewriter'
 import { useTerminal } from './TerminalContext';
-import LoadingBar from './../Projects/LoadingBar'; // Import the LoadingBar component
+import LoadingBar from './LoadingBar';
 
 const Terminal = () => {
   const router = useRouter();
@@ -271,7 +271,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
         <>
           <div className="terminal-output">
             {showTypewriterMessage && (
-              <Jarvis
+              <Typewriter
                 text={initialMessage}
                 onComplete={() => {
                   setHistory(initialMessage);

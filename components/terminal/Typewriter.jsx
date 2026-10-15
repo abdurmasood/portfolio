@@ -1,10 +1,10 @@
 'use client'
 
-import Typewriter from 'typewriter-effect';
+import TypewriterEffect from 'typewriter-effect';
 
-const Jarvis = ({ text, onComplete, options = {} }) => {
+const Typewriter = ({ text, onComplete, options = {} }) => {
   return (
-    <Typewriter
+    <TypewriterEffect
       options={{
         delay: 60,
         cursor: '_',
@@ -25,4 +25,4 @@ const Jarvis = ({ text, onComplete, options = {} }) => {
   );
 };
 
-export default Jarvis;
+export default Typewriter;
