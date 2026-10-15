@@ -1,5 +1,5 @@
-import ArtistPage from '../../src/components/Music/ArtistPage.jsx'
+import Artist from './Artist'
 
 export default function Page() {
-  return <ArtistPage />
+  return <Artist />
 }

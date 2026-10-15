@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 
 const LoadingBar = () => {
   const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [loadingPhase, setLoadingPhase] = useState('Creating assets');
 
   useEffect(() => {
@@ -11,7 +10,6 @@ const LoadingBar = () => {
       setProgress((oldProgress) => {
         if (oldProgress === 100) {
           clearInterval(timer);
-          setTimeout(() => setLoading(false), 500); // Delay to show 100% briefly
           return 100;
         }
         const newProgress = oldProgress + 1;
@@ -23,8 +21,6 @@ const LoadingBar = () => {
     }, 50);
     return () => clearInterval(timer);
   }, []);
-
-  if (!loading) return null;
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-center">

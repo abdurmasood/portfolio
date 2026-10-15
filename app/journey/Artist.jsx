@@ -32,7 +32,7 @@ const TerminalIcon = ({ onClick }) => {
   );
 };
 
-function ArtistPage() {
+function Artist() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
@@ -148,4 +148,4 @@ function ArtistPage() {
   )
 }
 
-export default ArtistPage
+export default Artist

@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './Terminal.css';
-import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../utls/descriptions';
-import Jarvis from './../Jarvis/Jarvis.jsx'
-import { useTerminal } from './TerminalContext';
-import LoadingBar from './../Projects/LoadingBar'; // Import the LoadingBar component
+import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.js';
+import Typewriter from './Typewriter'
+import { useTerminal } from './TerminalProvider';
+import LoadingBar from './LoadingBar';
+import { loadProjects } from '../../lib/loadProjects';
 
 const Terminal = () => {
   const router = useRouter();
@@ -121,8 +122,8 @@ const Terminal = () => {
           case 'projects':
           case 'Projects':
             setShowLoadingBar(true);
+            loadProjects();
             setTimeout(() => {
-              setShowLoadingBar(false);
               router.push('/projects');
             }, 5500);
             break;
@@ -271,7 +272,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
         <>
           <div className="terminal-output">
             {showTypewriterMessage && (
-              <Jarvis
+              <Typewriter
                 text={initialMessage}
                 onComplete={() => {
                   setHistory(initialMessage);

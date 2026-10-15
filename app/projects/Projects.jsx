@@ -6,15 +6,15 @@ import { OrbitControls, Text, Float, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import TerminalIcon from './../Terminal/TerminalIcon'  // Assuming you've saved the TerminalIcon component in a separate file
+import TerminalIcon from '../../components/projects/TerminalIcon'
 
 const projects = [
   { id: 1, title: "Arrythmia Detector", description: "Developed a convolutional Neural Network based on Google's AlexNet deep learning architecture to detect different types of arrhythmia with 94% accuracy." },
-  { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies." },
-  { id: 3, title: "Home-Work", description: "Used Google Gemini & GCP to bulid a web application with the aim to find grammatical errors in student homework." },
-  { id: 4, title: "Leaf Line", description: "Coded python library for a leading space company to ensure fast, secure, and efficient data transmission between ground stations and satellites in LEO." },
+  { id: 2, title: "Neuro Scan", description: "Built web application for the NHS to visualise abnormalities in MRI scans & ease physician workload in detecting parameter anomalies.", link: "https://topol.digitalacademy.nhs.uk/digital-fellowships/case-studies/haris-shuaib" },
+  { id: 3, title: "Home-Work", description: "Used Google Gemini & GCP to bulid a web application with the aim to find grammatical errors in student homework.", disabled: true },
+  { id: 4, title: "Leaf Line", description: "Coded python library for a leading space company to ensure fast, secure, and efficient data transmission between ground stations and satellites in LEO.", link: "https://leaf.space/leaf-line/" },
   { id: 5, title: "Loan Coin", description: "Created blockchain based crowd lending platform to help women in rural areas set up businesses. Invited to pitch to the United Nations." },
-  { id: 6, title: "Hotel Price Tracker", description: "Used python scripting to automate the process of checking hotel prices to get the best deals." },
+  { id: 6, title: "Hotel Price Tracker", description: "Used python scripting to automate the process of checking hotel prices to get the best deals.", disabled: true },
   { id: 7, title: "Assisty", description: "Developed an AI-Powered spam classifier to detect fraudulent text messages and conversations using LLMs." },
 ]
 
@@ -156,8 +156,20 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
                 >
                   ✕
                 </button>
-                <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">{project.title}</h3>
+                <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2 pr-4">{project.title}</h3>
                 <p className="text-xs sm:text-sm">{project.description}</p>
+                {project.link && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="mt-2 inline-block text-[11px] leading-none text-white/45 underline decoration-white/25 underline-offset-[3px] hover:text-[#39FF14] hover:decoration-[#39FF14] transition-colors"
+                  >
+                    case study
+                  </a>
+                )}
               </div>
             </div>
           </Html>
@@ -305,9 +317,10 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
   const [opacity, setOpacity] = useState(0)
 
   useEffect(() => {
-    const initialShapes = projects.map((project, index) => {
-      const angle = (index / projects.length) * Math.PI * 2
-      const radius = 7.7
+    const visibleProjects = projects.filter((project) => !project.disabled)
+    const initialShapes = visibleProjects.map((project, index) => {
+      const angle = (index / visibleProjects.length) * Math.PI * 2
+      const radius = 7.7 * (visibleProjects.length / projects.length)
       return {
         project,
         position: [
@@ -315,7 +328,7 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
           Math.sin(angle) * radius,
           0
         ],
-        geometry: geometries[index]
+        geometry: geometries[projects.indexOf(project)]
       }
     })
     setShapes(initialShapes)
@@ -355,7 +368,7 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup }) => {
   )
 }
 
-const ProjectsPage = () => {
+const Projects = () => {
   const router = useRouter()
   const [showInstructions, setShowInstructions] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
@@ -514,4 +527,4 @@ const ProjectsPage = () => {
   )
 }
 
-export default ProjectsPage
+export default Projects
