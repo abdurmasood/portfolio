@@ -1,8 +1,18 @@
-# React + Vite
+# Jarvis
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Rafey's portfolio, as a terminal.
 
-Currently, two official plugins are available:
+[Open the site](https://portfolio-three-self-5rwxg5wc0p.vercel.app)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![Jarvis](docs/preview.png)
+
+```
+bio        background & education
+projects   body of work
+skills     tools he's worked with
+music      his journey as a producer
+contact    get in touch
+```
+
+Next.js, React, Tailwind, Three.js.
+
