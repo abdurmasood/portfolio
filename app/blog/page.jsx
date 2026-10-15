@@ -1,4 +1,4 @@
-import BlogPage from '../../src/components/Blog/BlogPage.jsx'
+import BlogPage from './BlogPage'
 
 export default function Page() {
   return <BlogPage />
