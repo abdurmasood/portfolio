@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 
 const ProjectsPage = dynamic(
-  () => import('../../src/components/Projects/ProjectsPage.jsx'),
+  () => import('./ProjectsPage.jsx'),
   { ssr: false }
 )
 
