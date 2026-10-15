@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './Terminal.css';
-import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.jsx';
+import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.js';
 import Typewriter from './Typewriter'
 import { useTerminal } from './TerminalContext';
 import LoadingBar from './LoadingBar';
