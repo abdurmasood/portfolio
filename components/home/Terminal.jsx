@@ -9,10 +9,27 @@ import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
 import { loadProjects } from '../../lib/loadProjects';
 
+const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
+const TYPING_IDLE_MS = 500;
+
+// History is rendered with dangerouslySetInnerHTML, so anything the visitor typed must be escaped
+const escapeHtml = (text) => text
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
 const Terminal = () => {
   const router = useRouter();
   const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
   const terminalRef = useRef(null);
+  const inputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const [caretIndex, setCaretIndex] = useState(0);
+  const [inputScrollLeft, setInputScrollLeft] = useState(0);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const [showHistory, setShowHistory] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -75,21 +92,51 @@ const Terminal = () => {
     }
   }, [history]);
 
+  // Programmatic input changes (history, tab completion) move the native caret to the end
+  useEffect(() => {
+    if (inputRef.current) {
+      syncCursor(inputRef.current);
+    }
+  }, [input]);
+
+  useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
+
+  const syncCursor = (inputElement) => {
+    setCaretIndex(inputElement.selectionStart ?? inputElement.value.length);
+    setInputScrollLeft(inputElement.scrollLeft);
+  };
+
+  const markTyping = () => {
+    setIsTyping(true);
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), TYPING_IDLE_MS);
+  };
+
+  const focusInputOnClick = () => {
+    // Don't steal focus while the visitor is selecting text to copy
+    if (window.getSelection()?.isCollapsed) {
+      inputRef.current?.focus();
+    }
+  };
+
   const handleKeyDown = (e) => {
+    markTyping();
+
     if (e.key === 'Enter') {
       const command = input.trim();
+      const safeCommand = escapeHtml(command);
       let output = '';
       let isError = false;
       
       if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
         if (command === 'pwd' || command === 'exit') {
-          output = `${command}: Permission denied`;
+          output = `${safeCommand}: Permission denied`;
           isError = true;
         } else if (command.startsWith('cd') || command.startsWith('mkdir') || command.startsWith('grep') || command.startsWith('rm')) {
-          output = `${command}: Permission denied`;
+          output = `${safeCommand}: Permission denied`;
           isError = true;
         } else if (command.startsWith('pwd ') || command.startsWith('exit ')) {
-          const invalidCommand = command.split(' ')[1];
+          const invalidCommand = escapeHtml(command.split(' ')[1]);
           output = `${invalidCommand} : The term ${invalidCommand} is not recognized as the name of a cmdlet, function, script file, or operable program.`;
           isError = true;
         }
@@ -153,7 +200,7 @@ const Terminal = () => {
             break;
 
           case 'cat README.txt':
-            output = readMeDescription;
+            output = `<span class='ascii'>${readMeDescription}</span>`;
             break;
 
           case 'ls':
@@ -188,13 +235,12 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
             break;
             
           default:
-            output = `Command not found: '${command}'`;
+            output = `Command not found: '${safeCommand}'`;
             isError = true;
         }
       }
 
-      const commandPrompt = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
-      const commandOutput = `${commandPrompt} ${command}`;
+      const commandOutput = `${COMMAND_PROMPT} ${safeCommand}`;
       const formattedOutput = isError ? `<span class='error-text'>${output}</span>` : output;
 
       // Update history for all commands, always adding a new line
@@ -236,7 +282,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
         if (tabPressCount === 1) {
           if (visibleMatches.length > 0) {
             const output = visibleMatches.join('    ');
-            setHistory((prevHistory) => `${prevHistory}<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span> ${input}\n${output}\n`);
+            setHistory((prevHistory) => `${prevHistory}${COMMAND_PROMPT} ${escapeHtml(input)}\n${output}\n`);
           }
           setTabPressCount(0);
         } else {
@@ -268,7 +314,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
   };
 
   return (
-    <div className="terminal" ref={terminalRef}>
+    <div className="terminal" ref={terminalRef} onClick={focusInputOnClick}>
       {showLoadingBar ? (
         <LoadingBar />
       ) : (
@@ -302,18 +348,36 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
                 <span className='hostname'>rafey.ai</span>
                 <span className='base-color'>:~$</span>
               </span>
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  setTabPressCount(0);
-                  setPossibleMatches([]);
-                  setHistoryIndex(-1);
-                }}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
+              <span className="terminal-input-field">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  aria-label="terminal input"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    setTabPressCount(0);
+                    setPossibleMatches([]);
+                    setHistoryIndex(-1);
+                    syncCursor(e.target);
+                  }}
+                  onSelect={(e) => syncCursor(e.target)}
+                  onKeyUp={(e) => syncCursor(e.target)}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setIsInputFocused(false)}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                />
+                <span
+                  className={`terminal-cursor${isTyping ? ' is-typing' : ''}${isInputFocused ? '' : ' is-unfocused'}`}
+                  style={{ left: `calc(${caretIndex}ch - ${inputScrollLeft}px)` }}
+                  aria-hidden="true"
+                />
+              </span>
             </div>
           )}
         </>

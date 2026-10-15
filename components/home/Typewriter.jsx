@@ -7,7 +7,7 @@ const Typewriter = ({ text, onComplete, options = {} }) => {
     <TypewriterEffect
       options={{
         delay: 60,
-        cursor: '_',
+        cursor: '█',
         ...options, 
       }}
       onInit={(typewriter) => {
