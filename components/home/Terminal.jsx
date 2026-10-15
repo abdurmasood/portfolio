@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import './Terminal.css';
 import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.js';
 import Typewriter from './Typewriter'
-import { useTerminal } from './TerminalContext';
+import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
 
 const Terminal = () => {

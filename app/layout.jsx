@@ -1,5 +1,5 @@
 import './globals.css'
-import { TerminalProvider } from '../components/terminal/TerminalContext.jsx'
+import { TerminalProvider } from '../components/home/TerminalProvider.jsx'
 
 export const metadata = {
   title: 'Jarvis',

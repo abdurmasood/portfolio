@@ -1,4 +1,4 @@
-import Terminal from '../components/terminal/Terminal.jsx'
+import Terminal from '../components/home/Terminal.jsx'
 
 export default function Page() {
   return <Terminal />
