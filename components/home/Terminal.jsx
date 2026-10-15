@@ -7,6 +7,7 @@ import {readMeDescription, catDescription, bioDescription, skillsDescription } f
 import Typewriter from './Typewriter'
 import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
+import { loadProjects } from '../../lib/loadProjects';
 
 const Terminal = () => {
   const router = useRouter();
@@ -121,8 +122,8 @@ const Terminal = () => {
           case 'projects':
           case 'Projects':
             setShowLoadingBar(true);
+            loadProjects();
             setTimeout(() => {
-              setShowLoadingBar(false);
               router.push('/projects');
             }, 5500);
             break;
