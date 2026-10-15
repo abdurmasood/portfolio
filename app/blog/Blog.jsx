@@ -5,7 +5,7 @@ import { ChevronRight, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import blogPosts from './blogData';
 
-function BlogPage() {
+function Blog() {
   const [selectedPost, setSelectedPost] = useState(null);
 
   return (
@@ -65,4 +65,4 @@ function BlogPage() {
   );
 }
 
-export default BlogPage;
+export default Blog;
