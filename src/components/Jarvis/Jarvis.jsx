@@ -1,3 +1,5 @@
+'use client'
+
 import Typewriter from 'typewriter-effect';
 
 const Jarvis = ({ text, onComplete, options = {} }) => {

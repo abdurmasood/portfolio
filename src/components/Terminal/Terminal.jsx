@@ -1,13 +1,15 @@
+'use client'
+
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import './Terminal.css';
 import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../utls/descriptions';
 import Jarvis from './../Jarvis/Jarvis.jsx'
-import { useNavigate } from 'react-router-dom';
 import { useTerminal } from './TerminalContext';
 import LoadingBar from './../Projects/LoadingBar'; // Import the LoadingBar component
 
 const Terminal = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
   const terminalRef = useRef(null);
 
@@ -121,13 +123,13 @@ const Terminal = () => {
             setShowLoadingBar(true);
             setTimeout(() => {
               setShowLoadingBar(false);
-              navigate('/projects');
+              router.push('/projects');
             }, 5500);
             break;
 
           case 'blog':
           case 'Blog':
-            navigate('/blog')
+            router.push('/blog')
             break;
 
           case 'cat music.txt':
@@ -136,7 +138,7 @@ const Terminal = () => {
 
           case 'music':
           case 'Music':
-            navigate('/journey');
+            router.push('/journey');
             break;
 
           case 'skills':
