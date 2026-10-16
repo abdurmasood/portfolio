@@ -14,6 +14,7 @@ import { getFeaturedTrack } from '../../lib/music';
 import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
+const TYPING_IDLE_MS = 500;
 // Offered as ghost text until the visitor runs their first command
 const STARTER_SUGGESTION = 'help';
 
@@ -45,8 +46,10 @@ const Terminal = () => {
   const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const [caretIndex, setCaretIndex] = useState(0);
   const [inputScrollLeft, setInputScrollLeft] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
 
   const [possibleMatches, setPossibleMatches] = useState([]);
   const [lastCommand, setLastCommand] = useState('');
@@ -104,9 +107,17 @@ const Terminal = () => {
     }
   }, [input, foregroundId]);
 
+  useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
+
   const syncCursor = (inputElement) => {
     setCaretIndex(inputElement.selectionStart ?? inputElement.value.length);
     setInputScrollLeft(inputElement.scrollLeft);
+  };
+
+  const markTyping = () => {
+    setIsTyping(true);
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), TYPING_IDLE_MS);
   };
 
   const stopPlayer = (entryId, { at, duration }) => {
@@ -302,6 +313,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
   };
 
   const handleKeyDown = (e) => {
+    markTyping();
     const completesGhost = ghostSuggestion && (
       e.key === 'Tab'
       || (e.key === 'ArrowRight' && e.target.selectionStart === input.length)
@@ -476,7 +488,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
                 )}
                 {/* Sits on the first ghost character, which shows through inverted like a real block cursor */}
                 <span
-                  className="terminal-cursor"
+                  className={`terminal-cursor${isTyping ? ' is-typing' : ''}`}
                   style={{ left: cursorLeft }}
                   aria-hidden="true"
                 >
