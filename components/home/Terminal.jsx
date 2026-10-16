@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './Terminal.css';
 import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.js';
-import Typewriter from './Typewriter'
 import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
 import { loadProjects } from '../../lib/loadProjects';
@@ -15,7 +14,8 @@ import { getFeaturedTrack } from '../../lib/music';
 import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
-const TYPING_IDLE_MS = 500;
+// Offered as ghost text until the visitor runs their first command
+const STARTER_SUGGESTION = 'help';
 
 // History is rendered with dangerouslySetInnerHTML, so anything the visitor typed must be escaped
 const escapeHtml = (text) => text
@@ -45,35 +45,17 @@ const Terminal = () => {
   const { history, setHistory, commandHistory, setCommandHistory, input, setInput } = useTerminal();
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
   const [caretIndex, setCaretIndex] = useState(0);
   const [inputScrollLeft, setInputScrollLeft] = useState(0);
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
 
-  const [showHistory, setShowHistory] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [showTypewriterMessage, setShowTypewriterMessage] = useState(false);
   const [possibleMatches, setPossibleMatches] = useState([]);
   const [lastCommand, setLastCommand] = useState('');
   const [tabPressCount, setTabPressCount] = useState(0);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [initialMessage, setInitialMessage] = useState('');
-  const [hasShownTypewriter, setHasShownTypewriter] = useState(false);
   const [showLoadingBar, setShowLoadingBar] = useState(false);
   // The history entry that owns the keyboard (music player, projects picker).
   // Local, not in the provider: it must never resume after navigating away and back
   const [foregroundId, setForegroundId] = useState(null);
-
-  const initialMessages = [
-    "<span class='grey'>Welcome to Rafey's portfolio.</span>",
-    "<span class='grey'>My name is Jarvis, I am Rafey's virtual assistant.</span>",
-    "",
-    "<span class='grey'>Rafey is a full-stack developer with a focus on Artificial Intelligence.</span>",
-    "<span class='grey'>Type 'help' to learn more about him.</span>",
-    "",
-    ""
-  ];
 
   const commandDescriptions = [
     "Available commands:",
@@ -99,16 +81,14 @@ const Terminal = () => {
 
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
-  useEffect(() => {
-    if (history.length === 0 && !hasShownTypewriter) {
-      setInitialMessage(initialMessages.join('\n'));
-      setShowTypewriterMessage(true);
-      setHasShownTypewriter(true);
-    } else if (history.length > 0 && !showTypewriterMessage) {
-      setShowHistory(true);
-      setShowPrompt(true);
-    }
-  }, [history, hasShownTypewriter, showTypewriterMessage]);
+  // commandHistory lives in the provider, so the suggestion stays gone after navigating away and back
+  const ghostSuggestion = commandHistory.length === 0
+    && caretIndex === input.length
+    && input.length < STARTER_SUGGESTION.length
+    && STARTER_SUGGESTION.startsWith(input)
+    ? STARTER_SUGGESTION.slice(input.length)
+    : '';
+  const cursorLeft = `calc(${caretIndex}ch - ${inputScrollLeft}px)`;
 
   useEffect(() => {
     if (terminalRef.current) {
@@ -124,17 +104,9 @@ const Terminal = () => {
     }
   }, [input, foregroundId]);
 
-  useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
-
   const syncCursor = (inputElement) => {
     setCaretIndex(inputElement.selectionStart ?? inputElement.value.length);
     setInputScrollLeft(inputElement.scrollLeft);
-  };
-
-  const markTyping = () => {
-    setIsTyping(true);
-    clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), TYPING_IDLE_MS);
   };
 
   const stopPlayer = (entryId, { at, duration }) => {
@@ -236,8 +208,6 @@ const Terminal = () => {
           setHistory([]);
           setInput('');
           setPossibleMatches([]);
-          setShowHistory(true);
-          setShowPrompt(true);
           return;
 
         case 'cat bio.txt':
@@ -332,10 +302,21 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
   };
 
   const handleKeyDown = (e) => {
-    markTyping();
+    const completesGhost = ghostSuggestion && (
+      e.key === 'Tab'
+      || (e.key === 'ArrowRight' && e.target.selectionStart === input.length)
+    );
+    if (completesGhost) {
+      e.preventDefault();
+      setInput(STARTER_SUGGESTION);
+      setTabPressCount(0);
+      setPossibleMatches([]);
+      setHistoryIndex(-1);
+      return;
+    }
 
     if (e.key === 'Enter') {
-      runCommand(input.trim());
+      runCommand(ghostSuggestion && input.trim() === '' ? STARTER_SUGGESTION : input.trim());
     }
 
     if (e.key === 'Tab') {
@@ -405,19 +386,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
       ) : (
         <>
           <div className="terminal-output">
-            {showTypewriterMessage && (
-              <Typewriter
-                text={initialMessage}
-                onComplete={() => {
-                  setHistory([nextEntry({ type: 'html', html: initialMessage })]);
-                  setShowTypewriterMessage(false);
-                  setShowHistory(true);
-                  setShowPrompt(true);
-                }}
-                options={{ delay: 60 }}
-              />
-            )}
-            {showHistory && !showTypewriterMessage && history.map((item) => {
+            {history.map((item) => {
               if (item.type === 'posts') {
                 return <BlogPostList key={item.id} onOpen={(slug) => runCommand(`cat blog/${slug}.md`)} />;
               }
@@ -460,7 +429,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
           </div>
 
           {/* A playing track or the projects picker owns the terminal, like a foreground process */}
-          {showPrompt && !showTypewriterMessage && !foregroundId && (
+          {!foregroundId && (
             <div className="terminal-input">
               <span className="prompt">
                 visitor
@@ -487,16 +456,32 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
                   }}
                   onSelect={(e) => syncCursor(e.target)}
                   onKeyUp={(e) => syncCursor(e.target)}
-                  onFocus={() => setIsInputFocused(true)}
-                  onBlur={() => setIsInputFocused(false)}
                   onKeyDown={handleKeyDown}
                   autoFocus
                 />
+                {ghostSuggestion && (
+                  <button
+                    type="button"
+                    className="ghost-suggestion"
+                    style={{ left: cursorLeft }}
+                    aria-label={`Run ${STARTER_SUGGESTION}`}
+                    onClick={(e) => {
+                      // Keep the terminal's click-to-focus from opening the phone keyboard
+                      e.stopPropagation();
+                      runCommand(STARTER_SUGGESTION);
+                    }}
+                  >
+                    {ghostSuggestion}
+                  </button>
+                )}
+                {/* Sits on the first ghost character, which shows through inverted like a real block cursor */}
                 <span
-                  className={`terminal-cursor${isTyping ? ' is-typing' : ''}${isInputFocused ? '' : ' is-unfocused'}`}
-                  style={{ left: `calc(${caretIndex}ch - ${inputScrollLeft}px)` }}
+                  className="terminal-cursor"
+                  style={{ left: cursorLeft }}
                   aria-hidden="true"
-                />
+                >
+                  {ghostSuggestion.charAt(0)}
+                </span>
               </span>
             </div>
           )}

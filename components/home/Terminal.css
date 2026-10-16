@@ -60,10 +60,6 @@
   overflow-x: auto;
 }
 
-.terminal .Typewriter__cursor {
-  color: var(--term-fg);
-}
-
 .terminal-input {
   display: flex;
   align-items: center;
@@ -92,6 +88,30 @@
   caret-color: transparent;
 }
 
+.ghost-suggestion {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--term-marker);
+  font: inherit;
+  white-space: pre;
+  cursor: pointer;
+}
+
+.ghost-suggestion:hover,
+.ghost-suggestion:focus {
+  border-color: transparent;
+  outline: none;
+}
+
 .prompt {
   color: var(--term-user);
   margin-right: 1ch;
@@ -102,22 +122,14 @@
   top: 50%;
   width: 1ch;
   height: 1.25em;
+  /* A ghost character under the cursor renders inverted */
+  color: var(--term-bg);
+  line-height: 1.25em;
+  text-align: center;
   transform: translateY(-50%);
   background: var(--term-fg);
   pointer-events: none;
   animation: terminal-blink 1.1s steps(1) infinite;
-}
-
-/* Real terminals hold the cursor solid while keys are pressed */
-.terminal-cursor.is-typing {
-  animation: none;
-}
-
-.terminal-cursor.is-unfocused {
-  background: transparent;
-  outline: 1px solid var(--term-fg);
-  outline-offset: -1px;
-  animation: none;
 }
 
 @keyframes terminal-blink {
