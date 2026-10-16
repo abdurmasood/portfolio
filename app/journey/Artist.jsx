@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import { useRouter } from 'next/navigation'
 import MusicPlayer from './MusicPlayer'
 import { Terminal } from 'lucide-react'
+import { MILESTONES } from '../../lib/music'
 
 const Timeline = lazy(() => import("./Timeline"))
 const Background3D = dynamic(() => import("./3D/3DBackground"), { ssr: false })
@@ -65,13 +66,8 @@ function Artist() {
     })
   }, [startAnimations])
 
-  const timelineEvents = useMemo(() => [
-    { year: 2006, event: "Picked up a guitar for the first time" },
-    { year: 2011, event: "Started his journey touring as a cover artist in Pakistan" },
-    { year: 2016, event: "Moved to London & started focusing on his lyrical expression" },
-    { year: 2022, event: "Incorporated his own record label & got signed to Studio X" },
-    { year: 2025, event: "Release date of his debut album" },
-  ], [])
+  // Shared with the terminal's `music story`, so both show the same timeline
+  const timelineEvents = MILESTONES
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
