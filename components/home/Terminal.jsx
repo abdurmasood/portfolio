@@ -12,6 +12,7 @@ import { BlogArticle, BlogPostList } from './BlogOutput';
 import { getPostBySlug, getPublishedPosts } from '../../app/blog/posts';
 import { MusicPlayer, MusicStory } from './MusicOutput';
 import { getFeaturedTrack } from '../../lib/music';
+import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
 const TYPING_IDLE_MS = 500;
@@ -60,8 +61,9 @@ const Terminal = () => {
   const [initialMessage, setInitialMessage] = useState('');
   const [hasShownTypewriter, setHasShownTypewriter] = useState(false);
   const [showLoadingBar, setShowLoadingBar] = useState(false);
-  // Local, not in the provider: a player must never resume after navigating away and back
-  const [activePlayerId, setActivePlayerId] = useState(null);
+  // The history entry that owns the keyboard (music player, projects picker).
+  // Local, not in the provider: it must never resume after navigating away and back
+  const [foregroundId, setForegroundId] = useState(null);
 
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
@@ -87,7 +89,7 @@ const Terminal = () => {
   ];
 
   const executableCommands = [
-    'bio', 'blog', 'projects', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
+    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
     ...getPublishedPosts().map((post) => `cat blog/${post.slug}.md`),
   ];
 
@@ -112,14 +114,15 @@ const Terminal = () => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [history, activePlayerId]);
+  }, [history, foregroundId]);
 
-  // Programmatic input changes (history, tab completion) move the native caret to the end
+  // Programmatic input changes (history, tab completion) move the native caret to the end.
+  // Also re-sync when the prompt remounts after a foreground program, which may exit by tap with no keyup.
   useEffect(() => {
     if (inputRef.current) {
       syncCursor(inputRef.current);
     }
-  }, [input]);
+  }, [input, foregroundId]);
 
   useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
 
@@ -138,7 +141,25 @@ const Terminal = () => {
     setHistory((prevHistory) => prevHistory.map((entry) => (
       entry.id === entryId ? { ...entry, stoppedAt: at, duration } : entry
     )));
-    setActivePlayerId(null);
+    setForegroundId(null);
+  };
+
+  const openProjects3d = () => {
+    setShowLoadingBar(true);
+    loadProjects();
+    setTimeout(() => {
+      router.push('/projects');
+    }, 5500);
+  };
+
+  const finishPicker = (entryId, { chosenId, view3d }) => {
+    setHistory((prevHistory) => prevHistory.map((entry) => (
+      entry.id === entryId ? { ...entry, chosenId } : entry
+    )));
+    setForegroundId(null);
+    if (view3d) {
+      openProjects3d();
+    }
   };
 
   const focusInputOnClick = () => {
@@ -169,8 +190,19 @@ const Terminal = () => {
     } else {
       const markdownFile = command.match(/^cat\s+blog\/(\S+)\.md$/i);
       const musicCommand = command.match(/^music(?:\s+(\S+))?$/i);
+      const projectsCommand = command.match(/^projects(?:\s+(\S+))?$/i);
 
-      if (musicCommand) {
+      if (projectsCommand) {
+        const option = (projectsCommand[1] || '').toLowerCase();
+        if (option === '') {
+          panel = { type: 'projects-picker' };
+        } else if (option === '--3d') {
+          openProjects3d();
+        } else {
+          output = `projects: unknown option '${escapeHtml(projectsCommand[1])}'. Usage: projects [--3d]`;
+          isError = true;
+        }
+      } else if (musicCommand) {
         const subcommand = (musicCommand[1] || '').toLowerCase();
         if (subcommand === '') {
           output = musicUsage();
@@ -216,15 +248,6 @@ const Terminal = () => {
 
         case 'cat projects.txt':
           output = 'Use the command "projects" for all project details';
-          break;
-
-        case 'projects':
-        case 'Projects':
-          setShowLoadingBar(true);
-          loadProjects();
-          setTimeout(() => {
-            router.push('/projects');
-          }, 5500);
           break;
 
         case 'blog':
@@ -294,8 +317,8 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
     if (panel) {
       const panelEntry = nextEntry(panel);
       entries.push(panelEntry);
-      if (panel.type === 'music-player') {
-        setActivePlayerId(panelEntry.id);
+      if (panel.type === 'music-player' || panel.type === 'projects-picker') {
+        setForegroundId(panelEntry.id);
       }
     }
 
@@ -409,10 +432,20 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
                   <MusicPlayer
                     key={item.id}
                     trackId={item.trackId}
-                    active={item.id === activePlayerId}
+                    active={item.id === foregroundId}
                     stoppedAt={item.stoppedAt}
                     duration={item.duration}
                     onStop={(stop) => stopPlayer(item.id, stop)}
+                  />
+                );
+              }
+              if (item.type === 'projects-picker') {
+                return (
+                  <ProjectPicker
+                    key={item.id}
+                    active={item.id === foregroundId}
+                    chosenId={item.chosenId}
+                    onDone={(result) => finishPicker(item.id, result)}
                   />
                 );
               }
@@ -426,8 +459,8 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
             })}
           </div>
 
-          {/* A playing track owns the terminal, like a foreground process */}
-          {showPrompt && !showTypewriterMessage && !activePlayerId && (
+          {/* A playing track or the projects picker owns the terminal, like a foreground process */}
+          {showPrompt && !showTypewriterMessage && !foregroundId && (
             <div className="terminal-input">
               <span className="prompt">
                 visitor
