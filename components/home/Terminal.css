@@ -301,3 +301,87 @@
     display: none;
   }
 }
+
+/* music: ruler and foreground player */
+.terminal .music-line {
+  margin: 0;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.terminal .gap-half {
+  height: 0.75em;
+}
+
+.terminal .player-state {
+  color: var(--term-host);
+}
+
+.terminal .player-state.is-paused {
+  color: var(--term-user);
+}
+
+.terminal .wave-played {
+  color: var(--term-fg);
+}
+
+.terminal .wave-rest {
+  color: #3A3A3A;
+}
+
+.terminal .player-key {
+  color: var(--term-fg);
+}
+
+.terminal .player-taps {
+  display: none;
+  flex-wrap: wrap;
+  column-gap: 2ch;
+}
+
+.terminal .player-taps button {
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--term-fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.terminal .player-taps button:hover,
+.terminal .player-taps button:focus {
+  border-color: transparent;
+  outline: none;
+}
+
+.terminal .player-taps button:active,
+.terminal .player-taps button:focus-visible {
+  color: var(--term-host);
+}
+
+@media (max-width: 640px) {
+  .terminal .player-keys {
+    display: none;
+  }
+
+  .terminal .player-taps {
+    display: flex;
+  }
+}
+
+/* One glyph per 1ch cell: keeps fallback-font symbols on the monospace grid */
+.terminal .cell {
+  display: inline-block;
+  width: 1ch;
+  overflow: hidden;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+/* ○ hangs 1.5px past the left of its column; clipping that removes the left of the ring */
+.terminal .cell.is-open {
+  overflow: visible;
+}
