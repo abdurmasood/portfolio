@@ -1,6 +1,7 @@
 import './globals.css'
 import { JetBrains_Mono } from 'next/font/google'
 import { TerminalProvider } from '../components/home/TerminalProvider.jsx'
+import { Analytics } from '@vercel/analytics/next'
 
 const terminalFont = JetBrains_Mono({
   weight: ['400'],
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
         <TerminalProvider>
           <div className="App">{children}</div>
         </TerminalProvider>
+        <Analytics />
       </body>
     </html>
   )
