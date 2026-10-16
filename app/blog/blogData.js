@@ -1,8 +1,9 @@
 export const blogPosts = [
   {
     id: 1,
+    slug: "cursor-ai-a-secret-weapon",
     title: "Cursor AI: A Secret Weapon",
-    excerpt: " Let’s dive into why Cursor is one of the best tools for AI coding and how it can boost your productivity, creativity, and confidence.",
+    excerpt: "Let’s dive into why Cursor is one of the best tools for AI coding and how it can boost your productivity, creativity, and confidence.",
     date: "2023-05-15",
     content: `
 In the rapidly evolving world of AI-assisted development, there are plenty of tools out there promising to revolutionize the way we code. But let's be honest—most of them talk the talk without walking the walk. Cursor, however, is a standout. It's like that one friend who actually shows up when it's time to move furniture—reliable, effective, and downright indispensable.
@@ -41,16 +42,16 @@ Cursor isn't just a tool—it's a movement. As more developers jump on board, Cu
 
 So, what sets Cursor apart in a crowded field of AI coding tools? It's simple: Cursor is more than just autocomplete—it's an AI coding companion that gets you, supports you, and grows with you. It's there to smooth out the rough edges of your workflow, provide eerily good suggestions, and give you the debugging and brainstorming boost you need. Whether you're an experienced dev or just starting your coding journey, Cursor is like that best friend you never knew you needed.
     `,
-    minutesRead: 7
   },
   {
     id: 2,
+    slug: "the-future-of-full-stack-development",
+    // Stub post: hidden until it's written up properly
+    draft: true,
     title: "The Future of Full-Stack Development",
     excerpt: "Exploring the evolving landscape of full-stack development and emerging technologies.",
     date: "2023-05-20",
     content: `
-# The Future of Full-Stack Development
-
 As technology evolves, the role of full-stack developers is changing. This article discusses new tools, frameworks, and methodologies shaping the future of web development.
 
 ## Emerging Technologies
@@ -67,16 +68,16 @@ As technology evolves, the role of full-stack developers is changing. This artic
 
 Stay tuned as we explore these topics in depth and their impact on the future of full-stack development.
     `,
-    minutesRead: 7
   },
   {
     id: 3,
+    slug: "music-production-in-the-digital-age",
+    // Stub post: hidden until it's written up properly
+    draft: true,
     title: "Music Production in the Digital Age",
     excerpt: "How technology is transforming the music industry and empowering independent artists.",
     date: "2023-05-25",
     content: `
-# Music Production in the Digital Age
-
 Digital tools have revolutionized music production, allowing artists to create professional-quality tracks from home studios. This post examines the impact of technology on music creation and distribution.
 
 ## Key Technologies
@@ -95,7 +96,6 @@ The accessibility of these tools has led to a new generation of "bedroom produce
 
 As we continue to explore this topic, we'll delve into specific case studies and the future prospects of digital music production.
     `,
-    minutesRead: 6
   }
 ];
 

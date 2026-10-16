@@ -5,7 +5,7 @@ import React, { createContext, useState, useContext } from 'react';
 const TerminalContext = createContext();
 
 export const TerminalProvider = ({ children }) => {
-  const [history, setHistory] = useState('');
+  const [history, setHistory] = useState([]);
   const [commandHistory, setCommandHistory] = useState([]);
   const [input, setInput] = useState('');
 

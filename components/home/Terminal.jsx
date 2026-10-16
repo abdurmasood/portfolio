@@ -8,6 +8,8 @@ import Typewriter from './Typewriter'
 import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
 import { loadProjects } from '../../lib/loadProjects';
+import { BlogArticle, BlogPostList } from './BlogOutput';
+import { getPostBySlug, getPublishedPosts } from '../../app/blog/posts';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
 const TYPING_IDLE_MS = 500;
@@ -19,6 +21,8 @@ const escapeHtml = (text) => text
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#39;');
+
+const nextEntry = (entry) => ({ id: crypto.randomUUID(), ...entry });
 
 const Terminal = () => {
   const router = useRouter();
@@ -57,7 +61,7 @@ const Terminal = () => {
     "",
     "  bio         background &amp; education",
     "  projects    body of work",
-    // "  blog        Rafey's latest thoughts",
+    "  blog        Rafey's latest thoughts",
     "  skills      tools he's worked with",
     "  music       his journey as a producer",
     "  contact     get in touch",
@@ -66,7 +70,8 @@ const Terminal = () => {
   ];
 
   const executableCommands = [
-    'bio', 'projects', 'skills', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt'
+    'bio', 'blog', 'projects', 'skills', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
+    ...getPublishedPosts().map((post) => `cat blog/${post.slug}.md`),
   ];
 
   const nonExecutableCommands = [
@@ -76,11 +81,11 @@ const Terminal = () => {
   const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
   useEffect(() => {
-    if (history === '' && !hasShownTypewriter) {
+    if (history.length === 0 && !hasShownTypewriter) {
       setInitialMessage(initialMessages.join('\n'));
       setShowTypewriterMessage(true);
       setHasShownTypewriter(true);
-    } else if (history !== '' && !showTypewriterMessage) {
+    } else if (history.length > 0 && !showTypewriterMessage) {
       setShowHistory(true);
       setShowPrompt(true);
     }
@@ -119,141 +124,155 @@ const Terminal = () => {
     }
   };
 
+  const runCommand = (command) => {
+    const safeCommand = escapeHtml(command);
+    let output = '';
+    let isError = false;
+    let panel = null;
+
+    if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
+      if (command === 'pwd' || command === 'exit') {
+        output = `${safeCommand}: Permission denied`;
+        isError = true;
+      } else if (command.startsWith('cd') || command.startsWith('mkdir') || command.startsWith('grep') || command.startsWith('rm')) {
+        output = `${safeCommand}: Permission denied`;
+        isError = true;
+      } else if (command.startsWith('pwd ') || command.startsWith('exit ')) {
+        const invalidCommand = escapeHtml(command.split(' ')[1]);
+        output = `${invalidCommand} : The term ${invalidCommand} is not recognized as the name of a cmdlet, function, script file, or operable program.`;
+        isError = true;
+      }
+    } else {
+      const markdownFile = command.match(/^cat\s+blog\/(\S+)\.md$/i);
+
+      if (markdownFile) {
+        const slug = markdownFile[1];
+        const post = getPostBySlug(slug);
+        if (post) {
+          panel = { type: 'article', slug: post.slug };
+        } else {
+          output = `cat: blog/${escapeHtml(slug)}.md: No such file`;
+          isError = true;
+        }
+      } else switch (command) {
+        case 'help':
+        case 'Help':
+          output = commandDescriptions.join('\n');
+          break;
+
+        case 'clear':
+        case 'Clear':
+          setHistory([]);
+          setInput('');
+          setPossibleMatches([]);
+          setShowHistory(true);
+          setShowPrompt(true);
+          return;
+
+        case 'cat bio.txt':
+        case 'bio':
+        case 'Bio':
+          output = bioDescription;
+          break;
+
+        case 'cat projects.txt':
+          output = 'Use the command "projects" for all project details';
+          break;
+
+        case 'projects':
+        case 'Projects':
+          setShowLoadingBar(true);
+          loadProjects();
+          setTimeout(() => {
+            router.push('/projects');
+          }, 5500);
+          break;
+
+        case 'blog':
+        case 'Blog':
+          panel = { type: 'posts' };
+          break;
+
+        case 'cat music.txt':
+          output = 'Use the command "music" for Rafey\'s journey as a producer';
+          break;
+
+        case 'music':
+        case 'Music':
+          router.push('/journey');
+          break;
+
+        case 'skills':
+        case 'Skills':
+          output = skillsDescription;
+          break
+
+        case 'cat':
+        case 'Cat':
+          output = catDescription;
+          break;
+
+        case 'cat README.txt':
+          output = `<span class='ascii'>${readMeDescription}</span>`;
+          break;
+
+        case 'ls':
+          output = 'bio.txt   blog/   projects.txt   music.txt   README.txt';
+          break;
+
+          case 'contact':
+          case 'Contact':
+            output = `email: abdurrafeym@gmail.com
+linkedin: A. Rafey Masood
+
+Usage: open &lt;contact-option&gt; (e.g. open email)`;
+            break;
+
+          case 'open linkedin':
+          case 'Open linkedin':
+          case 'Open Linkedin':
+            window.open('https://www.linkedin.com/in/arafeymasood/', '_blank');
+            output = 'Opening LinkedIn profile in a new tab...';
+            break;
+
+          case 'open email':
+          case 'Open email':
+          case 'Open Email':
+            window.location.href = `mailto:abdurrafeym@gmail.com?subject=Hi👋&body=Hi Rafey, i'm ___ and I work in ___. Would love to chat!`
+            output = 'Opening email application...';
+            break;
+
+        case '':
+          // For empty command, we'll just add the prompt
+          output = '';
+          break;
+
+        default:
+          output = `Command not found: '${safeCommand}'`;
+          isError = true;
+      }
+    }
+
+    const commandOutput = `${COMMAND_PROMPT} ${safeCommand}`;
+    const formattedOutput = isError ? `<span class='error-text'>${output}</span>` : output;
+    const html = `${commandOutput}\n${formattedOutput ? formattedOutput + '\n' : ''}`;
+    const entries = [nextEntry({ type: 'html', html })];
+    if (panel) entries.push(nextEntry(panel));
+
+    setHistory((prevHistory) => [...prevHistory, ...entries]);
+    setCommandHistory(prevHistory => [...prevHistory, command]);
+    setHistoryIndex(-1);
+    setInput('');
+    setPossibleMatches([]);
+    setTabPressCount(0);
+    setLastCommand('');
+  };
+
   const handleKeyDown = (e) => {
     markTyping();
 
     if (e.key === 'Enter') {
-      const command = input.trim();
-      const safeCommand = escapeHtml(command);
-      let output = '';
-      let isError = false;
-      
-      if (nonExecutableCommands.some(cmd => command.startsWith(cmd))) {
-        if (command === 'pwd' || command === 'exit') {
-          output = `${safeCommand}: Permission denied`;
-          isError = true;
-        } else if (command.startsWith('cd') || command.startsWith('mkdir') || command.startsWith('grep') || command.startsWith('rm')) {
-          output = `${safeCommand}: Permission denied`;
-          isError = true;
-        } else if (command.startsWith('pwd ') || command.startsWith('exit ')) {
-          const invalidCommand = escapeHtml(command.split(' ')[1]);
-          output = `${invalidCommand} : The term ${invalidCommand} is not recognized as the name of a cmdlet, function, script file, or operable program.`;
-          isError = true;
-        }
-      } else {
-        switch (command) {
-          case 'help':
-          case 'Help':
-            output = commandDescriptions.join('\n');
-            break;
-
-          case 'clear':
-          case 'Clear':
-            setHistory('');
-            setInput('');
-            setPossibleMatches([]);
-            setShowHistory(true);
-            setShowPrompt(true);
-            return;
-          
-          case 'cat bio.txt':
-          case 'bio':
-          case 'Bio':
-            output = bioDescription;
-            break;
-
-          case 'cat projects.txt':
-            output = 'Use the command "projects" for all project details';
-            break;
-            
-          case 'projects':
-          case 'Projects':
-            setShowLoadingBar(true);
-            loadProjects();
-            setTimeout(() => {
-              router.push('/projects');
-            }, 5500);
-            break;
-
-          case 'blog':
-          case 'Blog':
-            router.push('/blog')
-            break;
-
-          case 'cat music.txt':
-            output = 'Use the command "music" for Rafey\'s journey as a producer';
-            break;
-
-          case 'music':
-          case 'Music':
-            router.push('/journey');
-            break;
-
-          case 'skills':
-          case 'Skills':
-            output = skillsDescription;
-            break
-
-          case 'cat':
-          case 'Cat':
-            output = catDescription;
-            break;
-
-          case 'cat README.txt':
-            output = `<span class='ascii'>${readMeDescription}</span>`;
-            break;
-
-          case 'ls':
-            output = 'bio.txt   projects.txt   music.txt   README.txt';
-            break;
-
-            case 'contact':
-            case 'Contact':
-              output = `email: abdurrafeym@gmail.com
-linkedin: A. Rafey Masood
-
-Usage: open &lt;contact-option&gt; (e.g. open email)`;
-              break;
-    
-            case 'open linkedin':
-            case 'Open linkedin':
-            case 'Open Linkedin':
-              window.open('https://www.linkedin.com/in/arafeymasood/', '_blank');
-              output = 'Opening LinkedIn profile in a new tab...';
-              break;
-
-            case 'open email':
-            case 'Open email':
-            case 'Open Email':
-              window.location.href = `mailto:abdurrafeym@gmail.com?subject=Hi👋&body=Hi Rafey, i'm ___ and I work in ___. Would love to chat!`
-              output = 'Opening email application...';
-              break;
-
-          case '':
-            // For empty command, we'll just add the prompt
-            output = '';
-            break;
-            
-          default:
-            output = `Command not found: '${safeCommand}'`;
-            isError = true;
-        }
-      }
-
-      const commandOutput = `${COMMAND_PROMPT} ${safeCommand}`;
-      const formattedOutput = isError ? `<span class='error-text'>${output}</span>` : output;
-
-      // Update history for all commands, always adding a new line
-      setHistory((prevHistory) => {
-        return `${prevHistory}${commandOutput}\n${formattedOutput ? formattedOutput + '\n' : ''}`;
-      });
-
-      setCommandHistory(prevHistory => [...prevHistory, command]);
-      setHistoryIndex(-1);
-      setInput('');
-      setPossibleMatches([]);
-      setTabPressCount(0);
-      setLastCommand('');
+      runCommand(input.trim());
     }
 
     if (e.key === 'Tab') {
@@ -282,7 +301,10 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
         if (tabPressCount === 1) {
           if (visibleMatches.length > 0) {
             const output = visibleMatches.join('    ');
-            setHistory((prevHistory) => `${prevHistory}${COMMAND_PROMPT} ${escapeHtml(input)}\n${output}\n`);
+            setHistory((prevHistory) => [...prevHistory, nextEntry({
+              type: 'html',
+              html: `${COMMAND_PROMPT} ${escapeHtml(input)}\n${output}\n`,
+            })]);
           }
           setTabPressCount(0);
         } else {
@@ -324,7 +346,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
               <Typewriter
                 text={initialMessage}
                 onComplete={() => {
-                  setHistory(initialMessage);
+                  setHistory([nextEntry({ type: 'html', html: initialMessage })]);
                   setShowTypewriterMessage(false);
                   setShowHistory(true);
                   setShowPrompt(true);
@@ -332,12 +354,21 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
                 options={{ delay: 60 }}
               />
             )}
-            {showHistory && !showTypewriterMessage && (
-              <div
-                className='terminal-output'
-                dangerouslySetInnerHTML={{ __html: history }}
-              />
-            )}
+            {showHistory && !showTypewriterMessage && history.map((item) => {
+              if (item.type === 'posts') {
+                return <BlogPostList key={item.id} onOpen={(slug) => runCommand(`cat blog/${slug}.md`)} />;
+              }
+              if (item.type === 'article') {
+                return <BlogArticle key={item.id} slug={item.slug} />;
+              }
+              return (
+                <div
+                  key={item.id}
+                  className="terminal-output"
+                  dangerouslySetInnerHTML={{ __html: item.html }}
+                />
+              );
+            })}
           </div>
 
           {showPrompt && !showTypewriterMessage && (
