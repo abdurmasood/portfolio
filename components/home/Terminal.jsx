@@ -10,6 +10,8 @@ import LoadingBar from './LoadingBar';
 import { loadProjects } from '../../lib/loadProjects';
 import { BlogArticle, BlogPostList } from './BlogOutput';
 import { getPostBySlug, getPublishedPosts } from '../../app/blog/posts';
+import { MusicPlayer, MusicStory } from './MusicOutput';
+import { getFeaturedTrack } from '../../lib/music';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
 const TYPING_IDLE_MS = 500;
@@ -23,6 +25,19 @@ const escapeHtml = (text) => text
   .replace(/'/g, '&#39;');
 
 const nextEntry = (entry) => ({ id: crypto.randomUUID(), ...entry });
+
+const musicUsage = () => {
+  const track = getFeaturedTrack();
+  return [
+    'Usage: music &lt;command&gt;',
+    '',
+    '  story      his journey as a producer',
+    `  play       play ${escapeHtml(track.title)}`,
+    '  journey    open the full visual journey',
+    '',
+    `<span class='grey'>Rafey releases music as ${escapeHtml(track.artist)}. He founded a record label and set up a recording studio in East London.</span>`,
+  ].join('\n');
+};
 
 const Terminal = () => {
   const router = useRouter();
@@ -45,6 +60,8 @@ const Terminal = () => {
   const [initialMessage, setInitialMessage] = useState('');
   const [hasShownTypewriter, setHasShownTypewriter] = useState(false);
   const [showLoadingBar, setShowLoadingBar] = useState(false);
+  // Local, not in the provider: a player must never resume after navigating away and back
+  const [activePlayerId, setActivePlayerId] = useState(null);
 
   const initialMessages = [
     "<span class='grey'>Welcome to Rafey's portfolio.</span>",
@@ -70,7 +87,7 @@ const Terminal = () => {
   ];
 
   const executableCommands = [
-    'bio', 'blog', 'projects', 'skills', 'music', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
+    'bio', 'blog', 'projects', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
     ...getPublishedPosts().map((post) => `cat blog/${post.slug}.md`),
   ];
 
@@ -95,7 +112,7 @@ const Terminal = () => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [history]);
+  }, [history, activePlayerId]);
 
   // Programmatic input changes (history, tab completion) move the native caret to the end
   useEffect(() => {
@@ -115,6 +132,13 @@ const Terminal = () => {
     setIsTyping(true);
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), TYPING_IDLE_MS);
+  };
+
+  const stopPlayer = (entryId, { at, duration }) => {
+    setHistory((prevHistory) => prevHistory.map((entry) => (
+      entry.id === entryId ? { ...entry, stoppedAt: at, duration } : entry
+    )));
+    setActivePlayerId(null);
   };
 
   const focusInputOnClick = () => {
@@ -144,8 +168,23 @@ const Terminal = () => {
       }
     } else {
       const markdownFile = command.match(/^cat\s+blog\/(\S+)\.md$/i);
+      const musicCommand = command.match(/^music(?:\s+(\S+))?$/i);
 
-      if (markdownFile) {
+      if (musicCommand) {
+        const subcommand = (musicCommand[1] || '').toLowerCase();
+        if (subcommand === '') {
+          output = musicUsage();
+        } else if (subcommand === 'story') {
+          panel = { type: 'music-story' };
+        } else if (subcommand === 'play') {
+          panel = { type: 'music-player', trackId: getFeaturedTrack().id };
+        } else if (subcommand === 'journey') {
+          router.push('/journey');
+        } else {
+          output = `music: unknown command '${escapeHtml(musicCommand[1])}'. Type 'music' for usage.`;
+          isError = true;
+        }
+      } else if (markdownFile) {
         const slug = markdownFile[1];
         const post = getPostBySlug(slug);
         if (post) {
@@ -194,12 +233,7 @@ const Terminal = () => {
           break;
 
         case 'cat music.txt':
-          output = 'Use the command "music" for Rafey\'s journey as a producer';
-          break;
-
-        case 'music':
-        case 'Music':
-          router.push('/journey');
+          output = 'Use the command "music" to explore Rafey\'s music';
           break;
 
         case 'skills':
@@ -257,7 +291,13 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
     const formattedOutput = isError ? `<span class='error-text'>${output}</span>` : output;
     const html = `${commandOutput}\n${formattedOutput ? formattedOutput + '\n' : ''}`;
     const entries = [nextEntry({ type: 'html', html })];
-    if (panel) entries.push(nextEntry(panel));
+    if (panel) {
+      const panelEntry = nextEntry(panel);
+      entries.push(panelEntry);
+      if (panel.type === 'music-player') {
+        setActivePlayerId(panelEntry.id);
+      }
+    }
 
     setHistory((prevHistory) => [...prevHistory, ...entries]);
     setCommandHistory(prevHistory => [...prevHistory, command]);
@@ -361,6 +401,21 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
               if (item.type === 'article') {
                 return <BlogArticle key={item.id} slug={item.slug} />;
               }
+              if (item.type === 'music-story') {
+                return <MusicStory key={item.id} />;
+              }
+              if (item.type === 'music-player') {
+                return (
+                  <MusicPlayer
+                    key={item.id}
+                    trackId={item.trackId}
+                    active={item.id === activePlayerId}
+                    stoppedAt={item.stoppedAt}
+                    duration={item.duration}
+                    onStop={(stop) => stopPlayer(item.id, stop)}
+                  />
+                );
+              }
               return (
                 <div
                   key={item.id}
@@ -371,7 +426,8 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
             })}
           </div>
 
-          {showPrompt && !showTypewriterMessage && (
+          {/* A playing track owns the terminal, like a foreground process */}
+          {showPrompt && !showTypewriterMessage && !activePlayerId && (
             <div className="terminal-input">
               <span className="prompt">
                 visitor
