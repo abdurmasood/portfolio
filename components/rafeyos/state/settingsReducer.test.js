@@ -27,6 +27,23 @@ describe('settingsReducer', () => {
     expect(() => settingsReducer(initialSettings, { type: 'set', key: 'volume', value: '30' })).toThrow(TypeError)
   })
 
+  it('set rejects values outside each setting\'s choices or range', () => {
+    const invalid = [
+      ['style', 'sepia'], ['dockPos', 'top'], ['corner', 'mid'], ['iconSize', 60], ['iconSize', 27.5],
+      ['volume', 101], ['volume', -1], ['wall', 4], ['accent', 'orange'],
+    ]
+    invalid.forEach(([key, value]) => {
+      expect(() => settingsReducer(initialSettings, { type: 'set', key, value })).toThrow(RangeError)
+    })
+  })
+
+  it('set accepts every listed choice and range end', () => {
+    const valid = [['dockPos', 'right'], ['corner', 'br'], ['iconSize', 56], ['volume', 0], ['wall', 3], ['accent', '#0073e5']]
+    valid.forEach(([key, value]) => {
+      expect(settingsReducer(initialSettings, { type: 'set', key, value })[key]).toBe(value)
+    })
+  })
+
   it('toggle flips booleans and swaps style', () => {
     const toggled = ['dnd', 'night', 'wifi', 'style'].reduce((s, key) => settingsReducer(s, { type: 'toggle', key }), initialSettings)
 
