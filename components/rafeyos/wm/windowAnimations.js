@@ -64,6 +64,8 @@ export const animateClose = (element, { reduced }, onDone) => {
   return run(element, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.94)' }], {
     duration: 140,
     easing: 'ease-in',
+    // Hold the faded frame. The default fill drops it, so the window pops back to full size before removal.
+    fill: 'forwards',
   }, onDone)
 }
 
