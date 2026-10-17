@@ -79,7 +79,7 @@ export const Window = memo(function Window({ win, zIndex, focused }) {
     >
       <WindowChromeContext.Provider value={chrome}>
         <div className="wcontent">
-          <AppBody appId={win.appId} windowId={win.id} arg={win.arg} />
+          <AppBody appId={win.appId} windowId={win.id} arg={win.arg} init={win.init} />
         </div>
       </WindowChromeContext.Provider>
       <ResizeHandles onStart={startResize} />
