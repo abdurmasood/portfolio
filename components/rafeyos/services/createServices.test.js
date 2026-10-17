@@ -26,6 +26,26 @@ describe('services', () => {
     expect(services.storage).toBe(win.sessionStorage)
   })
 
+  it('copies through the window clipboard', async () => {
+    const writeText = vi.fn(() => Promise.resolve())
+    const services = createServices({ router: { push: vi.fn() }, win: fakeWindow({ navigator: { clipboard: { writeText } } }) })
+
+    await services.clipboard.writeText('hi')
+
+    expect(writeText).toHaveBeenCalledWith('hi')
+  })
+
+  it('builds audio from the window Audio constructor', () => {
+    const Audio = vi.fn(function FakeAudio(src) {
+      this.src = src
+    })
+    const services = createServices({ router: { push: vi.fn() }, win: fakeWindow({ Audio }) })
+
+    services.createAudio('/song.mp3')
+
+    expect(Audio).toHaveBeenCalledWith('/song.mp3')
+  })
+
   it('falls back when matchMedia is missing', () => {
     const services = createServices({ router: { push: vi.fn() }, win: fakeWindow({ matchMedia: undefined }) })
 
