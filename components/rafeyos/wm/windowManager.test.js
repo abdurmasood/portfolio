@@ -84,13 +84,46 @@ describe('window manager', () => {
     expect(dispatch).not.toHaveBeenCalled()
   })
 
-  it('opens single-instance file apps on their default document, once', () => {
+  it('opens the blank editor once, and a named file beside it', () => {
     const { wm, state } = setup()
 
     wm.openApp('editor')
+    wm.openApp('editor')
     wm.openApp('editor', { path: '~/README.txt' })
 
-    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['~/README.txt'])
+    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['', '~/README.txt'])
+  })
+
+  it('lets a close guard keep the window open', () => {
+    const { wm, state } = setup()
+    wm.openApp('files')
+    wm.setCloseGuard(1, () => false)
+
+    wm.close(1)
+    expect(state().byId[1].phase).toBe('open')
+
+    wm.setCloseGuard(1, null)
+    wm.close(1)
+    expect(state().byId[1].phase).toBe('closing')
+  })
+
+  it('runs the follow-up after a close the guard allows, and skips it when the guard blocks', () => {
+    const { wm, state } = setup()
+    const next = vi.fn()
+    wm.openApp('files')
+    wm.setCloseGuard(1, (follow) => {
+      expect(follow).toBe(next)
+      return false
+    })
+
+    wm.close(1, next)
+    expect(state().byId[1].phase).toBe('open')
+    expect(next).not.toHaveBeenCalled()
+
+    wm.setCloseGuard(1, null)
+    wm.close(1, next)
+    expect(state().byId[1].phase).toBe('closing')
+    expect(next).toHaveBeenCalledTimes(1)
   })
 
   it('passes launch options to the new window', () => {

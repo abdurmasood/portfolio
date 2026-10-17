@@ -15,11 +15,11 @@ export const recentDocumentItems = (vfs, openDocument) => [
   ...textDocuments(vfs).map((path) => menuItem(documentLabel(vfs, path), () => openDocument(path))),
 ]
 
-export const editorMenuItems = ({ showInFiles, openTerminal }) => [
+export const editorMenuItems = ({ showInFiles, openTerminal, save = null }) => [
   menuItem('Show in Files', showInFiles),
   menuItem('Open in Terminal', openTerminal),
   SEPARATOR,
-  disabledItem('Save'),
+  menuItem('Save', save),
   disabledItem('Preferences'),
   disabledItem('About Text Editor'),
 ]

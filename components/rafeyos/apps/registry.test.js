@@ -11,7 +11,7 @@ describe('app registry', () => {
     expect(getApp('properties')).toMatchObject({ size: [340, 430], multi: false, inDock: false })
     expect(APPS.files.multi).toBe(true)
     expect(APPS.editor.multi).toBe(false)
-    expect(APPS.editor.defaultPath).toBe('~/README.txt')
+    expect(APPS.editor.defaultPath).toBe('')
   })
 
   it('keeps every minimum no larger than the default size', () => {
