@@ -5,6 +5,7 @@ import { vi } from 'vitest'
 import { RafeyOSRoot } from '../RafeyOSRoot'
 import { SESSION_KEY } from '../session/sessionStore'
 import { fakeAudioFactory } from './fakeAudio'
+import { createDocumentsStore } from '../vfs/documents'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))
@@ -25,6 +26,7 @@ export const FAKE_SAMPLES = Float32Array.from({ length: 4800 }, (_, i) => i / 48
 export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),
   storage: memoryStorage(),
+  documents: createDocumentsStore(memoryStorage()),
   now: () => FIXED_NOW,
   openExternal: vi.fn(),
   clipboard: { writeText: vi.fn(() => Promise.resolve()) },

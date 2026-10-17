@@ -1,5 +1,6 @@
 // Everything rafeyOS needs from the outside world, injected so tests can pass fakes
-import { sessionStorageOrNull } from './browserStorage'
+import { localStorageOrNull, sessionStorageOrNull } from './browserStorage'
+import { createDocumentsStore } from '../vfs/documents'
 import { browserClipboard } from './clipboard'
 import { createAudio } from './audio'
 import { createMediaSession } from './mediaSession'
@@ -12,12 +13,13 @@ const matches = (win, query, fallback) => win?.matchMedia?.(query).matches ?? fa
 
 /**
  * @param {{ router: { push: (href: string) => void }, win?: Window }} deps
- * @returns {{ navigate, storage, now, openExternal, clipboard, createAudio, loadAudioSamples, mediaSession, reducedMotion, prefersDark }}
+ * @returns {{ navigate, storage, documents, now, openExternal, clipboard, createAudio, loadAudioSamples, mediaSession, reducedMotion, prefersDark }}
  */
 export const createServices = ({ router, win = globalThis.window }) =>
   Object.freeze({
     navigate: (href) => router.push(href),
     storage: sessionStorageOrNull(win),
+    documents: createDocumentsStore(localStorageOrNull(win)),
     now: () => new Date(),
     openExternal: (href) => win?.open(href, '_blank', 'noopener,noreferrer'),
     clipboard: browserClipboard(win),

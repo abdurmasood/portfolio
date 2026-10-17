@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createServices } from './createServices'
-import { sessionStorageOrNull } from './browserStorage'
+import { localStorageOrNull, sessionStorageOrNull } from './browserStorage'
+import { DOCUMENTS_KEY } from '../vfs/documents'
 
 const fakeWindow = (overrides = {}) => ({
   sessionStorage: { getItem: () => null },
@@ -24,6 +25,15 @@ describe('services', () => {
     expect(services.prefersDark()).toBe(false)
     expect(services.now()).toBeInstanceOf(Date)
     expect(services.storage).toBe(win.sessionStorage)
+    expect(services.documents.load()).toEqual({ files: {}, trash: {} })
+  })
+
+  it('saves documents in localStorage', () => {
+    const win = fakeWindow({ localStorage: { getItem: () => null, setItem: vi.fn() } })
+    const services = createServices({ router: { push: vi.fn() }, win })
+
+    expect(services.documents.save({ 'notes.txt': 'hello\n' })).toBe(true)
+    expect(win.localStorage.setItem).toHaveBeenCalledWith(DOCUMENTS_KEY, JSON.stringify({ 'notes.txt': 'hello\n' }))
   })
 
   it('copies through the window clipboard', async () => {
@@ -64,5 +74,18 @@ describe('sessionStorageOrNull', () => {
 
     expect(sessionStorageOrNull(blocked)).toBeNull()
     expect(sessionStorageOrNull(undefined)).toBeNull()
+  })
+})
+
+describe('localStorageOrNull', () => {
+  it('returns null when reading localStorage throws', () => {
+    const blocked = Object.defineProperty({}, 'localStorage', {
+      get: () => {
+        throw new Error('SecurityError')
+      },
+    })
+
+    expect(localStorageOrNull(blocked)).toBeNull()
+    expect(localStorageOrNull(undefined)).toBeNull()
   })
 })
