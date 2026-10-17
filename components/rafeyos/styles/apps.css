@@ -48,11 +48,14 @@
 
 /* music */
 :where(.rafeyos) .mu-hb .ctl { display: flex; gap: 2px; }
-:where(.rafeyos) .mu-now { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 40%; display: grid; gap: 2px; text-align: center; }
-:where(.rafeyos) .mu-now b { font-size: 12.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-:where(.rafeyos) .mu-now small { color: var(--fg2); font-size: 11px; }
-:where(.rafeyos) .mu-prog { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--fg2); font-variant-numeric: tabular-nums; }
-:where(.rafeyos) .mu-prog input { flex: 1; }
+:where(.rafeyos) .mu-now { position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: 42%; height: max-content; margin: auto; display: grid; gap: 1px; align-content: center; min-width: 0; line-height: 1.15; text-align: center; }
+:where(.rafeyos) .mu-meta { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; }
+:where(.rafeyos) .mu-now b { font-size: 12.5px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+:where(.rafeyos) .mu-now small { color: var(--fg2); font-size: 11px; flex: none; white-space: nowrap; }
+:where(.rafeyos) .mu-prog { display: flex; align-items: center; gap: 8px; height: 14px; font-size: 11px; line-height: 1; color: var(--fg2); font-variant-numeric: tabular-nums; }
+:where(.rafeyos) .mu-prog input[type="range"].sl { flex: 1; height: 14px; }
+:where(.rafeyos) .mu-prog input[type="range"].sl::-webkit-slider-thumb { width: 12px; height: 12px; margin-top: -4px; }
+:where(.rafeyos) .mu-prog input[type="range"].sl::-moz-range-thumb { width: 12px; height: 12px; }
 :where(.rafeyos) .tt { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 :where(.rafeyos) .tt th { text-align: left; font-weight: 700; color: var(--fg2); padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
 :where(.rafeyos) .tt td { padding: 5px 10px; }
@@ -61,13 +64,7 @@
 :where(.rafeyos) .tt td.n { width: 34px; color: var(--fg2); }
 :where(.rafeyos) .tt td.n svg { width: 16px; height: 16px; }
 :where(.rafeyos) .tt td.t, :where(.rafeyos) .tt th.t { text-align: right; font-variant-numeric: tabular-nums; }
-:where(.rafeyos) .artist { margin: 12px; padding: 14px 16px; border-radius: 12px; background: var(--card); display: grid; gap: 8px; }
-:where(.rafeyos) .artist h3 { margin: 0; font-size: 15px; }
-:where(.rafeyos) .artist p { margin: 0; color: var(--fg2); }
-:where(.rafeyos) .artist ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
-:where(.rafeyos) .artist li { display: grid; grid-template-columns: 52px 1fr; }
-:where(.rafeyos) .artist li b { font-variant-numeric: tabular-nums; }
-:where(.rafeyos) .statusbar { height: 26px; font-size: 12px !important; flex: none; display: flex; align-items: center; padding: 0 12px; font-size: 13px; color: var(--fg2); border-top: 1px solid var(--line); background: var(--win); }
+:where(.rafeyos) .statusbar { height: 22px; flex: none; display: flex; align-items: center; padding: 0 12px; font-size: 12px; line-height: 1; color: var(--fg2); border-top: 1px solid var(--line); background: var(--win); }
 
 /* mail */
 :where(.rafeyos) .mf { display: grid; grid-template-columns: 68px 1fr; align-items: center; gap: 10px; padding: 0 14px; min-height: 38px; border-bottom: 1px solid var(--line); background: var(--win); }
