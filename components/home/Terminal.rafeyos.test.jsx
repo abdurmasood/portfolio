@@ -34,26 +34,26 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe('home terminal: rafeyos', () => {
-  it('lists rafeyos as the last help row, and never startx', () => {
+describe('home terminal: os', () => {
+  it('lists os as the last help row, and never startx', () => {
     const { container } = renderTerminal()
 
     run('help')
 
     const text = container.textContent
-    expect(text).toContain('rafeyos     point-and-click version of this site')
-    expect(text.indexOf('rafeyos')).toBeGreaterThan(text.indexOf('get in touch'))
+    expect(text).toContain('os          Operating System')
+    expect(text.indexOf('Operating System')).toBeGreaterThan(text.indexOf('get in touch'))
     expect(text).not.toContain('startx')
   })
 
-  it.each(['rafeyos', 'startx'])('%s prefetches, forgets the session and routes after 450ms', (command) => {
+  it.each(['os', 'startx'])('%s prefetches, forgets the session and routes after 450ms', (command) => {
     vi.useFakeTimers()
     window.sessionStorage.setItem('rafeyos-session', 'desktop')
     const { container } = renderTerminal()
 
     run(command)
 
-    expect(container.textContent).toContain('starting rafeyOS…')
+    expect(container.textContent).toContain('starting rOS…')
     expect(loadRafeyOS).toHaveBeenCalledTimes(1)
     expect(window.sessionStorage.getItem('rafeyos-session')).toBeNull()
     act(() => vi.advanceTimersByTime(449))
@@ -65,7 +65,7 @@ describe('home terminal: rafeyos', () => {
   it('does not route if the terminal unmounts first', () => {
     vi.useFakeTimers()
     const { unmount } = renderTerminal()
-    run('rafeyos')
+    run('os')
 
     unmount()
     act(() => vi.advanceTimersByTime(1000))
@@ -73,14 +73,14 @@ describe('home terminal: rafeyos', () => {
     expect(push).not.toHaveBeenCalled()
   })
 
-  it('completes "raf" to rafeyos with Tab', () => {
+  it('completes "o" to os with Tab', () => {
     renderTerminal()
     const input = screen.getByLabelText('terminal input')
     run('help')
 
-    fireEvent.change(input, { target: { value: 'raf' } })
+    fireEvent.change(input, { target: { value: 'o' } })
     fireEvent.keyDown(input, { key: 'Tab' })
 
-    expect(input.value).toBe('rafeyos')
+    expect(input.value).toBe('os')
   })
 })

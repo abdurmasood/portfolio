@@ -29,14 +29,27 @@ describe('Music app', () => {
   it('shows the track and the library', () => {
     const { win, ui } = openMusic()
 
-    expect(win.querySelector('.mu-now b').textContent).toBe('Storms Ahead')
-    expect(win.querySelector('.mu-now small').textContent).toBe('by Ramé Sivano')
+    expect(win.querySelector('.mu-meta')).toBeNull()
+    expect(ui.getByRole('slider', { name: 'Position' })).toBeTruthy()
     expect([...trackRow(win).cells].map((cell) => cell.textContent)).toEqual(['1', 'Storms Ahead', 'Ramé Sivano', '2:38'])
     expect(win.querySelector('.artist')).toBeNull()
     expect(ui.getByRole('button', { name: 'Music' }).className).toBe('srow on')
+    expect(ui.getByRole('navigation', { name: 'Library' }).getAttribute('style')).toBeNull()
     ;['Podcasts', 'Radio', 'My Top Rated', 'Recently Added'].forEach((name) => {
       expect(ui.getByRole('button', { name }).disabled).toBe(true)
     })
+  })
+
+  it('centres the scrubber between the transport and the volume and window controls', () => {
+    const { win, ui } = openMusic()
+    const header = win.querySelector('.mu-hb')
+
+    expect(header.classList.contains('hb-center')).toBe(true)
+    expect([...header.children].map((child) => child.className)).toEqual(['hb-start', 'mu-now nodrag', 'hb-end'])
+    expect(within(header.querySelector('.hb-start')).getByRole('button', { name: 'Previous' })).toBeTruthy()
+    expect(header.querySelector('.hb-end .wctl')).toBeTruthy()
+    expect(within(header.querySelector('.hb-end')).getByRole('button', { name: 'Volume' })).toBeTruthy()
+    expect(ui.queryByRole('button', { name: 'Menu' })).toBeNull()
   })
 
   it('sums the real length and size in the status bar', () => {

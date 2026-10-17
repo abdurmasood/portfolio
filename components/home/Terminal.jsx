@@ -20,7 +20,7 @@ import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
 const TYPING_IDLE_MS = 500;
-// Long enough to read 'starting rafeyOS…' while the chunk prefetches
+// Long enough to read 'starting rOS…' while the chunk prefetches
 const RAFEYOS_ROUTE_DELAY_MS = 450;
 // Offered as ghost text until the visitor runs their first command
 const STARTER_SUGGESTION = 'help';
@@ -70,7 +70,7 @@ const Terminal = () => {
   const commandDescriptions = [...HOME_HELP_LINES, HELP_HINT];
 
   const executableCommands = [
-    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'rafeyos', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
+    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'os', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
     ...getPublishedPosts().map((post) => `cat blog/${post.slug}.md`),
   ];
 
@@ -232,9 +232,9 @@ const Terminal = () => {
           setInput('');
           return;
 
-        case 'rafeyos':
+        case 'os':
         case 'startx':
-          output = 'starting rafeyOS…';
+          output = 'starting rOS…';
           startRafeyOS();
           break;
 

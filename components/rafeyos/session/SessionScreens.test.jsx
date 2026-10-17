@@ -99,7 +99,7 @@ describe('restart', () => {
     expect(dialog.textContent).toContain('The system will restart automatically in 59 seconds.')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Restart' }))
 
-    expect(screen.getByRole('status', { name: 'Starting rafeyOS' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Starting rOS' })).toBeTruthy()
     expect(storage.has(SESSION_KEY)).toBe(false)
     flushTimers(BOOT_MS)
     expect(dock()).toBeTruthy()

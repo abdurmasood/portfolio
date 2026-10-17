@@ -1,12 +1,12 @@
 /* App bodies: files, terminal, editor, music, mail, projects, settings, properties */
 /* files */
-:where(.rafeyos) .pathbar { display: flex; align-items: center; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 4px; max-width: 46%; min-width: 0; overflow: hidden; margin: 0 auto; }
+:where(.rafeyos) .pathbar { display: flex; align-items: center; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 4px; max-width: 100%; min-width: 0; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
 :where(.rafeyos) .pathbar button { all: unset; height: 24px; padding: 0 8px; border-radius: 6px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 :where(.rafeyos) .pathbar button:hover { background: var(--btn); }
 :where(.rafeyos) .pathbar button.cur { font-weight: 700; }
 :where(.rafeyos) .pathbar .sl { opacity: .35; padding: 0 1px; }
 :where(.rafeyos) .pathbar svg { width: 14px; height: 14px; }
-:where(.rafeyos) .searchbar { display: flex; align-items: center; gap: 8px; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 10px; width: 46%; margin: 0 auto; box-sizing: border-box; }
+:where(.rafeyos) .searchbar { display: flex; align-items: center; gap: 8px; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 10px; width: 100%; margin: 0 auto; box-sizing: border-box; }
 :where(.rafeyos) .searchbar input { all: unset; flex: 1; cursor: text; user-select: text; }
 :where(.rafeyos) .searchbar svg { width: 16px; height: 16px; opacity: .7; }
 :where(.rafeyos) .fgrid { display: grid; grid-template-columns: repeat(auto-fill, 92px); gap: 2px; padding: 10px; align-content: start; }
@@ -47,21 +47,28 @@
 :where(.rafeyos) .editor textarea.small { font-size: 10.5px; line-height: 1.2; }
 
 /* music */
+/* A hard cap on the centre track: a maximised window shouldn't draw a 600px scrubber */
+:where(.rafeyos) .mu-hb { --hb-center: min(400px, 42%); box-shadow: inset 0 -1px var(--line); }
 :where(.rafeyos) .mu-hb .ctl { display: flex; gap: 2px; }
-:where(.rafeyos) .mu-now { position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: 42%; height: max-content; margin: auto; display: grid; gap: 1px; align-content: center; min-width: 0; line-height: 1.15; text-align: center; }
-:where(.rafeyos) .mu-meta { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; }
-:where(.rafeyos) .mu-now b { font-size: 12.5px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-:where(.rafeyos) .mu-now small { color: var(--fg2); font-size: 11px; flex: none; white-space: nowrap; }
-:where(.rafeyos) .mu-prog { display: flex; align-items: center; gap: 8px; height: 14px; font-size: 11px; line-height: 1; color: var(--fg2); font-variant-numeric: tabular-nums; }
-:where(.rafeyos) .mu-prog input[type="range"].sl { flex: 1; height: 14px; }
+:where(.rafeyos) .slist.mu-side { padding-top: 0; }
+/* 32px + the list's 2px gap = the track list's 34px header band; 15px puts it on the icons' edge */
+:where(.rafeyos) .side .mhead { height: 32px; box-sizing: border-box; padding: 0 15px; display: flex; align-items: center; }
+:where(.rafeyos) .mu-hb .wctl { margin-left: 6px; }
+:where(.rafeyos) .mu-now { min-width: 0; display: flex; align-items: center; }
+:where(.rafeyos) .mu-prog { display: flex; align-items: center; gap: 8px; width: 100%; height: 14px; font-size: 11px; line-height: 1; color: var(--fg2); font-variant-numeric: tabular-nums; }
+/* Fixed label widths keep the track length steady when 9:59 becomes 10:00 */
+:where(.rafeyos) .mu-prog > span { flex: none; width: 30px; }
+:where(.rafeyos) .mu-prog > .t0 { text-align: right; }
+:where(.rafeyos) .mu-prog input[type="range"].sl { flex: 1; min-width: 0; height: 14px; }
 :where(.rafeyos) .mu-prog input[type="range"].sl::-webkit-slider-thumb { width: 12px; height: 12px; margin-top: -4px; }
 :where(.rafeyos) .mu-prog input[type="range"].sl::-moz-range-thumb { width: 12px; height: 12px; }
 :where(.rafeyos) .tt { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-:where(.rafeyos) .tt th { text-align: left; font-weight: 700; color: var(--fg2); padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
-:where(.rafeyos) .tt td { padding: 5px 10px; }
+/* A 34px label band and 30px rows, the same rhythm as the sidebar, so both panes line up */
+:where(.rafeyos) .tt th { text-align: left; font-weight: 700; color: var(--fg2); height: 33px; padding: 0 10px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+:where(.rafeyos) .tt td { height: 30px; padding: 0 10px; }
 :where(.rafeyos) .tt tr.trk:hover td { background: var(--btn); }
 :where(.rafeyos) .tt tr.trk.sel td { background: color-mix(in srgb, var(--accent) 30%, transparent); }
-:where(.rafeyos) .tt td.n { width: 34px; color: var(--fg2); }
+:where(.rafeyos) .tt td.n { width: 16px; color: var(--fg2); }
 :where(.rafeyos) .tt td.n svg { width: 16px; height: 16px; }
 :where(.rafeyos) .tt td.t, :where(.rafeyos) .tt th.t { text-align: right; font-variant-numeric: tabular-nums; }
 :where(.rafeyos) .statusbar { height: 22px; flex: none; display: flex; align-items: center; padding: 0 12px; font-size: 12px; line-height: 1; color: var(--fg2); border-top: 1px solid var(--line); background: var(--win); }

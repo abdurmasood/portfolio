@@ -19,7 +19,7 @@ const exit = () => result([pre('logout')], [{ type: EFFECTS.CLOSE_SELF }])
 
 const logout = () => result([pre('Returning to the rafey.ai terminal…')], [{ type: EFFECTS.LOGOUT }])
 
-const alreadyRunning = () => result([pre('rafeyos: already running')])
+const alreadyRunning = () => result([pre('rOS: already running')])
 
 export const systemCommands = Object.freeze({
   whoami,
@@ -34,6 +34,7 @@ export const systemCommands = Object.freeze({
   clear,
   exit,
   logout,
+  os: alreadyRunning,
   rafeyos: alreadyRunning,
   startx: alreadyRunning,
 })

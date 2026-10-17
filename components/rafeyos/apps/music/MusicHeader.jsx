@@ -48,10 +48,6 @@ const NowPlaying = ({ track }) => {
   const music = useMusicControls()
   return (
     <div className="mu-now nodrag">
-      <span className="mu-meta">
-        <b>{track.title}</b>
-        <small>{`by ${track.artist}`}</small>
-      </span>
       <div className="mu-prog">
         <span className="t0">{formatDuration(position)}</span>
         <Slider value={position} range={{ min: 0, max: track.durationSeconds }} label="Position" onChange={music.seek} />
@@ -68,18 +64,12 @@ export const MusicHeader = ({ track }) => {
     <HeaderBar
       className="mu-hb"
       start={<Transport />}
+      center={<NowPlaying track={track} />}
       end={
-        <>
-          <button type="button" className="flat" aria-label="Volume" onClick={openVolumeMenu}>
-            <Sym name="vol" />
-          </button>
-          <button type="button" className="flat" aria-label="Menu" disabled>
-            <Sym name="menu" />
-          </button>
-        </>
+        <button type="button" className="flat" aria-label="Volume" onClick={openVolumeMenu}>
+          <Sym name="vol" />
+        </button>
       }
-    >
-      <NowPlaying track={track} />
-    </HeaderBar>
+    />
   )
 }

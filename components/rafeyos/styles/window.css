@@ -21,6 +21,9 @@
 :where(.rafeyos) .hb .ttl b { font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 :where(.rafeyos) .hb .ttl small { font-size: 11px; color: var(--fg2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 :where(.rafeyos) .hb .sp { flex: 1; }
+:where(.rafeyos) .hb.hb-center { display: grid; grid-template-columns: 1fr minmax(0, var(--hb-center, 46%)) 1fr; column-gap: 4px; }
+:where(.rafeyos) .hb-start, :where(.rafeyos) .hb-end { display: flex; align-items: center; gap: 4px; min-width: 0; }
+:where(.rafeyos) .hb-end { justify-self: end; }
 :where(.rafeyos) .win.backdrop .hb { color: var(--fg2); }
 :where(.rafeyos) .flat { all: unset; height: 28px; min-width: 28px; padding: 0 7px; box-sizing: border-box; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; }
 :where(.rafeyos) .flat:hover:not(:disabled) { background: var(--btn); }
