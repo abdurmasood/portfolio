@@ -1,9 +1,10 @@
-// Test helpers: rafeyOS rendered with fake services (in-memory storage, navigate spy, no motion)
+// Test helpers: rafeyOS rendered with fake services (in-memory storage, navigate spy, fake audio, no motion)
 import { StrictMode } from 'react'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { vi } from 'vitest'
 import { RafeyOSRoot } from '../RafeyOSRoot'
 import { SESSION_KEY } from '../session/sessionStore'
+import { fakeAudioFactory } from './fakeAudio'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))
@@ -23,6 +24,9 @@ export const fakeServices = (overrides = {}) => ({
   storage: memoryStorage(),
   now: () => FIXED_NOW,
   openExternal: vi.fn(),
+  clipboard: { writeText: vi.fn(() => Promise.resolve()) },
+  createAudio: fakeAudioFactory(),
+  mediaSession: null,
   reducedMotion: () => true,
   prefersDark: () => true,
   ...overrides,
@@ -61,3 +65,28 @@ export const typeCommand = (input, command) => {
 }
 
 export const flushTimers = (ms) => act(() => vi.advanceTimersByTime(ms))
+
+/** Lets pending promises settle (e.g. audio play()) and React apply what they dispatched. */
+export const settle = () => act(async () => {})
+
+/** Right-click, as a mouse would at (200, 200). */
+export const rightClick = (element, point = { clientX: 200, clientY: 200 }) => fireEvent.contextMenu(element, point)
+
+export const openMenu = () => screen.getByRole('menu')
+
+/** The open menu's entries (separators and headings aside), as their labels. */
+export const menuLabels = () => within(openMenu()).getAllByRole('menuitem').map((entry) => entry.textContent)
+
+export const menuEntry = (name) => within(openMenu()).getByRole('menuitem', { name })
+
+export const chooseMenuItem = (name) => fireEvent.click(menuEntry(name))
+
+export const desktopIcon = (container, path) => container.querySelector(`.dicon[data-path="${path}"]`)
+
+export const openPowerMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'System menu' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Power Off / Log Out' }))
+}
+
+/** The title shown in a window's header bar (it can differ from the window title, e.g. the editor's "• "). */
+export const headerTitle = (win) => win.querySelector('.hb .ttl b').textContent
