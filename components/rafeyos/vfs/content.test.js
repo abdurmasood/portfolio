@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { buildContent, htmlToText, slugify, displayLink, shapeForIndex, deepFreeze } from './content'
+import { buildContent, htmlToText, slugify, displayLink, shapeForIndex, deepFreeze, formatDuration } from './content'
+import { age } from '../../../lib/descriptions'
 import { projects } from '../../../lib/projects'
 import { getPublishedPosts } from '../../../app/blog/posts'
 
@@ -77,6 +78,11 @@ describe('buildContent', () => {
     expect(content.music.milestones[0].upcoming).toBe(false)
     expect(content.contact.mailtoHref).toMatch(/^mailto:abdurrafeym@gmail\.com\?subject=/)
     expect(content.contact.linkedinName).toBe('A. Rafey Masood')
+  })
+
+  it("carries Rafey's age and formats track times", () => {
+    expect(buildContent().profile).toEqual({ age: age() })
+    expect(formatDuration(158)).toBe('2:38')
   })
 
   it('is deeply frozen', () => {

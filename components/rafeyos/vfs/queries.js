@@ -58,3 +58,6 @@ export const search = (vfs, query) => {
       displayName(vfs, path).toLowerCase().includes(needle),
   )
 }
+
+/** Every text file, in vfs order: the editor's "Recent Documents". */
+export const textDocuments = (vfs) => Object.keys(vfs).filter((path) => vfs[path].type === 'text')

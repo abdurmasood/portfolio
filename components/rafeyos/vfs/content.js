@@ -1,11 +1,14 @@
 // The only adapter between the site's content sources and rafeyOS. Everything downstream
 // (vfs, terminal commands, apps) reads the plain object built here, never lib/* directly.
-import { bioDescription, skillsDescription, compactReadme } from '../../../lib/descriptions'
+import { age, bioDescription, skillsDescription, compactReadme } from '../../../lib/descriptions'
 import { projects, getVisibleProjects } from '../../../lib/projects'
 import { MILESTONES, ARTIST_BLURB, getFeaturedTrack } from '../../../lib/music'
 import { getPublishedPosts, readingMinutes } from '../../../app/blog/posts'
 import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '../../../lib/contact'
 import { HELP_LINES, HELP_HINT } from '../../../lib/help'
+
+// "2:38": track times as the home terminal's player shows them
+export { formatTime as formatDuration } from '../../../lib/music'
 
 // Indexed like the 3D /projects scene (app/projects/Projects.jsx): by position in the FULL list
 export const PROJECT_SHAPES = Object.freeze(['octa', 'torus', 'icosa', 'sphere', 'cylinder', 'tetra', 'knot'])
@@ -82,9 +85,11 @@ const buildContact = () => ({
   linkedinName: LINKEDIN_NAME,
   defaultMail: { ...DEFAULT_MAIL },
   mailtoHref: mailtoHref(DEFAULT_MAIL),
+  // Mail rebuilds the link as the visitor edits the subject and body
+  mailtoFor: ({ subject, body }) => mailtoHref({ subject, body }),
 })
 
-/** @returns {object} deep-frozen plain data: bio, skills, readme, projects, posts, music, contact, help */
+/** @returns {object} deep-frozen plain data: bio, skills, readme, projects, posts, music, contact, help, profile */
 export const buildContent = () =>
   deepFreeze({
     bio: withTrailingNewline(htmlToText(bioDescription())),
@@ -95,4 +100,6 @@ export const buildContent = () =>
     music: buildMusic(),
     contact: buildContact(),
     help: { lines: HELP_LINES.map(htmlToText), hint: htmlToText(HELP_HINT) },
+    // Rafey's age as the bio states it, for Settings → About
+    profile: { age: age() },
   })
