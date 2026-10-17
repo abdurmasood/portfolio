@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { computeLayout, COMPACT_ICON_SIZE } from './layout'
-import { formatClock } from './clockFormat'
-import { POWER_DIALOGS } from './powerDialogs'
+import { formatClock, formatLongDate, formatTime } from './clockFormat'
+import { POWER_DIALOGS, isPowerDialog } from './powerDialogs'
 import { unavailableBanner } from './useOpenPath'
 import { realVfs } from '../vfs/testVfs'
 
@@ -24,11 +24,16 @@ describe('layout', () => {
 describe('shell text', () => {
   it('formats the clock like GNOME', () => {
     expect(formatClock(new Date(2026, 9, 7, 9, 5))).toBe('Oct 7  09:05')
+    expect(formatTime(new Date(2026, 9, 7, 9, 5))).toBe('09:05')
+    expect(formatLongDate(new Date(2026, 9, 7, 9, 5))).toBe('Wednesday, October 7')
   })
 
   it('counts down in the power dialogs', () => {
     expect(POWER_DIALOGS.logout.body(3)).toBe('You will return to the rafey.ai terminal in 3 seconds.')
     expect(POWER_DIALOGS.poweroff.body(9)).toBe('rafeyOS will power off and return to the terminal in 9 seconds.')
+    expect(POWER_DIALOGS.restart.body(5)).toBe('The system will restart automatically in 5 seconds.')
+    expect(isPowerDialog('restart')).toBe(true)
+    expect(isPowerDialog('openLink')).toBe(false)
   })
 
   it('names the file and the missing app in the banner', () => {
