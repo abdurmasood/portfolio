@@ -9,6 +9,10 @@
 :where(.rafeyos) .searchbar { display: flex; align-items: center; gap: 8px; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 10px; width: 100%; margin: 0 auto; box-sizing: border-box; }
 :where(.rafeyos) .searchbar input { all: unset; flex: 1; cursor: text; user-select: text; }
 :where(.rafeyos) .searchbar svg { width: 16px; height: 16px; opacity: .7; }
+/* Nautilus 46 stretches the location between the button groups rather than centring a shrink-wrapped pill */
+:where(.rafeyos) .hb.hb-center.files-hb { display: flex; }
+:where(.rafeyos) .files-hb > .hb-start, :where(.rafeyos) .files-hb > .hb-end { flex: none; }
+:where(.rafeyos) .files-hb > .pathbar, :where(.rafeyos) .files-hb > .searchbar { flex: 1; margin: 0 6px; }
 :where(.rafeyos) .fgrid { display: grid; grid-template-columns: repeat(auto-fill, 92px); gap: 2px; padding: 10px; align-content: start; }
 :where(.rafeyos) .fitem { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 3px; border-radius: 8px; text-align: center; }
 :where(.rafeyos) .fitem svg { width: 48px; height: 48px; }
