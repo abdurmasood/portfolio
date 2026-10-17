@@ -26,7 +26,7 @@ describe('quick settings', () => {
     expect(titles).toEqual(['Wi-Fi', 'Bluetooth', 'Night Light', 'Dark Style'])
     expect(tile(qs, 'Wi-Fi').className).toBe('qt on')
     expect(tile(qs, 'Wi-Fi').querySelector('small').textContent).toBe('rafey.ai')
-    expect(tile(qs, 'Bluetooth').className).toBe('qt')
+    expect(tile(qs, 'Bluetooth').className).toBe('qt dim')
     expect(tile(qs, 'Dark Style').getAttribute('aria-pressed')).toBe('true')
   })
 
@@ -43,13 +43,16 @@ describe('quick settings', () => {
     expect(symbolOf(tile(qs, 'Wi-Fi'))).toBe(symbolOf(topBarIcons(container)))
   })
 
-  it('toggles Bluetooth', () => {
+  it('leaves Bluetooth off when clicked', () => {
     renderDesktop()
     const qs = openQuickSettings()
+    const bluetooth = tile(qs, 'Bluetooth')
 
-    fireEvent.click(tile(qs, 'Bluetooth'))
+    fireEvent.click(bluetooth)
 
-    expect(tile(qs, 'Bluetooth').getAttribute('aria-pressed')).toBe('true')
+    expect(bluetooth.disabled).toBe(false)
+    expect(bluetooth.className).toBe('qt dim')
+    expect(bluetooth.getAttribute('aria-pressed')).toBe('false')
   })
 
   it('washes the screen warm with Night Light', () => {

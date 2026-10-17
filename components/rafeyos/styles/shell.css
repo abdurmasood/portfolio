@@ -72,6 +72,7 @@
 :where(.rafeyos) .qs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 :where(.rafeyos) .qt { all: unset; height: 42px; border-radius: 99px; background: var(--shell2); display: flex; align-items: center; gap: 10px; padding: 0 14px; box-sizing: border-box; min-width: 0; }
 :where(.rafeyos) .qt:hover { background: #4b4b4b; }
+:where(.rafeyos) .qt.dim { opacity: 0.5; pointer-events: none; }
 :where(.rafeyos) .qt.on { background: var(--accent); }
 :where(.rafeyos) .qt.on:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); }
 :where(.rafeyos) .qt svg { width: 16px; height: 16px; flex: none; }
