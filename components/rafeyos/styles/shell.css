@@ -23,9 +23,9 @@
 :where(.rafeyos) .dk.focused { background: rgba(255,255,255,.08); }
 :where(.rafeyos) .dk:active svg { transform: scale(.94); }
 :where(.rafeyos) .dk .dots { position: absolute; display: flex; gap: 3px; }
-:where(.rafeyos) .dock.left .dk .dots { left: -4px; top: 50%; transform: translateY(-50%); flex-direction: column; }
-:where(.rafeyos) .dock.right .dk .dots { right: -4px; top: 50%; transform: translateY(-50%); flex-direction: column; }
-:where(.rafeyos) .dock.bottom .dk .dots { bottom: -4px; left: 50%; transform: translateX(-50%); }
+:where(.rafeyos) .dock.left .dk .dots { left: -2px; top: 50%; transform: translateY(-50%); flex-direction: column; }
+:where(.rafeyos) .dock.right .dk .dots { right: -2px; top: 50%; transform: translateY(-50%); flex-direction: column; }
+:where(.rafeyos) .dock.bottom .dk .dots { bottom: -2px; left: 50%; transform: translateX(-50%); }
 :where(.rafeyos) .dk .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 :where(.rafeyos) .dock .grow { flex: 1; }
 :where(.rafeyos) .dsep { flex: none; background: rgba(255,255,255,.15); }
