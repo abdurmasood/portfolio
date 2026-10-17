@@ -3,6 +3,7 @@ import { sessionStorageOrNull } from './browserStorage'
 import { browserClipboard } from './clipboard'
 import { createAudio } from './audio'
 import { createMediaSession } from './mediaSession'
+import { loadSamples } from '../../../lib/audioSamples'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)'
@@ -11,7 +12,7 @@ const matches = (win, query, fallback) => win?.matchMedia?.(query).matches ?? fa
 
 /**
  * @param {{ router: { push: (href: string) => void }, win?: Window }} deps
- * @returns {{ navigate, storage, now, openExternal, clipboard, createAudio, mediaSession, reducedMotion, prefersDark }}
+ * @returns {{ navigate, storage, now, openExternal, clipboard, createAudio, loadAudioSamples, mediaSession, reducedMotion, prefersDark }}
  */
 export const createServices = ({ router, win = globalThis.window }) =>
   Object.freeze({
@@ -22,6 +23,8 @@ export const createServices = ({ router, win = globalThis.window }) =>
     clipboard: browserClipboard(win),
     // (src) => audio adapter; called on the first play, which is always a user gesture
     createAudio: (src) => createAudio(src, win?.Audio),
+    // (src) => Promise<Float32Array>, decoded once per page load; the Music waveform
+    loadAudioSamples: loadSamples,
     // null where the browser has no Media Session API
     mediaSession: createMediaSession(win),
     reducedMotion: () => matches(win, REDUCED_MOTION_QUERY, false),

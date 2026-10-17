@@ -19,6 +19,9 @@ export const memoryStorage = (entries = {}) => {
 // 17 Oct 2026, 21:04 local time
 export const FIXED_NOW = new Date(2026, 9, 17, 21, 4)
 
+// A rising ramp, so the waveform's bars get taller from left to right
+export const FAKE_SAMPLES = Float32Array.from({ length: 4800 }, (_, i) => i / 4800)
+
 export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),
   storage: memoryStorage(),
@@ -26,6 +29,7 @@ export const fakeServices = (overrides = {}) => ({
   openExternal: vi.fn(),
   clipboard: { writeText: vi.fn(() => Promise.resolve()) },
   createAudio: fakeAudioFactory(),
+  loadAudioSamples: () => Promise.resolve(FAKE_SAMPLES),
   mediaSession: null,
   reducedMotion: () => true,
   prefersDark: () => true,
