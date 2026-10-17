@@ -7,10 +7,11 @@ describe('app registry', () => {
   })
 
   it('carries the mockup sizes and flags', () => {
-    expect(getApp('terminal')).toEqual({ id: 'terminal', name: 'Terminal', size: [640, 400], minSize: [360, 200], multi: true, inDock: true })
+    expect(getApp('terminal')).toEqual({ id: 'terminal', name: 'Terminal', size: [640, 400], minSize: [360, 200], multi: true, inDock: true, defaultPath: '' })
     expect(getApp('properties')).toMatchObject({ size: [340, 430], multi: false, inDock: false })
     expect(APPS.files.multi).toBe(true)
     expect(APPS.editor.multi).toBe(false)
+    expect(APPS.editor.defaultPath).toBe('~/README.txt')
   })
 
   it('keeps every minimum no larger than the default size', () => {
