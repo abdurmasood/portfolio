@@ -1,0 +1,46 @@
+/* Tokens, root and resets. Ported from the approved mockup: #os -> .rafeyos; plain rules are
+   wrapped in :where(.rafeyos) so their specificity matches the mockup exactly. */
+.rafeyos {
+  --accent: #E95420;
+  --win: #242424; --view: #1e1e1e; --hb: #303030; --side: #2e2e2e;
+  --fg: #ffffff; --fg2: rgba(255,255,255,.6); --line: rgba(255,255,255,.1);
+  --btn: rgba(255,255,255,.1); --btnh: rgba(255,255,255,.16);
+  --card: #353535; --menu: #383838;
+  --tbg: #1e1e1e; --tfg: #e6e6e6; --tgreen: #8ae234; --tblue: #729fcf; --tcyan: #34e2e2; --tred: #ef2929;
+  --shell: #2b2b2b; --shell2: #3d3d3d;
+  --ui: var(--font-ui, "Ubuntu Sans"), "Ubuntu", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: var(--font-mono, "Ubuntu Sans Mono"), "Ubuntu Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+.rafeyos { position: fixed; inset: 0; font-family: var(--ui); font-size: 13px; line-height: 1.35; color: var(--fg); background: #1d1d1d; overflow: hidden; user-select: none; -webkit-user-select: none; cursor: default; }
+.rafeyos.light { --win: #fafafa; --view: #ffffff; --hb: #ebebeb; --side: #ebebeb; --fg: rgba(0,0,0,.82); --fg2: rgba(0,0,0,.55); --line: rgba(0,0,0,.1); --btn: rgba(0,0,0,.07); --btnh: rgba(0,0,0,.12); --card: #ffffff; --menu: #ffffff; --tbg: #ffffff; --tfg: #171717; --tgreen: #26a269; --tblue: #1a5fb4; --tcyan: #1c71d8; --tred: #c01c28; color-scheme: light; }
+.rafeyos button { font: inherit; color: inherit; cursor: default; }
+.rafeyos svg { display: block; }
+.rafeyos :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
+.rafeyos .seltext, .rafeyos .seltext * { user-select: text; -webkit-user-select: text; cursor: text; }
+.rafeyos ::selection { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+:where(.rafeyos) .mono { font-family: var(--mono); }
+@keyframes rafeyos-spin { to { transform: rotate(360deg); } }
+
+/* workspace */
+:where(.rafeyos) .ws { position: absolute; inset: 0; transform-origin: 0 0; transition: transform .32s cubic-bezier(.25,.8,.3,1), border-radius .32s, opacity .25s; overflow: hidden; }
+:where(.rafeyos) .wall { position: absolute; inset: 0; background-size: cover; }
+:where(.rafeyos) .layer { position: absolute; inset: 0; pointer-events: none; }
+:where(.rafeyos) .layer > * { pointer-events: auto; }
+
+
+/* Leak resets: app/globals.css (a L20-27, button L42-59, scrollbars L125-128) and Tailwind preflight.
+   Element resets use :where() so they only tie with the globals (this chunk loads later and wins)
+   and every component rule from the mockup still beats them. */
+.rafeyos *, .rafeyos *::before, .rafeyos *::after { box-sizing: content-box; }
+:where(.rafeyos) h3, :where(.rafeyos) h4 { font-weight: 700; }
+:where(.rafeyos) a, :where(.rafeyos) a:hover { color: inherit; font-weight: inherit; }
+:where(.rafeyos) button { border-radius: 0; border: 0; padding: 0; background-color: transparent; transition: none; }
+.rafeyos button:focus:not(:focus-visible) { outline: none; }
+:where(.rafeyos) input::placeholder, :where(.rafeyos) textarea::placeholder { color: currentColor; opacity: .5; }
+/* A standard scrollbar-color makes Chrome ignore the global ::-webkit-scrollbar styling */
+.rafeyos, .rafeyos * { scrollbar-width: auto; scrollbar-color: rgba(255,255,255,.3) transparent; }
+.rafeyos.light, .rafeyos.light * { scrollbar-color: rgba(0,0,0,.3) transparent; }
+
+
+@media (prefers-reduced-motion: reduce) { .rafeyos *, .rafeyos *::before, .rafeyos *::after { animation: none !important; transition: none !important; } }

@@ -1,0 +1,6 @@
+/* Everything is scoped under .rafeyos; imported only by RafeyOS.jsx so it ships in the lazy chunk */
+@import './base.css';
+@import './shell.css';
+@import './window.css';
+@import './apps.css';
+@import './session.css';
