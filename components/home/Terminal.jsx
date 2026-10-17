@@ -1,22 +1,27 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './Terminal.css';
 import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.js';
 import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
 import { loadProjects } from '../../lib/loadProjects';
+import { loadRafeyOS } from '../../lib/loadRafeyOS';
+import { forgetDesktop } from '../rafeyos/session/sessionStore';
+import { sessionStorageOrNull } from '../rafeyos/services/browserStorage';
 import { BlogArticle, BlogPostList } from './BlogOutput';
 import { getPostBySlug, getPublishedPosts } from '../../app/blog/posts';
 import { MusicPlayer, MusicStory } from './MusicOutput';
 import { getFeaturedTrack, ARTIST_BLURB } from '../../lib/music';
 import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '../../lib/contact';
-import { HELP_LINES, HELP_HINT } from '../../lib/help';
+import { HOME_HELP_LINES, HELP_HINT } from '../../lib/help';
 import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
 const TYPING_IDLE_MS = 500;
+// Long enough to read 'starting rafeyOS…' while the chunk prefetches
+const RAFEYOS_ROUTE_DELAY_MS = 450;
 // Offered as ghost text until the visitor runs their first command
 const STARTER_SUGGESTION = 'help';
 
@@ -49,11 +54,11 @@ const Terminal = () => {
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const rafeyosTimeoutRef = useRef(null);
   const [caretIndex, setCaretIndex] = useState(0);
   const [inputScrollLeft, setInputScrollLeft] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
 
-  const [possibleMatches, setPossibleMatches] = useState([]);
   const [lastCommand, setLastCommand] = useState('');
   const [tabPressCount, setTabPressCount] = useState(0);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -62,18 +67,16 @@ const Terminal = () => {
   // Local, not in the provider: it must never resume after navigating away and back
   const [foregroundId, setForegroundId] = useState(null);
 
-  const commandDescriptions = [...HELP_LINES, HELP_HINT];
+  const commandDescriptions = [...HOME_HELP_LINES, HELP_HINT];
 
   const executableCommands = [
-    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
+    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'rafeyos', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
     ...getPublishedPosts().map((post) => `cat blog/${post.slug}.md`),
   ];
 
   const nonExecutableCommands = [
     'pwd', 'cd', 'mkdir', 'grep', 'rm', 'exit', 
   ];
-
-  const visibleCommands = executableCommands.filter(cmd => !cmd.startsWith('cat'));
 
   // commandHistory lives in the provider, so the suggestion stays gone after navigating away and back
   const ghostSuggestion = commandHistory.length === 0
@@ -99,6 +102,7 @@ const Terminal = () => {
   }, [input, foregroundId]);
 
   useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
+  useEffect(() => () => clearTimeout(rafeyosTimeoutRef.current), []);
 
   const syncCursor = (inputElement) => {
     setCaretIndex(inputElement.selectionStart ?? inputElement.value.length);
@@ -124,6 +128,16 @@ const Terminal = () => {
     setTimeout(() => {
       router.push('/projects');
     }, 5500);
+  };
+
+  // Clearing the session flag makes the command always boot; only a refresh inside rafeyOS skips it
+  const startRafeyOS = () => {
+    forgetDesktop(sessionStorageOrNull());
+    loadRafeyOS();
+    clearTimeout(rafeyosTimeoutRef.current);
+    rafeyosTimeoutRef.current = setTimeout(() => {
+      router.push('/rafeyos');
+    }, RAFEYOS_ROUTE_DELAY_MS);
   };
 
   const finishPicker = (entryId, { chosenId, view3d }) => {
@@ -209,8 +223,13 @@ const Terminal = () => {
         case 'Clear':
           setHistory([]);
           setInput('');
-          setPossibleMatches([]);
           return;
+
+        case 'rafeyos':
+        case 'startx':
+          output = 'starting rafeyOS…';
+          startRafeyOS();
+          break;
 
         case 'cat bio.txt':
         case 'bio':
@@ -298,7 +317,6 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
     setCommandHistory(prevHistory => [...prevHistory, command]);
     setHistoryIndex(-1);
     setInput('');
-    setPossibleMatches([]);
     setTabPressCount(0);
     setLastCommand('');
   };
@@ -313,7 +331,6 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
       e.preventDefault();
       setInput(STARTER_SUGGESTION);
       setTabPressCount(0);
-      setPossibleMatches([]);
       setHistoryIndex(-1);
       return;
     }
@@ -338,9 +355,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
 
       if (matchingCommands.length === 1) {
         setInput(matchingCommands[0]);
-        setPossibleMatches([]);
       } else if (matchingCommands.length > 1) {
-        setPossibleMatches(matchingCommands);
         setLastCommand(input);
 
         const visibleMatches = matchingCommands.filter(cmd => !cmd.startsWith('cat'));
@@ -357,8 +372,6 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
         } else {
           setTabPressCount((prevCount) => prevCount + 1);
         }
-      } else {
-        setPossibleMatches([]);
       }
     }
 
@@ -453,7 +466,6 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
                   onChange={(e) => {
                     setInput(e.target.value);
                     setTabPressCount(0);
-                    setPossibleMatches([]);
                     setHistoryIndex(-1);
                     syncCursor(e.target);
                   }}
