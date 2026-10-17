@@ -17,7 +17,7 @@ export const Banner = ({ banner }) => {
     }
   }, [banner, shellDispatch])
   return (
-    <div className={shown ? 'banner on' : 'banner'} role="status">
+    <div className={shown ? 'banner on' : 'banner'} role="status" aria-live="polite">
       <AppIcon name={banner.appId ?? 'files'} />
       <span>
         <b>{banner.title}</b>
