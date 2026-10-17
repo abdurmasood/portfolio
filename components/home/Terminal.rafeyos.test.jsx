@@ -59,7 +59,7 @@ describe('home terminal: os', () => {
     act(() => vi.advanceTimersByTime(449))
     expect(push).not.toHaveBeenCalled()
     act(() => vi.advanceTimersByTime(1))
-    expect(push).toHaveBeenCalledWith('/rafeyos')
+    expect(push).toHaveBeenCalledWith('/os')
   })
 
   it('does not route if the terminal unmounts first', () => {

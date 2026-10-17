@@ -1,4 +1,4 @@
-/* The boot splash. Standalone (no .rafeyos root) so app/rafeyos/page.jsx can show it while the chunk loads */
+/* The boot splash. Standalone (no .rafeyos root) so app/os/page.jsx can show it while the chunk loads */
 .rafeyos-boot {
   position: fixed;
   inset: 0;
