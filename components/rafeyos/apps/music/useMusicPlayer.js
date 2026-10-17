@@ -29,6 +29,15 @@ const followElement = (audio, { refs, dispatch }) => {
   })
 }
 
+/** At the end: back to the start, then either stop or, with repeat on, play again. */
+const onTrackEnded = (audio, { refs, dispatch, replay }) => () => {
+  refs.token.current += 1
+  refs.intent.current = false
+  audio.seek(0)
+  dispatch({ type: 'stop' })
+  if (refs.state.current.repeat) replay()
+}
+
 const ensureAudio = (deps) => {
   const { refs, createAudio, track, dispatch } = deps
   if (refs.audio.current) return refs.audio.current
@@ -36,18 +45,19 @@ const ensureAudio = (deps) => {
   audio.setVolume(refs.volume.current)
   if (refs.state.current.position) audio.seek(refs.state.current.position)
   audio.onTime((seconds) => dispatch({ type: 'time', position: seconds }))
-  audio.onEnded(() => {
-    refs.token.current += 1
-    refs.intent.current = false
-    audio.seek(0)
-    dispatch({ type: 'stop' })
-  })
+  audio.onEnded(onTrackEnded(audio, deps))
   followElement(audio, deps)
   refs.audio.current = audio
   return audio
 }
 
-const createPlay = (deps) => () => {
+// A repeat restarts quietly: the banner is for the visitor's own play, not every loop
+const createPlay = (deps) => {
+  const withReplay = { ...deps, replay: () => startPlayback(withReplay, false) }
+  return () => startPlayback(withReplay, true)
+}
+
+const startPlayback = (deps, announce) => {
   const { refs, dispatch, notify, track } = deps
   if (refs.intent.current) return Promise.resolve(true)
   const audio = ensureAudio(deps)
@@ -59,7 +69,7 @@ const createPlay = (deps) => () => {
     () => {
       if (!isCurrent()) return false
       dispatch({ type: 'started' })
-      notify({ appId: 'music', title: track.title, body: track.artist })
+      if (announce) notify({ appId: 'music', title: track.title, body: track.artist })
       return true
     },
     (error) => {
@@ -73,7 +83,7 @@ const createPlay = (deps) => () => {
   )
 }
 
-/** @returns {{ play, pause, toggle, seek, prev, next }} */
+/** @returns {{ play, pause, toggle, seek, prev, next, toggleRepeat }} */
 const createControls = (deps) => {
   const { refs, dispatch } = deps
   const play = createPlay(deps)
@@ -99,6 +109,7 @@ const createControls = (deps) => {
       refs.audio.current?.seek(0)
       halt('stop')
     },
+    toggleRepeat: () => dispatch({ type: 'toggleRepeat' }),
   })
 }
 
@@ -136,7 +147,7 @@ const useMediaSession = ({ mediaSession, controls, track, state }) => {
 
 /**
  * @param {{ src: string, title: string, artist: string }} track
- * @returns {{ state: { playing, position, played }, controls: { play, pause, toggle, seek, prev, next } }}
+ * @returns {{ state: { playing, position, played, repeat }, controls: { play, pause, toggle, seek, prev, next, toggleRepeat } }}
  */
 export const useMusicPlayer = (track) => {
   const { createAudio, mediaSession } = useServices()

@@ -24,6 +24,7 @@ const SYMBOL_PATHS = Object.freeze({
   pause: <path d="M5.5 3.5v9M10.5 3.5v9" strokeWidth="2.4" />,
   prev: <><path d="M12 3.5v9L6 8z" fill="currentColor" /><path d="M4 3.5v9" /></>,
   next: <><path d="M4 3.5v9L10 8z" fill="currentColor" /><path d="M12 3.5v9" /></>,
+  repeat: <><path d="M2.5 8V6.5a2 2 0 0 1 2-2h9M11.5 2.5l2 2-2 2" /><path d="M13.5 8v1.5a2 2 0 0 1-2 2h-9M4.5 13.5l-2-2 2-2" /></>,
   vol: <><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z" fill="currentColor" /><path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.5a6.5 6.5 0 0 1 0 9" /></>,
   vol0: <><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z" fill="currentColor" /><path d="M11 6l3 4M14 6l-3 4" /></>,
   wifi: <><path d="M1.5 6.2a9.5 9.5 0 0 1 13 0M3.8 8.6a6.2 6.2 0 0 1 8.4 0M6.1 11a2.9 2.9 0 0 1 3.8 0" /><circle cx="8" cy="13" r=".6" fill="currentColor" /></>,

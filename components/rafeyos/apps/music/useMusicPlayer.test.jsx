@@ -155,7 +155,7 @@ describe('music player', () => {
       await expect(controls().play()).rejects.toBe(broken)
     })
 
-    expect(music()).toEqual({ playing: false, position: 0, played: false })
+    expect(music()).toEqual({ playing: false, position: 0, played: false, repeat: false })
   })
 
   it('follows a pause from outside rafeyOS (a media key, the browser controls)', async () => {
