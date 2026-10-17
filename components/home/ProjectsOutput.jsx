@@ -44,6 +44,15 @@ function ActivePicker({ onDone }) {
     setSelectedIndex((index) => Math.min(Math.max(index + step, 0), VISIBLE_PROJECTS.length - 1))
   }
 
+  // Phones have no arrow keys: tapping a row selects it, tapping the selected row opens it
+  const handleRowTap = (index) => {
+    if (index === selectedIndexRef.current) {
+      open(index)
+    } else {
+      setSelectedIndex(index)
+    }
+  }
+
   // Read through a ref so the window listener below is attached once and never sees stale state
   const keyActionsRef = useRef(null)
   keyActionsRef.current = { move, open, finish }
@@ -84,8 +93,11 @@ function ActivePicker({ onDone }) {
                 className={`picker-row${isSelected ? ' is-selected' : ''}`}
                 aria-current={isSelected ? 'true' : undefined}
               >
-                <span className="picker-mark" aria-hidden="true">{isSelected ? '›' : ''}</span>
-                {project.title}
+                {/* Only receives taps on mobile; desktop rows stay keyboard-only (see Terminal.css) */}
+                <button type="button" className="picker-tap" tabIndex={-1} onClick={() => handleRowTap(index)}>
+                  <span className="picker-mark" aria-hidden="true">{isSelected ? '›' : ''}</span>
+                  {project.title}
+                </button>
               </li>
             )
           })}
