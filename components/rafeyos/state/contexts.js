@@ -31,7 +31,7 @@ const useRequired = (context) => {
 }
 
 export const useServices = () => useRequired(ServicesContext)
-/** @returns {{ vfs: object, content: object }} */
+/** @returns {{ vfs: object, content: object, saveDocument: Function, trashDocument: Function, restoreDocument: Function, emptyTrashDocument: Function }} */
 export const useVfs = () => useRequired(VfsContext)
 export const useSessionDispatch = () => useRequired(SessionDispatchContext)
 export const useWindowsState = () => useRequired(WindowsStateContext)
