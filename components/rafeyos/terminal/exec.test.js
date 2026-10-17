@@ -299,7 +299,7 @@ describe('system commands', () => {
     expect(out.effects).toEqual([{ type: 'logout' }])
   })
 
-  it.each(['rafeyos', 'startx'])('%s says it is already running', (name) => {
-    expect(texts(run(name))).toEqual(['rafeyos: already running'])
+  it.each(['os', 'rafeyos', 'startx'])('%s says it is already running', (name) => {
+    expect(texts(run(name))).toEqual(['rOS: already running'])
   })
 })
