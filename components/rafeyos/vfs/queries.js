@@ -1,0 +1,60 @@
+import { HOME, TRASH } from './buildVfs'
+import { parentOf, realPath } from './paths'
+import { humanBytes } from './format'
+
+const KIND = Object.freeze({
+  dir: 'Folder',
+  text: 'Plain text document',
+  audio: 'MP3 audio',
+  mailto: 'Link to email',
+  weblink: 'Link to website',
+  symlink: 'Link',
+})
+
+const encoder = new TextEncoder()
+
+export const isDir = (vfs, path) => vfs[realPath(vfs, path)]?.type === 'dir'
+
+export const displayName = (vfs, path) => (path === HOME ? 'Home' : vfs[path].display || vfs[path].name)
+
+const byDirThenName = (vfs) => (a, b) =>
+  Number(isDir(vfs, b)) - Number(isDir(vfs, a)) ||
+  vfs[a].name.localeCompare(vfs[b].name, undefined, { sensitivity: 'base' })
+
+/** Direct children, folders (and links to folders) first, then by name ignoring case. */
+export const children = (vfs, path) =>
+  Object.keys(vfs)
+    .filter((key) => key !== path && parentOf(key) === path)
+    .sort(byDirThenName(vfs))
+
+export const sizeOf = (vfs, path) => {
+  const node = vfs[realPath(vfs, path)]
+  return node.type === 'audio' ? node.sizeBytes : encoder.encode(node.text || '').length
+}
+
+export const sizeLabel = (vfs, path) => {
+  if (!isDir(vfs, path)) return humanBytes(sizeOf(vfs, path))
+  const count = children(vfs, realPath(vfs, path)).length
+  return `${count} item${count === 1 ? '' : 's'}`
+}
+
+export const kindOf = (vfs, path) => {
+  const node = vfs[path]
+  if (node.type === 'symlink') return `Link to ${KIND[vfs[node.target].type].toLowerCase()}`
+  if (path.endsWith('.md')) return 'Markdown document'
+  return KIND[node.type]
+}
+
+/** Case-insensitive name search across home; skips trash, links and ~ itself. */
+export const search = (vfs, query) => {
+  const needle = query.trim().toLowerCase()
+  if (!needle) return []
+  return Object.keys(vfs).filter(
+    (path) =>
+      path !== TRASH &&
+      path !== HOME &&
+      path.startsWith(HOME) &&
+      vfs[path].type !== 'symlink' &&
+      displayName(vfs, path).toLowerCase().includes(needle),
+  )
+}
