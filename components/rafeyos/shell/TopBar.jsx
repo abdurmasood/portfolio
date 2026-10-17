@@ -1,0 +1,71 @@
+import { useSettings, useShellDispatch, useShellState } from '../state/contexts'
+import { Sym } from '../icons/symbols'
+import { Clock } from './Clock'
+import { CALENDAR_POPUP } from './CalendarPopover'
+import { OVERVIEW_MODES } from './overviewModel'
+
+export const QUICK_SETTINGS_POPUP = 'qs'
+
+/** Wi-Fi, volume and power, as in the top bar's status area (also on the lock screen). */
+export const StatusIcons = () => {
+  const { wifi, volume } = useSettings()
+  return (
+    <span className="sti">
+      <Sym name={wifi ? 'wifi' : 'wifioff'} />
+      <Sym name={volume === 0 ? 'vol0' : 'vol'} />
+      <Sym name="power" />
+    </span>
+  )
+}
+
+/** Activities (workspace dots), the clock (calendar), and the status area that opens Quick Settings. */
+export const TopBar = () => {
+  const shell = useShellState()
+  const shellDispatch = useShellDispatch()
+  const quickSettingsOpen = shell.popup?.kind === QUICK_SETTINGS_POPUP
+  const calendarOpen = shell.popup?.kind === CALENDAR_POPUP
+  return (
+    <div className="topbar">
+      <div className="tb-l">
+        <button
+          type="button"
+          className="tbb"
+          aria-label="Activities"
+          aria-pressed={shell.overview !== null}
+          onClick={() =>
+            shellDispatch(shell.overview ? { type: 'closeOverview' } : { type: 'openOverview', mode: OVERVIEW_MODES.WINDOWS })
+          }
+        >
+          <span className="wsi">
+            <i className="on" />
+            <i />
+          </span>
+        </button>
+      </div>
+      <div className="tb-c">
+        <button
+          type="button"
+          className={calendarOpen ? 'tbb open' : 'tbb'}
+          data-tb="cal"
+          aria-label="Date and time"
+          aria-expanded={calendarOpen}
+          onClick={() => shellDispatch({ type: 'togglePopup', kind: CALENDAR_POPUP })}
+        >
+          <Clock />
+        </button>
+      </div>
+      <div className="tb-r">
+        <button
+          type="button"
+          className={quickSettingsOpen ? 'tbb open' : 'tbb'}
+          data-tb="qs"
+          aria-label="System menu"
+          aria-expanded={quickSettingsOpen}
+          onClick={() => shellDispatch({ type: 'togglePopup', kind: QUICK_SETTINGS_POPUP })}
+        >
+          <StatusIcons />
+        </button>
+      </div>
+    </div>
+  )
+}

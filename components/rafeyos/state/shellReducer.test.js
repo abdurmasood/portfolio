@@ -21,7 +21,13 @@ describe('shellReducer', () => {
     const state = reduce(initialShell, { type: 'openPopup', kind: 'calendar' }, menu)
 
     expect(state.popup).toBeNull()
-    expect(state.menu).toEqual({ items: [{ label: 'Open' }], x: 10, y: 20, shell: false })
+    expect(state.menu).toEqual({ items: [{ label: 'Open' }], x: 10, y: 20, shell: false, anchorBottom: false })
+  })
+
+  it('shell menus can hang from their bottom edge', () => {
+    const state = reduce(initialShell, { ...menu, shell: true, anchorBottom: true })
+
+    expect(state.menu).toMatchObject({ shell: true, anchorBottom: true })
   })
 
   it('togglePopup closes the same popup and switches to another', () => {
@@ -63,6 +69,13 @@ describe('shellReducer', () => {
     expect(reduce(open, { type: 'closeDialog' }, { type: 'closeOverview' }, { type: 'closePopup' })).toEqual(initialShell)
     expect(shellReducer(initialShell, { type: 'closeMenu' })).toBe(initialShell)
     expect(reduce(initialShell, menu, { type: 'closeMenu' }).menu).toBeNull()
+  })
+
+  it('a top-bar popup leaves the overview', () => {
+    const state = reduce(initialShell, { type: 'openOverview', mode: 'apps' }, { type: 'togglePopup', kind: 'calendar' })
+
+    expect(state.overview).toBeNull()
+    expect(state.popup.kind).toBe('calendar')
   })
 
   it('closeTransients clears popup and menu only', () => {

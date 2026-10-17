@@ -1,0 +1,17 @@
+/* The boot splash. Standalone (no .rafeyos root) so app/rafeyos/page.jsx can show it while the chunk loads */
+.rafeyos-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-ui, "Ubuntu Sans"), "Ubuntu", system-ui, -apple-system, "Segoe UI", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+.rafeyos-boot .lg { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 300; letter-spacing: .01em; white-space: nowrap; }
+.rafeyos-boot .lg b { font-weight: 700; color: var(--accent, #E95420); }
+.rafeyos-boot .spin { position: absolute; left: 50%; top: 72%; box-sizing: content-box; width: 26px; height: 26px; margin-left: -13px; border: 3px solid rgba(255,255,255,.18); border-top-color: #fff; border-radius: 50%; animation: rafeyos-boot-spin .9s linear infinite; }
+@keyframes rafeyos-boot-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rafeyos-boot .spin { animation: none; } }

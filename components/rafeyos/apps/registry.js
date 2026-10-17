@@ -1,12 +1,13 @@
 // App metadata only. The UI layer attaches components by id; nothing here imports React.
 
-const app = ({ id, name, size, minSize, multi = false, inDock = true }) =>
-  Object.freeze({ id, name, size: Object.freeze(size), minSize: Object.freeze(minSize), multi, inDock })
+// defaultPath: what a single-instance file app opens when launched without one (e.g. from the dock)
+const app = ({ id, name, size, minSize, multi = false, inDock = true, defaultPath = '' }) =>
+  Object.freeze({ id, name, size: Object.freeze(size), minSize: Object.freeze(minSize), multi, inDock, defaultPath })
 
 export const APPS = Object.freeze({
   files: app({ id: 'files', name: 'Files', size: [760, 480], minSize: [480, 320], multi: true }),
   terminal: app({ id: 'terminal', name: 'Terminal', size: [640, 400], minSize: [360, 200], multi: true }),
-  editor: app({ id: 'editor', name: 'Text Editor', size: [620, 440], minSize: [360, 240] }),
+  editor: app({ id: 'editor', name: 'Text Editor', size: [620, 440], minSize: [360, 240], defaultPath: '~/README.txt' }),
   music: app({ id: 'music', name: 'Music', size: [760, 480], minSize: [560, 380] }),
   mail: app({ id: 'mail', name: 'Mail', size: [600, 460], minSize: [440, 360] }),
   projects: app({ id: 'projects', name: 'Projects', size: [820, 520], minSize: [560, 380] }),

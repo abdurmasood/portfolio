@@ -1,0 +1,119 @@
+/* App bodies: files, terminal, editor, music, mail, projects, settings, properties */
+/* files */
+:where(.rafeyos) .pathbar { display: flex; align-items: center; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 4px; max-width: 46%; min-width: 0; overflow: hidden; margin: 0 auto; }
+:where(.rafeyos) .pathbar button { all: unset; height: 24px; padding: 0 8px; border-radius: 6px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+:where(.rafeyos) .pathbar button:hover { background: var(--btn); }
+:where(.rafeyos) .pathbar button.cur { font-weight: 700; }
+:where(.rafeyos) .pathbar .sl { opacity: .35; padding: 0 1px; }
+:where(.rafeyos) .pathbar svg { width: 14px; height: 14px; }
+:where(.rafeyos) .searchbar { display: flex; align-items: center; gap: 8px; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 10px; width: 46%; margin: 0 auto; box-sizing: border-box; }
+:where(.rafeyos) .searchbar input { all: unset; flex: 1; cursor: text; user-select: text; }
+:where(.rafeyos) .searchbar svg { width: 16px; height: 16px; opacity: .7; }
+:where(.rafeyos) .fgrid { display: grid; grid-template-columns: repeat(auto-fill, 92px); gap: 2px; padding: 10px; align-content: start; }
+:where(.rafeyos) .fitem { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 3px; border-radius: 8px; text-align: center; }
+:where(.rafeyos) .fitem svg { width: 48px; height: 48px; }
+:where(.rafeyos) .fitem .nm { font-size: 12px; line-height: 1.25; max-height: 2.5em; overflow: hidden; word-break: break-word; padding: 0 3px; }
+:where(.rafeyos) .fitem:hover { background: var(--btn); }
+:where(.rafeyos) .fitem.sel { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+:where(.rafeyos) .flist { padding: 6px 12px 12px; }
+:where(.rafeyos) .flh, :where(.rafeyos) .flr { display: grid; grid-template-columns: 1fr 110px 130px; align-items: center; gap: 12px; padding: 0 10px; }
+:where(.rafeyos) .flh { height: 28px; font-size: 12px; font-weight: 700; color: var(--fg2); }
+:where(.rafeyos) .flr { height: 30px; border-radius: 6px; }
+:where(.rafeyos) .flr:hover { background: var(--btn); }
+:where(.rafeyos) .flr.sel { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+:where(.rafeyos) .flr .n { display: flex; align-items: center; gap: 10px; min-width: 0; }
+:where(.rafeyos) .flr .n span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+:where(.rafeyos) .flr svg { width: 20px; height: 20px; flex: none; }
+:where(.rafeyos) .flr .m { color: var(--fg2); font-size: 12px; }
+:where(.rafeyos) .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; color: var(--fg2); }
+:where(.rafeyos) .empty svg { width: 72px; height: 72px; opacity: .35; }
+:where(.rafeyos) .empty b { font-size: 16px; color: var(--fg); opacity: .8; }
+:where(.rafeyos) .floatbar { position: absolute; right: 10px; bottom: 10px; background: var(--menu); border-radius: 8px; padding: 5px 11px; font-size: 12px !important; box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 4px 14px rgba(0,0,0,.3); font-size: 13.5px; pointer-events: none; }
+
+/* terminal */
+:where(.rafeyos) .term { flex: 1; background: var(--tbg); color: var(--tfg); font-family: var(--mono); font-size: 13px; line-height: 1.38; padding: 6px 8px; overflow: auto; cursor: text; }
+:where(.rafeyos) .term pre { margin: 0; white-space: pre-wrap; font: inherit; }
+:where(.rafeyos) .term .pg { color: var(--tgreen); font-weight: 700; } :where(.rafeyos) .term .pb { color: var(--tblue); font-weight: 700; }
+:where(.rafeyos) .term .lc { color: var(--tcyan); font-weight: 700; } :where(.rafeyos) .term .er { color: var(--tred); } :where(.rafeyos) .term .dm { opacity: .55; }
+:where(.rafeyos) .term a { color: inherit; }
+:where(.rafeyos) .tline { display: flex; flex-wrap: wrap; }
+:where(.rafeyos) .tline .inp { position: relative; flex: 1; min-width: 40px; }
+:where(.rafeyos) .tline input { all: unset; width: 100%; font: inherit; color: inherit; caret-color: currentColor; cursor: text; }
+:where(.rafeyos) .tline .ghost { position: absolute; left: 0; top: 0; opacity: .4; pointer-events: none; white-space: pre; }
+
+/* text editor */
+:where(.rafeyos) .editor { flex: 1; display: flex; min-height: 0; background: var(--view); }
+:where(.rafeyos) .editor textarea { all: unset; flex: 1; box-sizing: border-box; padding: 14px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow: auto; cursor: text; user-select: text; -webkit-user-select: text; color: var(--fg); tab-size: 4; }
+:where(.rafeyos) .editor textarea.small { font-size: 10.5px; line-height: 1.2; }
+
+/* music */
+:where(.rafeyos) .mu-hb .ctl { display: flex; gap: 2px; }
+:where(.rafeyos) .mu-now { position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: 42%; height: max-content; margin: auto; display: grid; gap: 1px; align-content: center; min-width: 0; line-height: 1.15; text-align: center; }
+:where(.rafeyos) .mu-meta { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; }
+:where(.rafeyos) .mu-now b { font-size: 12.5px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+:where(.rafeyos) .mu-now small { color: var(--fg2); font-size: 11px; flex: none; white-space: nowrap; }
+:where(.rafeyos) .mu-prog { display: flex; align-items: center; gap: 8px; height: 14px; font-size: 11px; line-height: 1; color: var(--fg2); font-variant-numeric: tabular-nums; }
+:where(.rafeyos) .mu-prog input[type="range"].sl { flex: 1; height: 14px; }
+:where(.rafeyos) .mu-prog input[type="range"].sl::-webkit-slider-thumb { width: 12px; height: 12px; margin-top: -4px; }
+:where(.rafeyos) .mu-prog input[type="range"].sl::-moz-range-thumb { width: 12px; height: 12px; }
+:where(.rafeyos) .tt { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+:where(.rafeyos) .tt th { text-align: left; font-weight: 700; color: var(--fg2); padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+:where(.rafeyos) .tt td { padding: 5px 10px; }
+:where(.rafeyos) .tt tr.trk:hover td { background: var(--btn); }
+:where(.rafeyos) .tt tr.trk.sel td { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+:where(.rafeyos) .tt td.n { width: 34px; color: var(--fg2); }
+:where(.rafeyos) .tt td.n svg { width: 16px; height: 16px; }
+:where(.rafeyos) .tt td.t, :where(.rafeyos) .tt th.t { text-align: right; font-variant-numeric: tabular-nums; }
+:where(.rafeyos) .statusbar { height: 22px; flex: none; display: flex; align-items: center; padding: 0 12px; font-size: 12px; line-height: 1; color: var(--fg2); border-top: 1px solid var(--line); background: var(--win); }
+
+/* mail */
+:where(.rafeyos) .mf { display: grid; grid-template-columns: 68px 1fr; align-items: center; gap: 10px; padding: 0 14px; min-height: 38px; border-bottom: 1px solid var(--line); background: var(--win); }
+:where(.rafeyos) .mf label { color: var(--fg2); text-align: right; }
+:where(.rafeyos) .mf input { all: unset; cursor: text; user-select: text; -webkit-user-select: text; }
+:where(.rafeyos) .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--btn); border-radius: 99px; padding: 3px 12px 3px 3px; width: max-content; max-width: 100%; }
+:where(.rafeyos) .chip i { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-style: normal; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+:where(.rafeyos) .mbody { flex: 1; display: flex; background: var(--view); }
+:where(.rafeyos) .mbody textarea { all: unset; flex: 1; padding: 14px 16px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; cursor: text; user-select: text; -webkit-user-select: text; color: var(--fg); }
+:where(.rafeyos) .infobar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: color-mix(in srgb, var(--accent) 22%, var(--win)); font-size: 13.5px; }
+:where(.rafeyos) .infobar .sp { flex: 1; }
+
+/* projects */
+:where(.rafeyos) .p3 { position: absolute; inset: 0; background: #000; }
+:where(.rafeyos) .p3 canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+:where(.rafeyos) .p3 canvas:active { cursor: grabbing; }
+:where(.rafeyos) .p3card { position: absolute; left: 16px; bottom: 16px; width: min(340px, calc(100% - 32px)); background: rgba(20,20,20,.88); color: #e6e6e6; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; box-sizing: border-box; }
+:where(.rafeyos) .p3card b { font-size: 15px; color: #fff; }
+:where(.rafeyos) .p3card p { margin: 0; color: #a8a8a8; font-size: 13.5px; line-height: 1.45; }
+:where(.rafeyos) .p3card a { color: #56d364; font-size: 13.5px; }
+:where(.rafeyos) .p3hint { position: absolute; right: 14px; top: 12px; color: #6e6e6e; font-size: 12.5px; }
+
+/* settings */
+:where(.rafeyos) .styles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+:where(.rafeyos) .stc { all: unset; display: grid; gap: 8px; justify-items: center; }
+:where(.rafeyos) .stc .pv { width: 100%; aspect-ratio: 16 / 10; border-radius: 10px; position: relative; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+:where(.rafeyos) .stc.on .pv { box-shadow: 0 0 0 3px var(--accent); }
+:where(.rafeyos) .stc .pv i { position: absolute; border-radius: 6px; }
+:where(.rafeyos) .accents { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px; }
+:where(.rafeyos) .acc { all: unset; width: 30px; height: 30px; border-radius: 50%; position: relative; }
+:where(.rafeyos) .acc.on::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; box-shadow: 0 0 0 2px var(--fg); }
+:where(.rafeyos) .walls { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+:where(.rafeyos) .wl { all: unset; aspect-ratio: 16 / 10; border-radius: 10px; background-size: cover; box-shadow: 0 0 0 1px var(--line); }
+:where(.rafeyos) .wl.on { box-shadow: 0 0 0 3px var(--accent); }
+:where(.rafeyos) .about-hero { display: grid; justify-items: center; gap: 6px; padding: 10px 0 4px; }
+:where(.rafeyos) .about-hero .lg { font-size: 28px; font-weight: 300; letter-spacing: .01em; }
+:where(.rafeyos) .about-hero .lg b { font-weight: 700; color: var(--accent); }
+:where(.rafeyos) .about-hero small { color: var(--fg2); }
+:where(.rafeyos) .dd { all: unset; display: inline-flex; align-items: center; gap: 8px; height: 28px; font-size: 12.5px; padding: 0 12px; border-radius: 6px; background: var(--btn); font-weight: 700; }
+:where(.rafeyos) .dd svg { width: 14px; height: 14px; }
+
+/* properties */
+:where(.rafeyos) .props { padding: 22px; display: grid; justify-items: center; gap: 14px; overflow: auto; }
+:where(.rafeyos) .props > svg { width: 72px; height: 72px; }
+:where(.rafeyos) .props .pn { font-size: 15px; font-weight: 700; text-align: center; word-break: break-word; }
+:where(.rafeyos) .props .boxed { width: 100%; }
+
+
+/* Port additions: the ghost suggestion is tappable on touch, like the home terminal's */
+:where(.rafeyos) .tline .ghost.tap { pointer-events: auto; cursor: pointer; }
+/* Port additions: a clickable settings row is a real button, laid out like the other rows */
+:where(.rafeyos) button.row { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; }

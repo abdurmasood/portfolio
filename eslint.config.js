@@ -29,4 +29,9 @@ export default [
       'react/jsx-no-target-blank': 'off',
     },
   },
+  {
+    // Plain JS with JSDoc and no prop-types dependency; props are covered by component tests instead
+    files: ['components/rafeyos/**/*.{js,jsx}', 'app/rafeyos/**/*.{js,jsx}'],
+    rules: { 'react/prop-types': 'off' },
+  },
 ]

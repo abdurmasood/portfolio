@@ -14,8 +14,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       // Scoped to modules added or extracted for rafeyOS
-      include: ['lib/contact.js', 'lib/help.js', 'components/rafeyos/**/*.js'],
-      exclude: ['**/*.test.js'],
+      include: ['lib/contact.js', 'lib/help.js', 'lib/loadRafeyOS.js', 'components/rafeyos/**/*.{js,jsx}'],
+      exclude: ['**/*.test.{js,jsx}', 'components/rafeyos/testing/**'],
       thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },
     },
   },

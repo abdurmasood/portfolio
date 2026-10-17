@@ -21,7 +21,7 @@ describe('open', () => {
     expect(state.focusedId).toBe(1)
     expect(state.nextId).toBe(2)
     expect(state.byId[1]).toEqual({
-      id: 1, key: 'terminal#1', appId: 'terminal', arg: '', title: 'Terminal', rect: cascadeRect(area, size, 0),
+      id: 1, key: 'terminal#1', appId: 'terminal', arg: '', init: null, title: 'Terminal', rect: cascadeRect(area, size, 0),
       prevRect: null, mode: 'normal', minimized: false, phase: 'open',
     })
   })
@@ -56,6 +56,19 @@ describe('open', () => {
 
     expect(state.byId[1].minimized).toBe(false)
     expect(state.focusedId).toBe(1)
+  })
+
+  it('hands new launch options to a reused window, keeping the old ones otherwise', () => {
+    const openSettings = (init) => ({ type: 'open', appId: 'settings', size, area, init })
+    const first = reduce(initialWindows, openSettings({ page: 'appearance' }))
+
+    const relaunched = reduce(first, openSettings({ page: 'sound' }))
+    const plain = reduce(relaunched, openSettings(null))
+
+    expect(Object.keys(relaunched.byId)).toHaveLength(1)
+    expect(relaunched.byId[1].init).toEqual({ page: 'sound' })
+    expect(relaunched.byId[1].init).not.toBe(first.byId[1].init)
+    expect(plain.byId[1].init).toBe(relaunched.byId[1].init)
   })
 
   it('opens a fresh window when the existing one is closing', () => {

@@ -52,7 +52,7 @@ const remove = (state, { id }) => {
 const findLiveByKey = (state, key) => Object.values(state.byId).find((win) => win.key === key && isLive(win))
 
 const newWindow = (state, action, key) => {
-  const { appId, arg = '', size, area, compact, title } = action
+  const { appId, arg = '', size, area, compact, title, init = null } = action
   const shownCount = Object.values(state.byId).filter(isShown).length
   const rect = cascadeRect(area, size, shownCount)
   const snapped = Boolean(compact)
@@ -61,6 +61,8 @@ const newWindow = (state, action, key) => {
     key,
     appId,
     arg,
+    // One-off launch options for the app (e.g. Files' initial selection); not part of the key
+    init,
     title: title ?? appId,
     rect: snapped ? snapRect(area, SNAP_MODES.MAX) : rect,
     prevRect: snapped ? rect : null,
@@ -70,11 +72,17 @@ const newWindow = (state, action, key) => {
   }
 }
 
-/** Single-instance apps are keyed by app + arg; reopening restores or focuses the existing window. */
+/**
+ * Single-instance apps are keyed by app + arg; reopening restores or focuses the existing window.
+ * New launch options replace the old ones, so the app can follow them (Settings opening a page).
+ */
 const open = (state, action) => {
   const key = action.multi ? `${action.appId}#${state.nextId}` : `${action.appId}:${action.arg ?? ''}`
   const existing = action.multi ? null : findLiveByKey(state, key)
-  if (existing) return restore(state, { id: existing.id })
+  if (existing) {
+    const relaunched = action.init ? patch(state, existing.id, { init: { ...action.init } }) : state
+    return restore(relaunched, { id: existing.id })
+  }
   const win = newWindow(state, action, key)
   return {
     byId: { ...state.byId, [win.id]: win },

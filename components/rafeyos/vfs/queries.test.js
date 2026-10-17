@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search } from './queries'
+import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from './queries'
 import { buildVfs } from './buildVfs'
-import { fixtureContent } from './testVfs'
+import { fixtureContent, realVfs } from './testVfs'
 
 const vfs = buildVfs(fixtureContent)
 
@@ -87,5 +87,15 @@ describe('search', () => {
 
   it('returns nothing for a blank query', () => {
     expect(search(vfs, '   ')).toEqual([])
+  })
+})
+
+describe('textDocuments', () => {
+  it('lists every text file and nothing else', () => {
+    const docs = textDocuments(realVfs)
+
+    expect(docs).toContain('~/bio.txt')
+    expect(docs).toContain('~/Music/story.txt')
+    expect(docs.every((path) => realVfs[path].type === 'text')).toBe(true)
   })
 })
