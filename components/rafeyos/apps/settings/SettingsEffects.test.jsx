@@ -177,7 +177,7 @@ describe('settings across a restart', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Restart…' }))
       fireEvent.click(within(screen.getByRole('dialog', { name: 'Restart' })).getByRole('button', { name: 'Restart' }))
 
-      const splash = screen.getByRole('status', { name: 'Starting rOS' })
+      const splash = screen.getByRole('status', { name: 'Starting rafeyOS' })
       expect(splash.style.getPropertyValue('--accent')).toBe('#7764D8')
       flushTimers(BOOT_MS)
       expect(root(container).style.getPropertyValue('--accent')).toBe('#7764D8')

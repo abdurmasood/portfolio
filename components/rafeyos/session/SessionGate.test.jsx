@@ -20,7 +20,7 @@ describe('session', () => {
     vi.useFakeTimers()
     const { services } = renderRafeyOS({ reducedMotion: () => false })
 
-    expect(screen.getByRole('status', { name: 'Starting rOS' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Starting rafeyOS' })).toBeTruthy()
     expect(screen.queryByRole('toolbar', { name: 'Dock' })).toBeNull()
 
     flushTimers(BOOT_MS)
@@ -32,7 +32,7 @@ describe('session', () => {
   it('skips the boot when the splash is clicked', () => {
     renderRafeyOS({ reducedMotion: () => false })
 
-    fireEvent.click(screen.getByRole('status', { name: 'Starting rOS' }))
+    fireEvent.click(screen.getByRole('status', { name: 'Starting rafeyOS' }))
 
     expect(dock()).toBeTruthy()
   })
@@ -46,7 +46,7 @@ describe('session', () => {
   it('goes straight to the desktop when the tab remembers the session', () => {
     renderRafeyOS({ reducedMotion: () => false, storage: memoryStorage({ [SESSION_KEY]: 'desktop' }) })
 
-    expect(screen.queryByRole('status', { name: 'Starting rOS' })).toBeNull()
+    expect(screen.queryByRole('status', { name: 'Starting rafeyOS' })).toBeNull()
     expect(dock()).toBeTruthy()
   })
 

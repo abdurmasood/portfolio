@@ -7,10 +7,10 @@ export const BootSplash = ({ onSkip, accent }) => (
     style={accent ? { '--accent': accent } : undefined}
     onClick={onSkip}
     role="status"
-    aria-label="Starting rOS"
+    aria-label="Starting rafeyOS"
   >
     <div className="lg">
-      r<b>OS</b>
+      rafey<b>OS</b>
     </div>
     <div className="spin" />
   </div>
