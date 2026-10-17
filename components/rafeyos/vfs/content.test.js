@@ -64,8 +64,8 @@ describe('buildContent', () => {
 
     expect(content.bio).toMatch(/^Rafey is a \d+-year-old/)
     expect(content.bio.endsWith('\n')).toBe(true)
-    expect(content.skills.startsWith('Data Science:')).toBe(true)
-    expect(content.help.lines.join('\n')).toContain('bio         background & education')
+    expect(content.skills.split('\n')[0]).toBe('stack           cursor · claude code · linear · github · 1password · greptile')
+    expect(content.help.lines.join('\n')).toContain('bio         biography')
     expect(content.help.hint).toBe("Use ↑ for history, tab to autocomplete, 'clear' to reset.")
     expect(content.help.lines.join('\n')).not.toContain('rafeyos')
   })

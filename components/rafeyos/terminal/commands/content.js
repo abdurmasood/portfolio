@@ -1,5 +1,5 @@
 // Commands that print Rafey's content: help, bio, projects, blog, skills, music, contact
-import { pre, dim, link } from '../lines'
+import { pre, dim } from '../lines'
 import { result, EFFECTS } from './result'
 
 const PROJECT_NAME_WIDTH = 22
@@ -37,8 +37,7 @@ const musicUsage = ({ track, blurb }) =>
     pre(
       'Usage: music <command>\n\n' +
         '  story      his journey as a producer\n' +
-        `  play       play ${track.title}\n` +
-        '  journey    open the full visual journey\n',
+        `  play       play ${track.title}\n`,
     ),
     dim(blurb),
   ])
@@ -50,12 +49,6 @@ const music = ({ parsed, vfs, content }) => {
     return result([pre(`▶ playing   ${track.title} · ${track.artist}`)], [{ type: EFFECTS.PLAY }])
   }
   if (subcommand === 'story') return result([pre(vfs['~/Music/story.txt'].text)])
-  if (subcommand === 'journey') {
-    return result(
-      [pre('Opening the visual journey…'), link('rafey.ai/journey', '/journey')],
-      [{ type: EFFECTS.OPEN_EXTERNAL, href: '/journey' }],
-    )
-  }
   return musicUsage(content.music)
 }
 

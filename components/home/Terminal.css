@@ -182,6 +182,18 @@
   height: 1.5em;
 }
 
+/* skills: dim category column, tools wrap under their own column */
+.terminal .skill-rows {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 3ch;
+  white-space: normal;
+}
+
+.terminal .skill-rows .skill {
+  white-space: nowrap;
+}
+
 .terminal .terminal-block > .dim,
 .terminal .article > p {
   margin: 0;
@@ -292,7 +304,8 @@
   font-weight: 400;
 }
 
-.terminal .md a {
+.terminal .md a,
+.terminal .skill-rows a {
   color: var(--term-fg);
   font-weight: 400;
   text-decoration: underline;
@@ -300,7 +313,8 @@
   text-underline-offset: 3px;
 }
 
-.terminal .md a:hover {
+.terminal .md a:hover,
+.terminal .skill-rows a:hover {
   color: var(--term-host);
   text-decoration-color: var(--term-host);
 }

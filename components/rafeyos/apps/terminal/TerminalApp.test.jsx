@@ -148,16 +148,12 @@ describe('Terminal app', () => {
     expect(windowsOf(container, 'mail')).toHaveLength(1)
   })
 
-  it('asks before opening LinkedIn, and opens the journey through the browser service', () => {
-    const { container, services } = renderDesktop()
+  it('asks before opening LinkedIn', () => {
+    const { container } = renderDesktop()
     const { input } = openTerminal(container)
 
     typeCommand(input, 'open linkedin')
     expect(screen.getByRole('dialog', { name: 'Open Link' })).toBeTruthy()
-
-    typeCommand(input, 'music journey')
-    expect(services.openExternal).toHaveBeenCalledTimes(1)
-    expect(services.openExternal).toHaveBeenCalledWith('/journey')
   })
 
   it('opens another terminal in the same folder from the header', () => {

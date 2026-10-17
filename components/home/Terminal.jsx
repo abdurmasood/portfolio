@@ -42,7 +42,6 @@ const musicUsage = () => {
     '',
     '  story      his journey as a producer',
     `  play       play ${escapeHtml(track.title)}`,
-    '  journey    open the full visual journey',
     '',
     `<span class='grey'>${escapeHtml(ARTIST_BLURB)}</span>`,
   ].join('\n');
@@ -70,7 +69,7 @@ const Terminal = () => {
   const commandDescriptions = [...HOME_HELP_LINES, HELP_HINT];
 
   const executableCommands = [
-    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'os', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
+    'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'help', 'contact', 'os', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
     ...getPublishedPosts().map((post) => `cat blog/${post.slug}.md`),
   ];
 
@@ -205,8 +204,6 @@ const Terminal = () => {
           panel = { type: 'music-story' };
         } else if (subcommand === 'play') {
           panel = { type: 'music-player', trackId: getFeaturedTrack().id };
-        } else if (subcommand === 'journey') {
-          router.push('/journey');
         } else {
           output = `music: unknown command '${escapeHtml(musicCommand[1])}'. Type 'music' for usage.`;
           isError = true;
