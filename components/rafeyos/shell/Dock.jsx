@@ -1,11 +1,14 @@
 import { memo, useCallback } from 'react'
-import { useDockRegistry, useLayout, useShellDispatch, useWindowManager, useWindowsState } from '../state/contexts'
+import { useDockRegistry, useLayout, useShellDispatch, useShellState, useWindowManager, useWindowsState } from '../state/contexts'
 import { DOCK_FAVORITES, getApp } from '../apps/registry'
 import { isImplemented } from '../apps/availability'
 import { runningApps, windowsForApp } from '../state/selectors'
 import { TRASH } from '../vfs/buildVfs'
 import { AppIcon } from '../icons/appIcons'
 import { rectOfElement } from '../wm/windowAnimations'
+import { useMenu } from './useMenu'
+import { dockMenuItems, dockMenuPlacement } from './menus'
+import { OVERVIEW_MODES } from './overviewModel'
 
 const MAX_DOTS = 4
 
@@ -15,7 +18,7 @@ export const dockApps = (windows) => [
   ...runningApps(windows).filter((id) => !DOCK_FAVORITES.includes(id) && getApp(id).inDock),
 ]
 
-const DockButton = memo(function DockButton({ appId, count, focused, onActivate }) {
+const DockButton = memo(function DockButton({ appId, count, focused, onActivate, onMenu }) {
   const registry = useDockRegistry()
   const { name } = getApp(appId)
   const register = useCallback(
@@ -30,6 +33,10 @@ const DockButton = memo(function DockButton({ appId, count, focused, onActivate 
       data-name={name}
       aria-label={name}
       onClick={(event) => onActivate(appId, rectOfElement(event.currentTarget))}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        onMenu(appId, rectOfElement(event.currentTarget))
+      }}
     >
       <AppIcon name={appId} />
       {count > 0 && (
@@ -41,21 +48,66 @@ const DockButton = memo(function DockButton({ appId, count, focused, onActivate 
   )
 })
 
+/** Right-click on a dock icon: the shell-styled menu beside (or above) the dock. */
+const useDockMenu = (windows, dockPos) => {
+  const windowManager = useWindowManager()
+  const openMenu = useMenu()
+  return useCallback(
+    (appId, buttonRect) => {
+      const appWindows = windowsForApp(windows, appId)
+      const items = dockMenuItems({
+        windows: appWindows,
+        show: (win) => (win.minimized ? windowManager.restore(win.id) : windowManager.focus(win.id)),
+        newWindow: () => windowManager.openApp(appId),
+        quit: () => appWindows.forEach((win) => windowManager.close(win.id)),
+      })
+      const { point, anchorBottom } = dockMenuPlacement(buttonRect, dockPos)
+      openMenu(items, point, { shell: true, anchorBottom })
+    },
+    [windows, dockPos, windowManager, openMenu],
+  )
+}
+
+/** Show Apps opens the overview's app grid, or closes it when the grid is already up. */
+const ShowAppsButton = () => {
+  const { overview } = useShellState()
+  const shellDispatch = useShellDispatch()
+  const showing = overview?.mode === OVERVIEW_MODES.APPS
+  return (
+    <button
+      type="button"
+      className={showing ? 'dk focused' : 'dk'}
+      data-name="Show Apps"
+      aria-label="Show Apps"
+      aria-pressed={showing}
+      onClick={() => shellDispatch(showing ? { type: 'closeOverview' } : { type: 'openOverview', mode: OVERVIEW_MODES.APPS })}
+    >
+      <AppIcon name="apps" />
+    </button>
+  )
+}
+
 export const Dock = () => {
   const windows = useWindowsState()
   const { dockPos } = useLayout()
   const windowManager = useWindowManager()
   const shellDispatch = useShellDispatch()
+  const openDockMenu = useDockMenu(windows, dockPos)
   const focusedApp = windows.byId[windows.focusedId]?.appId ?? null
+  // Dock clicks leave the overview first, then act as usual
+  const leaveShell = useCallback(() => {
+    shellDispatch({ type: 'closeTransients' })
+    shellDispatch({ type: 'closeOverview' })
+  }, [shellDispatch])
   const activate = useCallback(
     (appId, from) => {
-      shellDispatch({ type: 'closeTransients' })
+      leaveShell()
       windowManager.activateApp(appId, from)
     },
-    [shellDispatch, windowManager],
+    [leaveShell, windowManager],
   )
   const openTrash = (event) => {
-    shellDispatch({ type: 'closeTransients' })
+    leaveShell()
     windowManager.openApp('files', { path: TRASH, from: rectOfElement(event.currentTarget) })
   }
   return (
@@ -67,6 +119,7 @@ export const Dock = () => {
           count={windowsForApp(windows, appId).length}
           focused={focusedApp === appId}
           onActivate={activate}
+          onMenu={openDockMenu}
         />
       ))}
       <div className="grow" />
@@ -74,10 +127,7 @@ export const Dock = () => {
       <button type="button" className="dk" data-name="Trash" aria-label="Trash" onClick={openTrash}>
         <AppIcon name="trash" />
       </button>
-      {/* The app grid arrives with the Activities overview in P4 */}
-      <button type="button" className="dk" data-name="Show Apps" aria-label="Show Apps">
-        <AppIcon name="apps" />
-      </button>
+      <ShowAppsButton />
     </div>
   )
 }
