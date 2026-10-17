@@ -80,3 +80,14 @@
 
 /* Port additions: [hidden] alone loses to .win's display */
 :where(.rafeyos) .win[hidden] { display: none; }
+
+/* Port additions: narrow windows (phones, or a window under 560px) hide a split view's sidebar
+   behind a header toggle; open, it lays over the content. A container query, so it follows the
+   window's width rather than the screen's. */
+:where(.rafeyos) .split { container-type: inline-size; position: relative; }
+:where(.rafeyos) .sbtoggle { display: none; }
+@container (max-width: 560px) {
+  :where(.rafeyos) .sbtoggle { display: inline-flex; }
+  :where(.rafeyos) .split > .side { display: none; }
+  :where(.rafeyos) .split.side-open > .side { display: flex; position: absolute; left: 0; top: 0; bottom: 0; z-index: 6; max-width: 80%; box-shadow: 0 0 24px rgba(0,0,0,.45); }
+}
