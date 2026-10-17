@@ -5,6 +5,7 @@ import { chooseMenuItem, desktopIcon, renderDesktop, rightClick, windowsOf } fro
 import { propertiesRows } from './propertiesRows'
 import { realVfs } from '../../vfs/testVfs'
 import { sizeLabel } from '../../vfs/queries'
+import { mergeDocuments, trashItemPath } from '../../vfs/documents'
 
 afterEach(cleanup)
 
@@ -74,5 +75,12 @@ describe('propertiesRows', () => {
       '/home/visitor/projects',
       '/home/visitor/Desktop',
     ])
+  })
+
+  it('names where a trashed file came from', () => {
+    const merged = mergeDocuments(realVfs, {}, { '~/Desktop/notes.txt': 'hello\n' })
+    const path = trashItemPath('~/Desktop/notes.txt')
+
+    expect(propertiesRows(merged, path).find((row) => row.label === 'Original Location').value).toBe('/home/visitor/Desktop/notes.txt')
   })
 })
