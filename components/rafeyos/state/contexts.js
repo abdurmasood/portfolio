@@ -20,6 +20,9 @@ export const ShellDispatchContext = named('ShellDispatch')
 export const LayoutContext = named('Layout')
 export const WindowManagerContext = named('WindowManager')
 export const DockRegistryContext = named('DockRegistry')
+// Music state ticks every second while playing, so it has its own context; controls are stable
+export const MusicStateContext = named('MusicState')
+export const MusicControlsContext = named('MusicControls')
 
 const useRequired = (context) => {
   const value = useContext(context)
@@ -42,3 +45,7 @@ export const useLayout = () => useRequired(LayoutContext)
 export const useWindowManager = () => useRequired(WindowManagerContext)
 /** @returns {Map<string, HTMLElement>} app id -> dock button, the minimize/open animation anchor */
 export const useDockRegistry = () => useRequired(DockRegistryContext)
+/** @returns {{ playing: boolean, position: number, played: boolean }} */
+export const useMusic = () => useRequired(MusicStateContext)
+/** @returns {{ play, pause, toggle, seek, prev, next }} stable for the desktop's lifetime */
+export const useMusicControls = () => useRequired(MusicControlsContext)
