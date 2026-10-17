@@ -4,8 +4,8 @@ import { Sym } from '../../icons/symbols'
 import { displayName, sizeLabel } from '../../vfs/queries'
 import { emptyState, typeLabel } from './filesView'
 
-/** Click selects (Ctrl/⌘ toggles), double click opens, a tap opens on touch. */
-const useItemHandlers = ({ onSelect, onOpen }) => {
+/** Click selects (Ctrl/⌘ toggles), double click opens, a tap opens on touch, right-click opens its menu. */
+const useItemHandlers = ({ onSelect, onOpen, onMenu }) => {
   const pointerType = useRef('mouse')
   return (path) => ({
     'data-path': path,
@@ -18,15 +18,26 @@ const useItemHandlers = ({ onSelect, onOpen }) => {
       if (pointerType.current === 'touch') onOpen(path)
     },
     onDoubleClick: () => onOpen(path),
+    onContextMenu: (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      onMenu(path, event)
+    },
   })
 }
 
-export const FilesGrid = ({ vfs, items, selection, onSelect, onOpen }) => {
-  const handlersFor = useItemHandlers({ onSelect, onOpen })
+export const FilesGrid = ({ vfs, items, selection, onSelect, onOpen, onMenu }) => {
+  const handlersFor = useItemHandlers({ onSelect, onOpen, onMenu })
   return (
-    <div className="fgrid" role="list">
+    <div className="fgrid" role="listbox" aria-label="Items" aria-multiselectable="true">
       {items.map((path) => (
-        <div key={path} role="listitem" className={selection.includes(path) ? 'fitem sel' : 'fitem'} {...handlersFor(path)}>
+        <div
+          key={path}
+          role="option"
+          aria-selected={selection.includes(path)}
+          className={selection.includes(path) ? 'fitem sel' : 'fitem'}
+          {...handlersFor(path)}
+        >
           <FileIcon vfs={vfs} path={path} />
           <span className="nm">{displayName(vfs, path)}</span>
         </div>
@@ -35,17 +46,23 @@ export const FilesGrid = ({ vfs, items, selection, onSelect, onOpen }) => {
   )
 }
 
-export const FilesList = ({ vfs, items, selection, onSelect, onOpen }) => {
-  const handlersFor = useItemHandlers({ onSelect, onOpen })
+export const FilesList = ({ vfs, items, selection, onSelect, onOpen, onMenu }) => {
+  const handlersFor = useItemHandlers({ onSelect, onOpen, onMenu })
   return (
-    <div className="flist" role="list">
-      <div className="flh">
+    <div className="flist" role="listbox" aria-label="Items" aria-multiselectable="true">
+      <div className="flh" aria-hidden="true">
         <span>Name</span>
         <span>Size</span>
         <span>Type</span>
       </div>
       {items.map((path) => (
-        <div key={path} role="listitem" className={selection.includes(path) ? 'flr sel' : 'flr'} {...handlersFor(path)}>
+        <div
+          key={path}
+          role="option"
+          aria-selected={selection.includes(path)}
+          className={selection.includes(path) ? 'flr sel' : 'flr'}
+          {...handlersFor(path)}
+        >
           <span className="n">
             <FileIcon vfs={vfs} path={path} />
             <span>{displayName(vfs, path)}</span>

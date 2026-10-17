@@ -45,7 +45,10 @@ const select = (state, { path, mode = 'single' }) => {
 
 const setSearch = (state, { query }) => ({ ...state, search: query, selection: [] })
 
-const HANDLERS = Object.freeze({ go, back, forward, setView, select, setSearch })
+/** Select All: every item the window currently lists. */
+const selectAll = (state, { paths }) => ({ ...state, selection: [...paths] })
+
+const HANDLERS = Object.freeze({ go, back, forward, setView, select, setSearch, selectAll })
 
 export const filesReducer = (state, action) => {
   const handler = HANDLERS[action.type]

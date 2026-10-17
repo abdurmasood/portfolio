@@ -52,7 +52,8 @@ const SearchBar = ({ query, onSearch }) => {
 }
 
 /** Back/forward, pathbar (or search field), search and view toggles, window controls. */
-export const FilesHeader = ({ vfs, state, dispatch }) => {
+/** sidebarToggle: shown first, for narrow windows where the places sidebar is hidden. */
+export const FilesHeader = ({ vfs, state, dispatch, onViewOptions, sidebarToggle = null }) => {
   const searching = state.search !== null
   const go = (path) => dispatch({ type: 'go', path })
   const onSearch = (query) => dispatch({ type: 'setSearch', query })
@@ -61,6 +62,7 @@ export const FilesHeader = ({ vfs, state, dispatch }) => {
     <HeaderBar
       start={
         <>
+          {sidebarToggle}
           <button type="button" className="flat" aria-label="Back" disabled={!state.back.length} onClick={() => dispatch({ type: 'back' })}>
             <Sym name="back" />
           </button>
@@ -83,7 +85,7 @@ export const FilesHeader = ({ vfs, state, dispatch }) => {
           >
             <Sym name={isGrid ? 'list' : 'grid'} />
           </button>
-          <button type="button" className="flat" aria-label="View options" disabled>
+          <button type="button" className="flat" aria-label="View options" onClick={onViewOptions}>
             <Sym name="down" />
           </button>
         </>

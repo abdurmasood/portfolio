@@ -3,13 +3,13 @@ import { Sym } from '../../icons/symbols'
 import { SIDEBAR } from './filesView'
 
 /** Places list; the current location is highlighted unless a search is open. */
-export const FilesSidebar = ({ path, searching, onGo }) => (
+export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (
   <div className="side">
     <HeaderBar
       title="Files"
       controls={false}
       end={
-        <button type="button" className="flat" aria-label="Main Menu" disabled>
+        <button type="button" className="flat nodrag" aria-label="Main Menu" onClick={onMainMenu}>
           <Sym name="menu" />
         </button>
       }
