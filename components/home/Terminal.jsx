@@ -10,7 +10,9 @@ import { loadProjects } from '../../lib/loadProjects';
 import { BlogArticle, BlogPostList } from './BlogOutput';
 import { getPostBySlug, getPublishedPosts } from '../../app/blog/posts';
 import { MusicPlayer, MusicStory } from './MusicOutput';
-import { getFeaturedTrack } from '../../lib/music';
+import { getFeaturedTrack, ARTIST_BLURB } from '../../lib/music';
+import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '../../lib/contact';
+import { HELP_LINES, HELP_HINT } from '../../lib/help';
 import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";
@@ -37,7 +39,7 @@ const musicUsage = () => {
     `  play       play ${escapeHtml(track.title)}`,
     '  journey    open the full visual journey',
     '',
-    `<span class='grey'>Rafey releases music as ${escapeHtml(track.artist)}. He founded a record label and set up a recording studio in East London.</span>`,
+    `<span class='grey'>${escapeHtml(ARTIST_BLURB)}</span>`,
   ].join('\n');
 };
 
@@ -60,18 +62,7 @@ const Terminal = () => {
   // Local, not in the provider: it must never resume after navigating away and back
   const [foregroundId, setForegroundId] = useState(null);
 
-  const commandDescriptions = [
-    "Available commands:",
-    "",
-    "  bio         background &amp; education",
-    "  projects    body of work",
-    "  blog        Rafey's latest thoughts",
-    "  skills      tools he's worked with",
-    "  music       his journey as a producer",
-    "  contact     get in touch",
-    "",
-    "<span class='grey'>Use ↑ for history, tab to autocomplete, 'clear' to reset.</span>",
-  ];
+  const commandDescriptions = [...HELP_LINES, HELP_HINT];
 
   const executableCommands = [
     'bio', 'blog', 'projects', 'projects --3d', 'skills', 'music', 'music story', 'music play', 'music journey', 'help', 'contact', 'cat bio.txt', 'cat projects.txt', 'cat music.txt', 'cat README.txt',
@@ -260,8 +251,8 @@ const Terminal = () => {
 
           case 'contact':
           case 'Contact':
-            output = `email: abdurrafeym@gmail.com
-linkedin: A. Rafey Masood
+            output = `email: ${EMAIL}
+linkedin: ${LINKEDIN_NAME}
 
 Usage: open &lt;contact-option&gt; (e.g. open email)`;
             break;
@@ -269,14 +260,14 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
           case 'open linkedin':
           case 'Open linkedin':
           case 'Open Linkedin':
-            window.open('https://www.linkedin.com/in/arafeymasood/', '_blank');
+            window.open(LINKEDIN_URL, '_blank');
             output = 'Opening LinkedIn profile in a new tab...';
             break;
 
           case 'open email':
           case 'Open email':
           case 'Open Email':
-            window.location.href = `mailto:abdurrafeym@gmail.com?subject=Hi👋&body=Hi Rafey, i'm ___ and I work in ___. Would love to chat!`
+            window.location.href = mailtoHref(DEFAULT_MAIL);
             output = 'Opening email application...';
             break;
 
