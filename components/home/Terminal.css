@@ -188,9 +188,18 @@
 }
 
 .terminal .post-row {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  pointer-events: none;
+  cursor: default;
+}
+
+.terminal .post-tap {
   display: grid;
-  grid-template-columns: 10ch 6ch 1fr;
+  grid-template-columns: 1ch 10ch 6ch minmax(0, 1fr);
   column-gap: 2ch;
+  align-items: baseline;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -200,27 +209,19 @@
   color: inherit;
   font: inherit;
   text-align: left;
-  cursor: pointer;
+  cursor: default;
 }
 
-.terminal .post-row:hover,
-.terminal .post-row:focus,
-.terminal .post-row:focus-visible {
+.terminal .post-tap:hover,
+.terminal .post-tap:focus,
+.terminal .post-tap:focus-visible {
   border-color: transparent;
   outline: none;
 }
 
-.terminal .post-row:hover,
-.terminal .post-row:focus-visible {
-  background: var(--term-fg);
-  color: var(--term-bg);
-}
-
-.terminal .post-row:hover .dim,
-.terminal .post-row:hover .row-title,
-.terminal .post-row:focus-visible .dim,
-.terminal .post-row:focus-visible .row-title {
-  color: inherit;
+.terminal .post-row.is-selected {
+  background: var(--term-selected);
+  color: var(--term-fg);
 }
 
 .terminal .article {
@@ -311,9 +312,14 @@
   }
 
   .terminal .post-row {
-    grid-template-columns: 10ch 1fr;
+    pointer-events: auto;
+  }
+
+  .terminal .post-tap {
+    grid-template-columns: 1ch 10ch minmax(0, 1fr);
     align-items: center;
     min-height: 44px;
+    cursor: pointer;
   }
 
   .terminal .post-row .read {

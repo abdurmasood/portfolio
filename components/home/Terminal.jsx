@@ -10,7 +10,7 @@ import { loadProjects } from '../../lib/loadProjects';
 import { loadRafeyOS } from '../../lib/loadRafeyOS';
 import { forgetDesktop } from '../rafeyos/session/sessionStore';
 import { sessionStorageOrNull } from '../rafeyos/services/browserStorage';
-import { BlogArticle, BlogPostList } from './BlogOutput';
+import { BlogArticle, BlogPicker } from './BlogOutput';
 import { getPostBySlug, getPublishedPosts } from '../../app/blog/posts';
 import { MusicPlayer, MusicStory } from './MusicOutput';
 import { getFeaturedTrack, ARTIST_BLURB } from '../../lib/music';
@@ -63,7 +63,7 @@ const Terminal = () => {
   const [tabPressCount, setTabPressCount] = useState(0);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showLoadingBar, setShowLoadingBar] = useState(false);
-  // The history entry that owns the keyboard (music player, projects picker).
+  // The history entry that owns the keyboard (music player, projects picker, blog picker).
   // Local, not in the provider: it must never resume after navigating away and back
   const [foregroundId, setForegroundId] = useState(null);
 
@@ -148,6 +148,13 @@ const Terminal = () => {
     if (view3d) {
       openProjects3d();
     }
+  };
+
+  const finishBlog = (entryId, { slug }) => {
+    setHistory((prevHistory) => prevHistory.map((entry) => (
+      entry.id === entryId ? { ...entry, slug } : entry
+    )));
+    setForegroundId(null);
   };
 
   const focusInputOnClick = () => {
@@ -243,7 +250,11 @@ const Terminal = () => {
 
         case 'blog':
         case 'Blog':
-          panel = { type: 'posts' };
+          if (getPublishedPosts().length === 0) {
+            output = "<span class='grey'>total 0</span>";
+          } else {
+            panel = { type: 'blog-picker' };
+          }
           break;
 
         case 'cat music.txt':
@@ -308,7 +319,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
     if (panel) {
       const panelEntry = nextEntry(panel);
       entries.push(panelEntry);
-      if (panel.type === 'music-player' || panel.type === 'projects-picker') {
+      if (panel.type === 'music-player' || panel.type === 'projects-picker' || panel.type === 'blog-picker') {
         setForegroundId(panelEntry.id);
       }
     }
@@ -403,8 +414,15 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
         <>
           <div className="terminal-output">
             {history.map((item) => {
-              if (item.type === 'posts') {
-                return <BlogPostList key={item.id} onOpen={(slug) => runCommand(`cat blog/${slug}.md`)} />;
+              if (item.type === 'blog-picker') {
+                return (
+                  <BlogPicker
+                    key={item.id}
+                    active={item.id === foregroundId}
+                    slug={item.slug}
+                    onDone={(result) => finishBlog(item.id, result)}
+                  />
+                );
               }
               if (item.type === 'article') {
                 return <BlogArticle key={item.id} slug={item.slug} />;
@@ -444,7 +462,7 @@ Usage: open &lt;contact-option&gt; (e.g. open email)`;
             })}
           </div>
 
-          {/* A playing track or the projects picker owns the terminal, like a foreground process */}
+          {/* A playing track, the projects picker, or the blog picker owns the terminal */}
           {!foregroundId && (
             <div className="terminal-input">
               <span className="prompt">
