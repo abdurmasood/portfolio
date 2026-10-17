@@ -4,13 +4,18 @@ export const initialShell = Object.freeze({ popup: null, menu: null, dialog: nul
 
 const withoutTransients = (state) => ({ ...state, popup: null, menu: null })
 
-const openPopup = (state, { kind, anchor = null }) => ({ ...withoutTransients(state), popup: { kind, anchor } })
+// Top-bar popups leave the Activities overview, as GNOME's do
+const openPopup = (state, { kind, anchor = null }) => ({ ...withoutTransients(state), popup: { kind, anchor }, overview: null })
 
 /** Top-bar buttons: a second click on the same button closes its popup. */
 const togglePopup = (state, action) =>
   state.popup?.kind === action.kind ? { ...state, popup: null } : openPopup(state, action)
 
-const openMenu = (state, { items, x, y, shell = false }) => ({ ...withoutTransients(state), menu: { items, x, y, shell } })
+/** shell: the dark shell style (dock) rather than the app-themed popover; anchorBottom: y is the menu's bottom edge. */
+const openMenu = (state, { items, x, y, shell = false, anchorBottom = false }) => ({
+  ...withoutTransients(state),
+  menu: { items, x, y, shell, anchorBottom },
+})
 
 const openDialog = (state, { kind }) => ({ ...withoutTransients(state), dialog: { kind } })
 
