@@ -94,7 +94,7 @@ describe('content commands', () => {
     const out = run('music')
 
     expect(out.lines[0].text).toBe(
-      'Usage: music <command>\n\n  story      his journey as a producer\n  play       play Song\n  journey    open the full visual journey\n',
+      'Usage: music <command>\n\n  story      his journey as a producer\n  play       play Song\n',
     )
     expect(out.lines[1]).toEqual({ type: 'dim', text: 'Blurb.' })
   })
@@ -112,16 +112,6 @@ describe('content commands', () => {
 
   it('music story prints the story file', () => {
     expect(texts(run('music story'))).toEqual(['2000  Start\n2030  Album (upcoming)\n'])
-  })
-
-  it('music journey opens /journey externally', () => {
-    const out = run('music journey')
-
-    expect(out.lines).toEqual([
-      { type: 'pre', text: 'Opening the visual journey…' },
-      { type: 'link', text: 'rafey.ai/journey', href: '/journey' },
-    ])
-    expect(out.effects).toEqual([{ type: 'openExternal', href: '/journey' }])
   })
 
   it('contact prints email, linkedin and usage', () => {

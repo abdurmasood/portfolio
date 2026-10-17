@@ -22,7 +22,7 @@ describe('terminal effects', () => {
         { type: 'openApp', app: 'files', path: '~' },
         { type: 'openPath', path: '~/blog' },
         { type: 'openLink', href: 'https://x' },
-        { type: 'openExternal', href: '/journey' },
+        { type: 'openExternal', href: '/projects' },
         { type: 'closeSelf' },
         { type: 'logout' },
       ],
@@ -32,7 +32,7 @@ describe('terminal effects', () => {
     expect(outcome).toEqual({ notes: [], clear: false })
     expect(deps.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~' })
     expect(deps.openLink).toHaveBeenCalledTimes(1)
-    expect(deps.openExternal).toHaveBeenCalledWith('/journey')
+    expect(deps.openExternal).toHaveBeenCalledWith('/projects')
     expect(deps.closeSelf).toHaveBeenCalled()
     expect(deps.logout).toHaveBeenCalled()
   })
