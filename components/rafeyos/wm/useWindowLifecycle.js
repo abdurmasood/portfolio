@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useDockRegistry, useServices, useWindowManager } from '../state/contexts'
 import { WINDOW_PHASES } from '../state/windowsReducer'
 import {
@@ -49,7 +49,7 @@ const useMinimizeAnimation = (elementRef, win, reduced) => {
 const useCloseAnimation = (elementRef, win, reduced) => {
   const windowManager = useWindowManager()
   const { id, phase } = win
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (phase !== WINDOW_PHASES.CLOSING) return undefined
     const animation = animateClose(elementRef.current, { reduced }, () => windowManager.remove(id))
     return () => animation?.cancel?.()

@@ -79,7 +79,7 @@ export const Window = memo(function Window({ win, zIndex, focused, overviewTarge
   return (
     <div
       ref={elementRef}
-      className={classNameFor({ isMax, focused, animating })}
+      className={classNameFor({ isMax, focused: focused || closing, animating })}
       style={{ zIndex, pointerEvents: closing ? 'none' : undefined }}
       role="dialog"
       aria-label={win.title}
