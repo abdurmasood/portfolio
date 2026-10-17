@@ -36,9 +36,9 @@ describe('content commands', () => {
     const out = run('help', '~', realContent)
 
     expect(out.lines[0].text).toBe(
-      'Available commands:\n\n  bio         background & education\n  projects    body of work\n' +
-        "  blog        Rafey's latest thoughts\n  skills      tools he's worked with\n" +
-        '  music       his journey as a producer\n  contact     get in touch\n',
+      "Available commands:\n\n  bio         biography\n  skills      toolkit\n" +
+        "  projects    body of work\n  blog        thoughts\n" +
+        '  music       production\n  contact     get in touch\n',
     )
     expect(out.lines[1]).toEqual({ type: 'dim', text: "Use ↑ for history, tab to autocomplete, 'clear' to reset." })
   })
