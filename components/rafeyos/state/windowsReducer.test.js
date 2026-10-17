@@ -109,7 +109,7 @@ describe('focus and z-order', () => {
   it('ignores unknown ids and unknown actions', () => {
     const state = reduce(initialWindows, openTerminal)
 
-    ;['focus', 'minimize', 'restore', 'requestClose', 'remove', 'snap', 'unsnap', 'commitRect', 'setTitle'].forEach((type) => {
+    ;['focus', 'minimize', 'restore', 'requestClose', 'remove', 'snap', 'unsnap', 'commitRect', 'setTitle', 'setArg'].forEach((type) => {
       expect(windowsReducer(state, { type, id: 99, area, mode: 'max', rect: area, title: 'x' })).toBe(state)
     })
     expect(windowsReducer(state, { type: 'nope' })).toBe(state)
@@ -228,6 +228,17 @@ describe('commitRect and setTitle', () => {
     const state = reduce(initialWindows, openTerminal, { type: 'setTitle', id: 1, title: 'visitor@rafey: ~/Music' })
 
     expect(state.byId[1].title).toBe('visitor@rafey: ~/Music')
+  })
+
+  it('setArg retargets a window and refuses a file another window has open', () => {
+    const moved = reduce(initialWindows, openEditor(''), { type: 'setArg', id: 1, arg: '~/Documents/notes.txt' })
+
+    expect(moved.byId[1]).toMatchObject({ arg: '~/Documents/notes.txt', key: 'editor:~/Documents/notes.txt' })
+
+    const blocked = reduce(moved, openEditor(''), { type: 'setArg', id: 2, arg: '~/Documents/notes.txt' })
+
+    expect(blocked.byId[2].arg).toBe('')
+    expect(blocked.byId[2].key).toBe('editor:')
   })
 })
 

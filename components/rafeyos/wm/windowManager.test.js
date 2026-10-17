@@ -3,6 +3,7 @@ import { createWindowManager } from './windowManager'
 import { initialWindows, windowsReducer } from '../state/windowsReducer'
 import { SNAP_MODES } from './geometry'
 import { realVfs } from '../vfs/testVfs'
+import { mergeDocuments } from '../vfs/documents'
 
 const layout = { area: { x: 54, y: 28, w: 970, h: 740 }, compact: false }
 
@@ -12,7 +13,7 @@ const setup = () => {
   const dispatch = vi.fn((action) => {
     state = windowsReducer(state, action)
   })
-  const wm = createWindowManager({ dispatch, getState: () => state, getLayout: () => layout, vfs: realVfs })
+  const wm = createWindowManager({ dispatch, getState: () => state, getLayout: () => layout, getVfs: () => realVfs })
   return { wm, dispatch, state: () => state }
 }
 
@@ -55,6 +56,24 @@ describe('window manager', () => {
 
     const opened = Object.values(state().byId).map((win) => [win.appId, win.arg])
     expect(opened).toEqual([['files', '~/projects'], ['editor', '~/bio.txt'], ['mail', ''], ['music', '']])
+  })
+
+  it('opens a path from the filesystem as it is now', () => {
+    let vfs = realVfs
+    let state = initialWindows
+    const wm = createWindowManager({
+      dispatch: (action) => {
+        state = windowsReducer(state, action)
+      },
+      getState: () => state,
+      getLayout: () => layout,
+      getVfs: () => vfs,
+    })
+
+    vfs = mergeDocuments(realVfs, { 'notes.txt': 'hello\n' })
+
+    expect(wm.openPath('~/Documents/notes.txt')).toBe(true)
+    expect(state.byId[1].arg).toBe('~/Documents/notes.txt')
   })
 
   it('leaves web links, missing paths and unbuilt apps to the caller', () => {

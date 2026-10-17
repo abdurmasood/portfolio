@@ -111,6 +111,16 @@ const commitRect = (state, { id, rect }) =>
 
 const setTitle = (state, { id, title }) => (state.byId[id] ? patch(state, id, { title }) : state)
 
+/** Points a window at a different file. Refuses when another live window already has it. */
+const setArg = (state, { id, arg }) => {
+  const win = state.byId[id]
+  if (!win) return state
+  const key = `${win.appId}:${arg ?? ''}`
+  if (win.key === key) return state
+  if (findLiveByKey(state, key)) return state
+  return patch(state, id, { arg: arg ?? '', key })
+}
+
 const relaidOut = (win, area, compact) => {
   if (win.mode !== SNAP_MODES.NORMAL) return { ...win, rect: snapRect(area, win.mode) }
   const rect = clampRect(win.rect, area)
@@ -138,6 +148,7 @@ const HANDLERS = Object.freeze({
   unsnap,
   commitRect,
   setTitle,
+  setArg,
   relayout,
 })
 
