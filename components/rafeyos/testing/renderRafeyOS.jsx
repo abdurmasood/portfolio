@@ -80,10 +80,12 @@ export const rightClick = (element, point = { clientX: 200, clientY: 200 }) => f
 
 export const openMenu = () => screen.getByRole('menu')
 
-/** The open menu's entries (separators and headings aside), as their labels. */
-export const menuLabels = () => within(openMenu()).getAllByRole('menuitem').map((entry) => entry.textContent)
+/** The open menu's entries (separators and headings aside), as their labels. Choice items count too. */
+export const menuLabels = () =>
+  [...openMenu().querySelectorAll('[role="menuitem"], [role="menuitemradio"]')].map((entry) => entry.textContent)
 
-export const menuEntry = (name) => within(openMenu()).getByRole('menuitem', { name })
+export const menuEntry = (name) =>
+  within(openMenu()).queryByRole('menuitem', { name }) ?? within(openMenu()).getByRole('menuitemradio', { name })
 
 export const chooseMenuItem = (name) => fireEvent.click(menuEntry(name))
 

@@ -8,6 +8,10 @@ export const menuItem = (label, action = null) =>
 
 export const disabledItem = (label) => menuItem(label, null)
 
+/** One of a set of options, GTK dropdown style: an optional icon, and a check on the current one. */
+export const choiceItem = ({ label, icon = null, checked, action }) =>
+  Object.freeze({ kind: MENU_ITEM_KINDS.ITEM, label, icon, checked: Boolean(checked), action, disabled: false })
+
 export const SEPARATOR = Object.freeze({ kind: MENU_ITEM_KINDS.SEPARATOR })
 
 export const menuHeading = (label) => Object.freeze({ kind: MENU_ITEM_KINDS.HEADING, label })

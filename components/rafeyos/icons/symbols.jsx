@@ -41,6 +41,7 @@ const SYMBOL_PATHS = Object.freeze({
   dock: <><rect x="1.75" y="2.5" width="12.5" height="11" rx="1.5" /><path d="M5 2.5v11" /></>,
   info: <><circle cx="8" cy="8" r="6.25" /><path d="M8 7.5V11M8 5h.01" /></>,
   chev: <path d="M6 3l5 5-5 5" />,
+  check: <path d="M3.5 8.5l3 3 6-7" />,
   doc: <><path d="M4 1.75h5.5l3 3v9.5H4z" /><path d="M9.5 1.75v3h3" /></>,
   link: <path d="M9 3h4v4M13 3L7.5 8.5M11.5 9.5v3.25h-8.75V4h3.25" />,
   send: <path d="M2 8l12-5.5L9.5 14l-2-4.5z" />,

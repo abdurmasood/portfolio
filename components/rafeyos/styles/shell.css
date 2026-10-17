@@ -56,7 +56,14 @@
 :where(.rafeyos) .pop .mi:hover:not(:disabled) { background: var(--btn); }
 :where(.rafeyos) .shm .mi:hover:not(:disabled) { background: rgba(255,255,255,.1); }
 :where(.rafeyos) .mi:disabled { opacity: .4; }
+/* Keyboard focus in a menu is a highlight, as in GTK, not the accent ring */
+:where(.rafeyos) .pop .mi:focus-visible { outline: none; background: var(--btn); }
+:where(.rafeyos) .shm .mi:focus-visible { outline: none; background: rgba(255,255,255,.1); }
 :where(.rafeyos) .mi .k { opacity: .55; }
+/* Choice items: icon, label, then the check on the current one */
+:where(.rafeyos) .mi:has(.mic) { justify-content: flex-start; gap: 10px; }
+:where(.rafeyos) .mi:has(.mic) > span { flex: 1; margin-right: 14px; }
+:where(.rafeyos) .mi .mic, :where(.rafeyos) .mi .chk { width: 16px; height: 16px; flex: none; }
 :where(.rafeyos) .msep { height: 1px; margin: 6px 4px; }
 :where(.rafeyos) .pop .msep { background: var(--line); } :where(.rafeyos) .shm .msep { background: rgba(255,255,255,.1); }
 :where(.rafeyos) .mhead { padding: 5px 10px 3px; font-size: 11.5px; opacity: .6; }
