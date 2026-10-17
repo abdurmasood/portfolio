@@ -166,6 +166,16 @@
 :where(.rafeyos) .dlg h3 { margin: 0; font-size: 17px; }
 :where(.rafeyos) .dlg p { margin: 0 0 10px; opacity: .8; }
 :where(.rafeyos) .dlg .acts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+:where(.rafeyos) .dlg input { all: unset; box-sizing: border-box; width: 100%; height: 36px; padding: 0 12px; border-radius: 8px; background: var(--field); color: var(--fg); font-size: 13px; text-align: left; cursor: text; user-select: text; -webkit-user-select: text; }
+/* The save dialog's folder dropdown: the text field's look, opening a .pop menu */
+:where(.rafeyos) .dlg .dd { all: unset; box-sizing: border-box; width: 100%; height: 36px; padding: 0 10px 0 12px; border-radius: 8px; background: var(--field); color: var(--fg); display: flex; align-items: center; gap: 10px; font-size: 13px; }
+:where(.rafeyos) .dlg .dd svg { width: 16px; height: 16px; flex: none; }
+:where(.rafeyos) .dlg .dd .ddv { flex: 1; }
+:where(.rafeyos) .dlg .dd .ddc { color: var(--fg2); }
+/* Rings inside the field: the global outline sat 1px outside and read as a second box */
+:where(.rafeyos) .dlg input:focus, :where(.rafeyos) .dlg .dd:focus-visible { outline: none; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); }
+:where(.rafeyos) .dlg .where { display: grid; gap: 6px; text-align: left; font-size: 12.5px; }
+:where(.rafeyos) .dlg .err { margin: 0; font-size: 12.5px; color: #c01c28; }
 :where(.rafeyos) .dlg.shell .btn { background: var(--shell2); color: #fff; }
 :where(.rafeyos) .dlg.shell .btn:hover { background: #4b4b4b; }
 :where(.rafeyos) .dlg .btn.sugg { background: var(--accent); color: #fff; }
