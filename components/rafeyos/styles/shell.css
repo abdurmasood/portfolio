@@ -167,3 +167,17 @@
 :where(.rafeyos) .night { position: absolute; inset: 0; pointer-events: none; z-index: 2000; background: rgba(255,140,40,.16); mix-blend-mode: multiply; opacity: 0; transition: opacity .6s; }
 :where(.rafeyos) .night.on { opacity: 1; }
 
+
+/* Port additions: keyboard focus on the icon grids rings the selected icon, not the whole layer */
+:where(.rafeyos) .dicons:focus-visible { outline: none; }
+:where(.rafeyos) .dicons:focus-visible .dicon.sel { outline: 2px solid var(--accent); outline-offset: -2px; }
+:where(.rafeyos) .fbody:focus-visible { outline-offset: -2px; }
+
+/* Port additions: compact (viewport under 760px, the JS breakpoint): popovers stay inside the screen */
+.rafeyos.compact .qs { right: 8px; max-width: calc(100vw - 16px); }
+.rafeyos.compact .pop, .rafeyos.compact .shm { max-width: calc(100vw - 16px); }
+.rafeyos.compact .mi span { overflow: hidden; text-overflow: ellipsis; }
+.rafeyos.compact .cal { grid-template-columns: 1fr; max-height: calc(100% - 41px); overflow: auto; }
+.rafeyos.compact .cal-r { order: -1; }
+.rafeyos.compact .cal-l { min-height: 0; }
+.rafeyos.compact .cal-empty { padding: 18px 0; }

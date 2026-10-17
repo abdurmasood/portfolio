@@ -44,3 +44,9 @@
 
 
 @media (prefers-reduced-motion: reduce) { .rafeyos *, .rafeyos *::before, .rafeyos *::after { animation: none !important; transition: none !important; } }
+
+/* Port additions: touch. No page pinch-zoom or scroll chaining inside the OS; lists still scroll.
+   :has() scopes the page-level rule to while rafeyOS is mounted. */
+.rafeyos { touch-action: pan-x pan-y; overscroll-behavior: none; }
+.rafeyos .scroll, .rafeyos .slist, .rafeyos .term, .rafeyos .appgrid, .rafeyos .cal { overscroll-behavior: contain; }
+html:has(.rafeyos), body:has(.rafeyos) { overscroll-behavior: none; }
