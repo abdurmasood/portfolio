@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, waitFor, within } from '@testing-library/react'
-import { openTerminal, renderDesktop, typeCommand, windowsOf } from '../../testing/renderRafeyOS'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '../../testing/renderRafeyOS'
 
 afterEach(cleanup)
 
@@ -102,29 +102,62 @@ describe('Terminal app', () => {
     expect(log(win).children).toHaveLength(0)
   })
 
-  it('opens folders in Files and notes the apps that are not built yet', () => {
+  it('opens folders in Files and the 3D view in Projects', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
 
     typeCommand(input, 'xdg-open projects')
     expect(windowsOf(container, 'files')).toHaveLength(1)
 
-    typeCommand(input, 'xdg-open bio.txt')
-    typeCommand(input, 'music play')
-    typeCommand(input, 'open email')
-    const notes = [...log(win).querySelectorAll('.dm')].map((node) => node.textContent)
-    expect(notes).toEqual(["Text Editor isn't available yet", "Music isn't available yet", "Mail isn't available yet"])
+    typeCommand(input, 'projects --3d')
+    expect(windowsOf(container, 'projects')).toHaveLength(1)
+    expect(log(win).querySelectorAll('.dm')).toHaveLength(0)
   })
 
-  it('opens links through the injected browser service', () => {
+  it('still opens project files in the Text Editor', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'xdg-open projects/leaf-line.txt')
+
+    expect(windowsOf(container, 'editor')).toHaveLength(1)
+    expect(windowsOf(container, 'projects')).toHaveLength(0)
+  })
+
+  it('plays music without opening a window', async () => {
+    const { container, services } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'music play')
+    await settle()
+
+    expect(log(win).textContent).toContain('▶ playing   Storms Ahead · Ramé Sivano')
+    expect(services.createAudio.last().play).toHaveBeenCalledTimes(1)
+    expect(windowsOf(container, 'music')).toHaveLength(0)
+    expect(screen.getByRole('status').textContent).toBe('Storms AheadRamé Sivano')
+  })
+
+  it('opens text files in the Text Editor and email in Mail', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'xdg-open bio.txt')
+    typeCommand(input, 'open email')
+
+    expect(windowsOf(container, 'editor')[0].getAttribute('aria-label')).toBe('bio.txt')
+    expect(windowsOf(container, 'mail')).toHaveLength(1)
+  })
+
+  it('asks before opening LinkedIn, and opens the journey through the browser service', () => {
     const { container, services } = renderDesktop()
     const { input } = openTerminal(container)
 
     typeCommand(input, 'open linkedin')
-    typeCommand(input, 'music journey')
+    expect(screen.getByRole('dialog', { name: 'Open Link' })).toBeTruthy()
 
-    expect(services.openExternal).toHaveBeenNthCalledWith(1, 'https://www.linkedin.com/in/arafeymasood/')
-    expect(services.openExternal).toHaveBeenNthCalledWith(2, '/journey')
+    typeCommand(input, 'music journey')
+    expect(services.openExternal).toHaveBeenCalledTimes(1)
+    expect(services.openExternal).toHaveBeenCalledWith('/journey')
   })
 
   it('opens another terminal in the same folder from the header', () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, renderDesktop, windowsOf } from '../../testing/renderRafeyOS'
+import { clickDock, renderDesktop, settle, windowsOf } from '../../testing/renderRafeyOS'
 
 afterEach(cleanup)
 
@@ -77,12 +77,26 @@ describe('Files app', () => {
     expect(currentLocation(win)).toBe('Home')
   })
 
-  it("shows a banner instead of opening files whose app isn't built yet", () => {
-    const { win } = openFiles()
+  it('opens an audio file in Music and starts playing it', async () => {
+    const { container, services, win } = openFiles()
+    fireEvent.doubleClick(item(win, '~/Music'))
+
+    fireEvent.doubleClick(item(win, '~/Music/storms-ahead.mp3'))
+    await settle()
+
+    const [music] = windowsOf(container, 'music')
+    expect(services.createAudio).toHaveBeenCalledWith('/background-music.mp3')
+    expect(services.createAudio.last().play).toHaveBeenCalledTimes(1)
+    expect(within(music).getByRole('button', { name: 'Pause' })).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toBe('Storms AheadRamé Sivano')
+  })
+
+  it('opens text files in the Text Editor', () => {
+    const { container, win } = openFiles()
 
     fireEvent.doubleClick(item(win, '~/README.txt'))
 
-    expect(screen.getByRole('status').textContent).toContain("Text Editor isn't available yet.")
+    expect(windowsOf(container, 'editor')[0].getAttribute('aria-label')).toBe('README.txt')
   })
 
   it('switches to the list view with sizes and types', () => {

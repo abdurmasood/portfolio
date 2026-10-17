@@ -62,14 +62,13 @@ describe('desktop', () => {
     expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
   })
 
-  it("explains with a banner that text files can't open yet", () => {
+  it('opens the bio link in the Text Editor at its target', () => {
     const { container } = renderDesktop()
 
     fireEvent.doubleClick(icon(container, '~/Desktop/bio.txt'))
 
-    const banner = screen.getByRole('status')
-    expect(banner.textContent).toContain('Can’t open “bio.txt”'.replace('’', "'"))
-    expect(banner.textContent).toContain("Text Editor isn't available yet.")
+    const [editor] = windowsOf(container, 'editor')
+    expect(editor.getAttribute('aria-label')).toBe('bio.txt')
     expect(windowsOf(container, 'files')).toHaveLength(0)
   })
 

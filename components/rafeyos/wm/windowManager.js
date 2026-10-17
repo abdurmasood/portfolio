@@ -1,13 +1,16 @@
 // Window-manager commands on top of windowsReducer. Built once per desktop; it reads the latest
 // state and layout through getters, so the object (and every callback on it) stays stable.
 import { getApp } from '../apps/registry'
-import { isImplemented } from '../apps/availability'
+import { handlerFor, isImplemented } from '../apps/availability'
 import { SNAP_MODES } from './geometry'
 import { windowsForApp } from '../state/selectors'
 import { WINDOW_PHASES } from '../state/windowsReducer'
 import { realPath } from '../vfs/paths'
 import { NODE_TYPES } from '../vfs/buildVfs'
 import { createSnapPreviewStore } from './snapPreviewStore'
+
+// File types whose app opens the same window whatever the file
+const PATHLESS_TYPES = new Set([NODE_TYPES.MAILTO, NODE_TYPES.AUDIO])
 
 const existingWindow = (state, appId, arg) =>
   Object.values(state.byId).find((win) => win.key === `${appId}:${arg}` && win.phase !== WINDOW_PHASES.CLOSING)
@@ -28,22 +31,29 @@ export const createWindowManager = ({ dispatch, getState, getLayout, vfs }) => {
   const openOrigins = new Map()
   const commands = windowCommands(dispatch)
 
-  /** @returns {boolean} false when the app has no UI yet */
-  const openApp = (appId, { path = '', from = null } = {}) => {
+  /**
+   * @param {{ path?: string, from?: object, init?: object }} options - init: one-off launch options for the app
+   * @returns {boolean} false when the app has no UI yet
+   */
+  const openApp = (appId, { path = '', from = null, init = null } = {}) => {
     if (!isImplemented(appId)) return false
     const app = getApp(appId)
+    const arg = path || app.defaultPath
     const state = getState()
-    if (from && (app.multi || !existingWindow(state, appId, path))) openOrigins.set(state.nextId, from)
+    if (from && (app.multi || !existingWindow(state, appId, arg))) openOrigins.set(state.nextId, from)
     const { area, compact } = getLayout()
-    dispatch({ type: 'open', appId, multi: app.multi, arg: path, size: app.size, area, compact, title: app.name })
+    dispatch({ type: 'open', appId, multi: app.multi, arg, init, size: app.size, area, compact, title: app.name })
     return true
   }
 
-  /** Folders open in Files; other files need apps that aren't built yet, so this returns false. */
+  /** Opens a file in its default app; false for web links and apps that aren't built yet. */
   const openPath = (path, { from = null } = {}) => {
     const target = realPath(vfs, path)
-    if (vfs[target]?.type !== NODE_TYPES.DIR) return false
-    return openApp('files', { path: target, from })
+    const node = vfs[target]
+    const appId = node ? handlerFor(node) : null
+    if (!appId) return false
+    // Mail composes a fresh message rather than opening the .desktop file; Music is one library window
+    return openApp(appId, { path: PATHLESS_TYPES.has(node.type) ? '' : target, from })
   }
 
   const snap = (id, mode) => dispatch({ type: 'snap', id, mode, area: getLayout().area })

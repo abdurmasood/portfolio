@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useServices, useSessionDispatch, useVfs, useWindowManager } from '../../state/contexts'
+import { useMusicControls, useServices, useSessionDispatch, useVfs, useWindowManager } from '../../state/contexts'
 import { exec } from '../../terminal/exec'
 import { prompt } from '../../terminal/lines'
 import { SESSION_EVENTS } from '../../session/sessionMachine'
 import { isDir } from '../../vfs/queries'
 import { HOME } from '../../vfs/buildVfs'
 import { applyTerminalEffects } from './terminalEffects'
+import { useOpenLinkDialog } from '../../shell/OpenLinkDialog'
 
 // Lets "Returning to the rafey.ai terminal…" show before the session ends (as in the mockup)
 export const LOGOUT_DELAY_MS = 300
@@ -42,12 +43,14 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   const windowManager = useWindowManager()
   const { openExternal } = useServices()
   const logout = useDelayedLogout()
+  const openLink = useOpenLinkDialog()
+  const { play } = useMusicControls()
   const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : HOME))
   const cwdRef = useRef(cwd)
   const log = useLog()
   const handlers = useMemo(
-    () => ({ vfs, windowManager, openExternal, logout, closeSelf: () => windowManager.close(windowId) }),
-    [vfs, windowManager, openExternal, logout, windowId],
+    () => ({ vfs, windowManager, openExternal, openLink, play, logout, closeSelf: () => windowManager.close(windowId) }),
+    [vfs, windowManager, openExternal, openLink, play, logout, windowId],
   )
   const { append } = log
   const run = useCallback((raw) => {

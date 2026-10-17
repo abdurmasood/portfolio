@@ -30,7 +30,7 @@ describe('window manager', () => {
   it('refuses apps without a UI yet', () => {
     const { wm, dispatch } = setup()
 
-    expect(wm.openApp('editor', { path: '~/bio.txt' })).toBe(false)
+    expect(wm.openApp('nope')).toBe(false)
     expect(dispatch).not.toHaveBeenCalled()
   })
 
@@ -45,13 +45,41 @@ describe('window manager', () => {
     expect(wm.openOrigin(1)).toBeNull()
   })
 
-  it('opens folders (through links) in Files but not other files', () => {
+  it('opens each file in its app, following links', () => {
     const { wm, state } = setup()
 
     expect(wm.openPath('~/Desktop/projects')).toBe(true)
-    expect(wm.openPath('~/bio.txt')).toBe(false)
+    expect(wm.openPath('~/Desktop/bio.txt')).toBe(true)
+    expect(wm.openPath('~/contact/email.desktop')).toBe(true)
+    expect(wm.openPath('~/Music/storms-ahead.mp3')).toBe(true)
 
-    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['~/projects'])
+    const opened = Object.values(state().byId).map((win) => [win.appId, win.arg])
+    expect(opened).toEqual([['files', '~/projects'], ['editor', '~/bio.txt'], ['mail', ''], ['music', '']])
+  })
+
+  it('leaves web links, missing paths and unbuilt apps to the caller', () => {
+    const { wm, dispatch } = setup()
+
+    expect(wm.openPath('~/contact/linkedin.desktop')).toBe(false)
+    expect(wm.openPath('~/nope')).toBe(false)
+    expect(dispatch).not.toHaveBeenCalled()
+  })
+
+  it('opens single-instance file apps on their default document, once', () => {
+    const { wm, state } = setup()
+
+    wm.openApp('editor')
+    wm.openApp('editor', { path: '~/README.txt' })
+
+    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['~/README.txt'])
+  })
+
+  it('passes launch options to the new window', () => {
+    const { wm, state } = setup()
+
+    wm.openApp('files', { path: '~', init: { select: '~/bio.txt' } })
+
+    expect(state().byId[1].init).toEqual({ select: '~/bio.txt' })
   })
 
   it('toggles maximize and back', () => {

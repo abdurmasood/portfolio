@@ -6,6 +6,8 @@ const handlers = (overrides = {}) => ({
   vfs: realVfs,
   windowManager: { openApp: vi.fn(() => true), openPath: vi.fn(() => true) },
   openExternal: vi.fn(),
+  openLink: vi.fn(),
+  play: vi.fn(),
   closeSelf: vi.fn(),
   logout: vi.fn(),
   ...overrides,
@@ -20,6 +22,7 @@ describe('terminal effects', () => {
         { type: 'openApp', app: 'files', path: '~' },
         { type: 'openPath', path: '~/blog' },
         { type: 'openLink', href: 'https://x' },
+        { type: 'openExternal', href: '/journey' },
         { type: 'closeSelf' },
         { type: 'logout' },
       ],
@@ -28,7 +31,8 @@ describe('terminal effects', () => {
 
     expect(outcome).toEqual({ notes: [], clear: false })
     expect(deps.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~' })
-    expect(deps.openExternal).toHaveBeenCalledWith('https://x')
+    expect(deps.openLink).toHaveBeenCalledTimes(1)
+    expect(deps.openExternal).toHaveBeenCalledWith('/journey')
     expect(deps.closeSelf).toHaveBeenCalled()
     expect(deps.logout).toHaveBeenCalled()
   })
@@ -37,15 +41,34 @@ describe('terminal effects', () => {
     const deps = handlers({ windowManager: { openApp: () => false, openPath: () => false } })
 
     const { notes } = applyTerminalEffects(
-      [{ type: 'openApp', app: 'mail' }, { type: 'openPath', path: '~/Music/story.txt' }, { type: 'play' }],
+      [{ type: 'openApp', app: 'projects' }, { type: 'openPath', path: '~/Desktop/bio.txt' }],
       deps,
     )
 
-    expect(notes.map((line) => line.text)).toEqual([
-      "Mail isn't available yet",
-      "Text Editor isn't available yet",
-      "Music isn't available yet",
-    ])
+    expect(notes.map((line) => line.text)).toEqual(["Projects isn't available yet", "Text Editor isn't available yet"])
+  })
+
+  it('plays without a window, and plays an opened audio file as Music opens', () => {
+    const deps = handlers()
+
+    const quiet = applyTerminalEffects([{ type: 'play' }], deps)
+    expect(quiet.notes).toEqual([])
+    expect(deps.play).toHaveBeenCalledTimes(1)
+    expect(deps.windowManager.openApp).not.toHaveBeenCalled()
+
+    applyTerminalEffects([{ type: 'openPath', path: '~/Music/storms-ahead.mp3' }], deps)
+    expect(deps.play).toHaveBeenCalledTimes(2)
+    expect(deps.windowManager.openPath).toHaveBeenCalledWith('~/Music/storms-ahead.mp3')
+  })
+
+  it('asks before opening a web link file', () => {
+    const deps = handlers()
+
+    const { notes } = applyTerminalEffects([{ type: 'openPath', path: '~/contact/linkedin.desktop' }], deps)
+
+    expect(notes).toEqual([])
+    expect(deps.openLink).toHaveBeenCalledTimes(1)
+    expect(deps.windowManager.openPath).not.toHaveBeenCalled()
   })
 
   it('flags clear', () => {

@@ -1,12 +1,13 @@
 // Runs exec()'s effect descriptors. Pure apart from the injected handlers, so it's testable alone.
 import { EFFECTS } from '../../terminal/exec'
 import { dim } from '../../terminal/lines'
-import { handlerFor, unavailableNote } from '../availability'
+import { handlerFor, isAudio, isWebLink, unavailableNote } from '../availability'
 import { realPath } from '../../vfs/paths'
 
 /**
  * @param {object[]} effects - from exec()
- * @param {{ vfs, windowManager, openExternal, closeSelf, logout }} handlers
+ * @param {{ vfs, windowManager, openExternal, openLink, play, closeSelf, logout }} handlers - openLink shows the
+ *   Open Link dialog; play starts the track without opening a window
  * @returns {{ notes: object[], clear: boolean }} dim lines to print after the output, and whether to clear first
  */
 export const applyTerminalEffects = (effects, handlers) =>
@@ -19,8 +20,15 @@ export const applyTerminalEffects = (effects, handlers) =>
     { notes: [], clear: false },
   )
 
-const openPathNote = (path, { vfs, windowManager }) =>
-  windowManager.openPath(path) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
+const openPathNote = (path, handlers) => {
+  const { vfs, windowManager, openLink } = handlers
+  if (isWebLink(vfs, path)) {
+    openLink()
+    return null
+  }
+  if (isAudio(vfs, path)) handlers.play()
+  return windowManager.openPath(path) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
+}
 
 /** @returns {object|null} a dim note line when the effect can't run yet */
 const runEffect = (effect, handlers) => {
@@ -30,11 +38,14 @@ const runEffect = (effect, handlers) => {
     case EFFECTS.OPEN_PATH:
       return openPathNote(effect.path, handlers)
     case EFFECTS.OPEN_LINK:
+      handlers.openLink()
+      return null
     case EFFECTS.OPEN_EXTERNAL:
       handlers.openExternal(effect.href)
       return null
     case EFFECTS.PLAY:
-      return dim(unavailableNote('music'))
+      handlers.play()
+      return null
     case EFFECTS.CLOSE_SELF:
       handlers.closeSelf()
       return null
