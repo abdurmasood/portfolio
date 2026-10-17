@@ -7,7 +7,7 @@ describe('buildVfs', () => {
     const vfs = buildVfs(fixtureContent)
 
     expect(Object.keys(vfs)).toEqual([
-      '~', '~/Desktop', '~/Desktop/bio.txt', '~/Desktop/projects', '~/Music', '~/Music/song.mp3',
+      '~', '~/Desktop', '~/Documents', '~/Desktop/bio.txt', '~/Desktop/projects', '~/Music', '~/Music/song.mp3',
       '~/Music/story.txt', '~/blog', '~/blog/first-post.md', '~/contact', '~/contact/email.desktop',
       '~/contact/linkedin.desktop', '~/projects', '~/projects/alpha-project.txt', '~/projects/beta.txt',
       '~/bio.txt', '~/skills.txt', '~/README.txt', 'trash',

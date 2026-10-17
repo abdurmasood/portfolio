@@ -8,7 +8,7 @@ const vfs = buildVfs(fixtureContent)
 describe('children', () => {
   it('lists folders first, then files, ignoring case', () => {
     expect(children(vfs, '~')).toEqual([
-      '~/blog', '~/contact', '~/Desktop', '~/Music', '~/projects', '~/bio.txt', '~/README.txt', '~/skills.txt',
+      '~/blog', '~/contact', '~/Desktop', '~/Documents', '~/Music', '~/projects', '~/bio.txt', '~/README.txt', '~/skills.txt',
     ])
   })
 

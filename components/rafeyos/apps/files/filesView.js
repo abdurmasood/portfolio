@@ -17,6 +17,7 @@ export const SIDEBAR = Object.freeze([
   { path: STARRED, label: 'Starred', icon: 'star' },
   { path: HOME, label: 'Home', icon: 'home' },
   { path: '~/Desktop', label: 'Desktop', icon: 'desktop' },
+  { path: '~/Documents', label: 'Documents', icon: 'folder' },
   { path: '~/Music', label: 'Music', icon: 'music' },
   null,
   { path: '~/projects', label: 'projects', icon: 'folder' },
