@@ -23,7 +23,7 @@ const SourceRow = ({ source }) => (
 
 export const MusicSidebar = () => (
   <div className="side">
-    <div className="slist" role="navigation" aria-label="Library" style={{ paddingTop: 10 }}>
+    <div className="slist mu-side" role="navigation" aria-label="Library">
       <div className="mhead">Library</div>
       {LIBRARY.map((source) => (
         <SourceRow key={source.label} source={source} />

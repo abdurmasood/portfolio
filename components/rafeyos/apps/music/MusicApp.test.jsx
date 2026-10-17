@@ -34,6 +34,7 @@ describe('Music app', () => {
     expect([...trackRow(win).cells].map((cell) => cell.textContent)).toEqual(['1', 'Storms Ahead', 'Ramé Sivano', '2:38'])
     expect(win.querySelector('.artist')).toBeNull()
     expect(ui.getByRole('button', { name: 'Music' }).className).toBe('srow on')
+    expect(ui.getByRole('navigation', { name: 'Library' }).getAttribute('style')).toBeNull()
     ;['Podcasts', 'Radio', 'My Top Rated', 'Recently Added'].forEach((name) => {
       expect(ui.getByRole('button', { name }).disabled).toBe(true)
     })
