@@ -4,6 +4,7 @@ import { cleanup, fireEvent, screen } from '@testing-library/react'
 import {
   chooseMenuItem,
   desktopIcon,
+  memoryStorage,
   menuEntry,
   menuLabels,
   openMenu,
@@ -11,6 +12,7 @@ import {
   rightClick,
   windowsOf,
 } from '../testing/renderRafeyOS'
+import { createDocumentsStore } from '../vfs/documents'
 
 afterEach(cleanup)
 
@@ -133,5 +135,18 @@ describe('desktop icon menu', () => {
     const [files] = windowsOf(container, 'files')
     expect(files.getAttribute('aria-label')).toBe('Home')
     expect(files.querySelector('.fbody .sel').dataset.path).toBe('~/projects')
+  })
+
+  it('moves a file created on the desktop into Trash', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+    })
+    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+
+    rightClick(desktopIcon(container, '~/Desktop/note.txt'))
+    chooseMenuItem('Move to Trash')
+
+    expect(desktopIcon(container, '~/Desktop/note.txt')).toBeNull()
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/Desktop/note.txt']).toBe('desk\n')
   })
 })

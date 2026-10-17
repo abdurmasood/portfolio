@@ -78,9 +78,11 @@ const SettingsIcon = () => (
   </>
 )
 
-export const TrashIcon = () => (
+/** `full` draws a sheet sticking out of the lid, the way a Mac bin does once it holds a file. */
+export const TrashIcon = ({ full = false }) => (
   <>
     <path d="M12 14h24l-2.2 26a3 3 0 0 1-3 2.7H17.2a3 3 0 0 1-3-2.7z" fill="#bdbdbd" />
+    {full && <path data-paper d="M17 3h9l5 5v8H17z" fill="#f7f7f7" />}
     <rect x="9" y="9" width="30" height="6" rx="2" fill="#9a9a9a" />
     <path d="M20 20v16M24 20v16M28 20v16" stroke="#8a8a8a" strokeWidth="2" strokeLinecap="round" />
   </>
@@ -114,13 +116,13 @@ const APP_ICON_BODIES = Object.freeze({
   apps: ShowAppsIcon,
 })
 
-/** @param {{ name: string, className?: string }} props - an app id, or 'trash' / 'apps' */
-export const AppIcon = ({ name, className }) => {
+/** @param {{ name: string, className?: string, full?: boolean }} props - an app id, or 'trash' / 'apps'. `full` is the Trash bin. */
+export const AppIcon = ({ name, className, full = false }) => {
   const Body = APP_ICON_BODIES[name]
   if (!Body) throw new Error(`Unknown app icon: ${name}`)
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      <Body />
+      <Body full={full} />
     </svg>
   )
 }

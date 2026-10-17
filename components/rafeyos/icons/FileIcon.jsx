@@ -1,5 +1,6 @@
 // File and folder icons from the approved mockup; folders take the accent colour
 import { HOME, TRASH, NODE_TYPES } from '../vfs/buildVfs'
+import { children } from '../vfs/queries'
 import { MailIcon, TrashIcon } from './appIcons'
 
 const FOLDER_TAB = { fill: 'color-mix(in srgb, var(--accent) 62%, #000)' }
@@ -95,7 +96,7 @@ const ICON_64 = '0 0 64 64'
 /** @returns {{ viewBox: string, body: JSX.Element }} */
 const iconFor = (vfs, path) => {
   const node = vfs[path]
-  if (path === TRASH) return { viewBox: '0 0 48 48', body: <TrashIcon /> }
+  if (path === TRASH) return { viewBox: '0 0 48 48', body: <TrashIcon full={children(vfs, TRASH).length > 0} /> }
   if (node.type === NODE_TYPES.DIR) return { viewBox: ICON_64, body: <Folder glyph={FOLDER_GLYPHS[path]} /> }
   if (node.type === NODE_TYPES.AUDIO) return { viewBox: ICON_64, body: <Page><AudioNote /></Page> }
   if (node.type === NODE_TYPES.MAILTO) return { viewBox: '-4 -4 56 56', body: <MailIcon /> }
