@@ -23,6 +23,10 @@ start:
 lint:
     pnpm lint
 
+# Run the tests with coverage
+test:
+    pnpm test
+
 # Delete the Next.js build output
 clean:
     rm -rf .next
