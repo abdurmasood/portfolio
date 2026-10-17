@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import {
-  chooseMenuItem,
   clickDock,
-  menuLabels,
   openPowerMenu,
   renderDesktop,
   settle,
@@ -23,56 +21,54 @@ const openMusic = (overrides) => {
 
 const audioOf = (services) => services.createAudio.last()
 const banner = () => screen.queryByRole('status')
-const trackRow = (win) => win.querySelector('tr.trk')
 
 describe('Music app', () => {
-  it('shows the track and the library', () => {
+  it('shows the one track as a now-playing player, not a library', () => {
     const { win, ui } = openMusic()
 
-    expect(win.querySelector('.mu-meta')).toBeNull()
+    expect(win.querySelector('.np-info').textContent).toBe('Storms AheadRamé Sivano')
+    expect(win.querySelector('.np-art svg')).toBeTruthy()
     expect(ui.getByRole('slider', { name: 'Position' })).toBeTruthy()
-    expect([...trackRow(win).cells].map((cell) => cell.textContent)).toEqual(['1', 'Storms Ahead', 'Ramé Sivano', '2:38'])
-    expect(win.querySelector('.artist')).toBeNull()
-    expect(ui.getByRole('button', { name: 'Music' }).className).toBe('srow on')
-    expect(ui.getByRole('navigation', { name: 'Library' }).getAttribute('style')).toBeNull()
-    ;['Podcasts', 'Radio', 'My Top Rated', 'Recently Added'].forEach((name) => {
-      expect(ui.getByRole('button', { name }).disabled).toBe(true)
-    })
+    expect(win.querySelector('.np-remaining').textContent).toBe('−2:38')
+    expect(win.querySelector('.side')).toBeNull()
+    expect(win.querySelector('table')).toBeNull()
+    expect(win.querySelector('.statusbar')).toBeNull()
   })
 
-  it('centres the scrubber between the transport and the volume and window controls', () => {
+  it('draws the decoded waveform and lights the bars already played', async () => {
     const { win, ui } = openMusic()
-    const header = win.querySelector('.mu-hb')
+    const bars = () => [...win.querySelectorAll('.np-bars i')]
+    await settle()
 
-    expect(header.classList.contains('hb-center')).toBe(true)
-    expect([...header.children].map((child) => child.className)).toEqual(['hb-start', 'mu-now nodrag', 'hb-end'])
-    expect(within(header.querySelector('.hb-start')).getByRole('button', { name: 'Previous' })).toBeTruthy()
-    expect(header.querySelector('.hb-end .wctl')).toBeTruthy()
-    expect(within(header.querySelector('.hb-end')).getByRole('button', { name: 'Volume' })).toBeTruthy()
-    expect(ui.queryByRole('button', { name: 'Menu' })).toBeNull()
+    expect(bars()).toHaveLength(48)
+    // The fake samples rise steadily, so the last bar is the loudest
+    expect(bars().at(-1).style.height).toBe('100%')
+    expect(bars()[0].style.height).toBe('12%')
+
+    fireEvent.change(ui.getByRole('slider', { name: 'Position' }), { target: { value: '79' } })
+    expect(bars().filter((bar) => bar.className === 'on')).toHaveLength(24)
   })
 
-  it('sums the real length and size in the status bar', () => {
-    const { win } = openMusic()
+  it('keeps flat bars when the audio cannot be decoded', async () => {
+    const { win } = openMusic({ loadAudioSamples: () => Promise.reject(new Error('EncodingError')) })
+    await settle()
 
-    expect(win.querySelector('.statusbar').textContent).toBe('1 song, 3 minutes, 5.1 MB')
+    const heights = [...win.querySelectorAll('.np-bars i')].map((bar) => bar.style.height)
+    expect(new Set(heights)).toEqual(new Set(['12%']))
   })
 
-  it('plays on a double-click of the track and marks it with a speaker', async () => {
-    const { win, services } = openMusic()
+  it('plays from the play button and announces the track', async () => {
+    const { win, ui, services } = openMusic()
 
-    fireEvent.click(trackRow(win))
-    expect(trackRow(win).className).toBe('trk sel')
-    fireEvent.doubleClick(trackRow(win))
+    fireEvent.click(ui.getByRole('button', { name: 'Play' }))
     await settle()
 
     expect(audioOf(services).play).toHaveBeenCalledTimes(1)
     expect(within(win).getByRole('button', { name: 'Pause' })).toBeTruthy()
-    expect(trackRow(win).cells[0].querySelector('svg')).toBeTruthy()
     expect(banner().textContent).toBe('Storms AheadRamé Sivano')
   })
 
-  it('pauses, seeks with the slider and stops with Next', async () => {
+  it('pauses, seeks with the waveform and stops with Next', async () => {
     const { win, ui, services } = openMusic()
     fireEvent.click(ui.getByRole('button', { name: 'Play' }))
     await settle()
@@ -80,7 +76,8 @@ describe('Music app', () => {
 
     fireEvent.change(ui.getByRole('slider', { name: 'Position' }), { target: { value: '90' } })
     expect(audio.seek).toHaveBeenLastCalledWith(90)
-    expect(win.querySelector('.mu-prog .t0').textContent).toBe('1:30')
+    expect(win.querySelector('.np-elapsed').textContent).toBe('1:30')
+    expect(win.querySelector('.np-remaining').textContent).toBe('−1:08')
 
     fireEvent.click(ui.getByRole('button', { name: 'Pause' }))
     expect(audio.pause).toHaveBeenCalledTimes(1)
@@ -94,15 +91,33 @@ describe('Music app', () => {
     expect(ui.getByRole('slider', { name: 'Position' }).value).toBe('0')
   })
 
-  it('opens the volume popover, which leads to the Sound page', () => {
-    const { container, ui } = openMusic()
+  it('loops the track with repeat on, without announcing it again', async () => {
+    const { ui, services } = openMusic()
+    const repeat = ui.getByRole('button', { name: 'Repeat' })
+    fireEvent.click(repeat)
+    expect(repeat.getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(ui.getByRole('button', { name: 'Play' }))
+    await settle()
+    const audio = audioOf(services)
 
-    fireEvent.click(ui.getByRole('button', { name: 'Volume' }))
-    expect(screen.getByRole('menu').textContent).toContain('Volume 70%')
-    expect(menuLabels()).toEqual(['Open Sound Settings'])
-    chooseMenuItem('Open Sound Settings')
+    act(() => audio.emitEnded())
+    await settle()
 
-    expect(windowsOf(container, 'settings')[0].getAttribute('aria-label')).toBe('Sound')
+    expect(audio.seek).toHaveBeenLastCalledWith(0)
+    expect(audio.play).toHaveBeenCalledTimes(2)
+    expect(ui.getByRole('button', { name: 'Pause' })).toBeTruthy()
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+  })
+
+  it('sets the shared output volume from its own slider', async () => {
+    const { ui, services } = openMusic()
+    fireEvent.click(ui.getByRole('button', { name: 'Play' }))
+    await settle()
+
+    fireEvent.change(ui.getByRole('slider', { name: 'Player volume' }), { target: { value: '30' } })
+
+    expect(audioOf(services).setVolume).toHaveBeenLastCalledWith(30)
+    expect(ui.getByRole('slider', { name: 'Player volume' }).value).toBe('30')
   })
 
   it('keeps playing when its window closes', async () => {
@@ -141,14 +156,13 @@ describe('Music app', () => {
   })
 
   it('stays paused, silently, when the browser refuses to play', async () => {
-    const { win, ui, services } = openMusic({ createAudio: fakeAudioFactory({ refuse: true }) })
+    const { ui, services } = openMusic({ createAudio: fakeAudioFactory({ refuse: true }) })
 
     fireEvent.click(ui.getByRole('button', { name: 'Play' }))
     await settle()
 
     expect(audioOf(services).play).toHaveBeenCalled()
     expect(ui.getByRole('button', { name: 'Play' })).toBeTruthy()
-    expect(trackRow(win).cells[0].textContent).toBe('1')
     expect(banner()).toBeNull()
   })
 })
