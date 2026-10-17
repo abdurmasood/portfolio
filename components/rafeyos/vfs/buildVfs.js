@@ -60,6 +60,7 @@ const contactNodes = (contact) => [
 const entriesFor = (content) => [
   [HOME, { type: 'dir' }],
   ['~/Desktop', { type: 'dir' }],
+  ['~/Documents', { type: 'dir' }],
   ['~/Desktop/bio.txt', { type: 'symlink', target: '~/bio.txt' }],
   ['~/Desktop/projects', { type: 'symlink', target: '~/projects' }],
   ...musicNodes(content.music),
@@ -73,7 +74,7 @@ const entriesFor = (content) => [
   ]),
   ['~/bio.txt', { type: 'text', text: content.bio }],
   ['~/skills.txt', { type: 'text', text: content.skills }],
-  ['~/README.txt', { type: 'text', text: content.readme, small: true }],
+  ['~/README.txt', { type: 'text', text: content.readme }],
   [TRASH, { type: 'dir', name: 'Trash' }],
 ]
 

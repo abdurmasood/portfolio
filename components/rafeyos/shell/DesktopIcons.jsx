@@ -7,6 +7,7 @@ import { useIconDrag } from './useIconDrag'
 import { pointOfEvent, useMenu } from './useMenu'
 import { pathCommands } from './pathCommands'
 import { fileMenuItems } from './menus'
+import { useTrashActions } from './useTrashActions'
 import { rectOfElement } from '../wm/windowAnimations'
 import { nearestInDirection } from './keyboardNavigation'
 
@@ -48,15 +49,16 @@ const useIconMenu = (onSelect) => {
   const windowManager = useWindowManager()
   const openPath = useOpenPath()
   const openMenu = useMenu()
+  const trashActions = useTrashActions()
   return useCallback(
     (path, event) => {
       event.preventDefault()
       event.stopPropagation()
       onSelect([path])
-      const commands = pathCommands({ vfs, windowManager, openPath }, path)
+      const commands = { ...pathCommands({ vfs, windowManager, openPath }, path), ...trashActions(path) }
       openMenu(fileMenuItems({ commands, isFolder: isDir(vfs, path), onDesktop: true }), pointOfEvent(event))
     },
-    [vfs, windowManager, openPath, openMenu, onSelect],
+    [vfs, windowManager, openPath, openMenu, onSelect, trashActions],
   )
 }
 

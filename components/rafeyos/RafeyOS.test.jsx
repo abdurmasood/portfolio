@@ -14,6 +14,6 @@ describe('RafeyOS entry', () => {
     render(<RafeyOS />)
 
     // jsdom has no matchMedia, so motion counts as allowed and the splash plays
-    expect(screen.getByRole('status', { name: 'Starting rOS' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Starting rafeyOS' })).toBeTruthy()
   })
 })

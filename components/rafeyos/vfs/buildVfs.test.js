@@ -7,7 +7,7 @@ describe('buildVfs', () => {
     const vfs = buildVfs(fixtureContent)
 
     expect(Object.keys(vfs)).toEqual([
-      '~', '~/Desktop', '~/Desktop/bio.txt', '~/Desktop/projects', '~/Music', '~/Music/song.mp3',
+      '~', '~/Desktop', '~/Documents', '~/Desktop/bio.txt', '~/Desktop/projects', '~/Music', '~/Music/song.mp3',
       '~/Music/story.txt', '~/blog', '~/blog/first-post.md', '~/contact', '~/contact/email.desktop',
       '~/contact/linkedin.desktop', '~/projects', '~/projects/alpha-project.txt', '~/projects/beta.txt',
       '~/bio.txt', '~/skills.txt', '~/README.txt', 'trash',
@@ -48,7 +48,9 @@ describe('buildVfs', () => {
     expect(vfs['~/contact/email.desktop']).toMatchObject({ type: 'mailto', display: 'Email Rafey', href: 'mailto:me@example.com' })
     expect(vfs['~/contact/linkedin.desktop']).toMatchObject({ type: 'weblink', display: 'LinkedIn', href: 'https://linkedin.example/me' })
     expect(vfs['~/contact/linkedin.desktop'].text).toContain('URL=https://linkedin.example/me')
-    expect(vfs['~/README.txt']).toMatchObject({ text: 'README\n', small: true })
+    expect(vfs['~/README.txt']).toEqual(expect.objectContaining({ type: 'text', text: 'README\n' }))
+    expect(vfs['~/README.txt'].small).toBeUndefined()
+    expect(vfs['~/Documents']).toMatchObject({ type: 'dir', name: 'Documents' })
   })
 
   it('freezes the map and every node', () => {

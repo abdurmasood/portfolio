@@ -15,5 +15,6 @@ export const propertiesRows = (vfs, path) => {
     { label: 'Type', value: isDir(vfs, path) ? 'Folder' : kindOf(vfs, path) },
     ...(node.type === NODE_TYPES.SYMLINK ? [{ label: 'Link Target', value: absPath(node.target) }] : []),
     { label: 'Parent Folder', value: parent ? absPath(parent) : HOME_PARENT },
+    ...(node.trashedFrom ? [{ label: 'Original Location', value: absPath(node.trashedFrom) }] : []),
   ]
 }

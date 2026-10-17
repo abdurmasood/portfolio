@@ -47,7 +47,7 @@ const renderPlayer = (overrides = {}) => {
   return { controls: () => latest.controls, music: () => latest.music, createAudio: services.createAudio }
 }
 
-const elapsed = (win) => win.querySelector('.mu-prog .t0').textContent
+const elapsed = (win) => win.querySelector('.np-elapsed').textContent
 const openQuickSettings = () => fireEvent.click(screen.getByRole('button', { name: 'System menu' }))
 const setQuickVolume = (value) => {
   fireEvent.change(screen.getByRole('slider', { name: 'Volume' }), { target: { value: String(value) } })
@@ -155,7 +155,7 @@ describe('music player', () => {
       await expect(controls().play()).rejects.toBe(broken)
     })
 
-    expect(music()).toEqual({ playing: false, position: 0, played: false })
+    expect(music()).toEqual({ playing: false, position: 0, played: false, repeat: false })
   })
 
   it('follows a pause from outside rafeyOS (a media key, the browser controls)', async () => {

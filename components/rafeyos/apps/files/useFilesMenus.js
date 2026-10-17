@@ -3,6 +3,7 @@ import { useOpenPath } from '../../shell/useOpenPath'
 import { belowElement, pointOfEvent, useMenu } from '../../shell/useMenu'
 import { pathCommands } from '../../shell/pathCommands'
 import { fileMenuItems } from '../../shell/menus'
+import { useEmptyTrash, useTrashActions } from '../../shell/useTrashActions'
 import { TRASH } from '../../vfs/buildVfs'
 import { isDir } from '../../vfs/queries'
 import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
@@ -20,7 +21,10 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
   const windowManager = useWindowManager()
   const openPath = useOpenPath()
   const openMenu = useMenu()
-  const commandsFor = (path) => pathCommands({ vfs, windowManager, openPath }, path)
+  const trashActions = useTrashActions()
+  const emptyTrash = useEmptyTrash()
+  const inTrash = state.path === TRASH
+  const commandsFor = (path) => ({ ...pathCommands({ vfs, windowManager, openPath }, path), ...trashActions(path) })
   // A project's .txt opens in the Text Editor; the menu also offers its 3D view
   const openInProjectsFor = (path) => {
     const project = projectForPath({ vfs, content }, path)
@@ -28,7 +32,7 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
   }
   const itemMenu = (path, event) => {
     if (!state.selection.includes(path)) dispatch({ type: 'select', path, mode: 'single' })
-    const commands = { ...commandsFor(path), openInProjects: openInProjectsFor(path) }
+    const commands = { ...commandsFor(path), openInProjects: openInProjectsFor(path), ...(inTrash ? { emptyTrash } : {}) }
     const menu = fileMenuItems({ commands, isFolder: isDir(vfs, path), onDesktop: false })
     openMenu(menu, pointOfEvent(event))
   }
@@ -38,7 +42,7 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
     if (!vfs[state.path]) return
     const { openTerminal, properties } = commandsFor(state.path)
     const selectAll = () => dispatch({ type: 'selectAll', paths: items })
-    openMenu(backgroundMenuItems({ inTrash: state.path === TRASH, selectAll, openTerminal, properties }), pointOfEvent(event))
+    openMenu(backgroundMenuItems({ inTrash, selectAll, openTerminal, properties, emptyTrash }), pointOfEvent(event))
   }
   const viewOptions = (event) => {
     const setView = (view) => dispatch({ type: 'setView', view })

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 const FOCUSABLE = [
   'a[href]',
@@ -18,13 +18,21 @@ const focusLost = () => !document.activeElement || document.activeElement === do
  * @param {{ onlyIfLost?: boolean }} options - onlyIfLost: leave focus alone if something else took it
  */
 export const useReturnFocus = ({ onlyIfLost = false } = {}) => {
-  useEffect(() => {
-    const previous = document.activeElement
-    return () => {
+  // Recorded in a layout effect, before a sibling layout effect moves focus inside, and kept in a
+  // ref so StrictMode's effect re-run doesn't record that inner element instead
+  const opener = useRef(null)
+  useLayoutEffect(() => {
+    if (!opener.current) opener.current = document.activeElement
+  }, [])
+  // Restored in a passive cleanup, which runs once the component's elements have left the page
+  useEffect(
+    () => () => {
+      const previous = opener.current
       if (onlyIfLost && !focusLost()) return
       if (previous?.isConnected && previous !== document.body) previous.focus?.({ preventScroll: true })
-    }
-  }, [onlyIfLost])
+    },
+    [onlyIfLost],
+  )
 }
 
 /** Tab and Shift+Tab cycle inside the container; returns the listener's removal. */

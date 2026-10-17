@@ -136,7 +136,7 @@ const Terminal = () => {
     loadRafeyOS();
     clearTimeout(rafeyosTimeoutRef.current);
     rafeyosTimeoutRef.current = setTimeout(() => {
-      router.push('/rafeyos');
+      router.push('/os');
     }, RAFEYOS_ROUTE_DELAY_MS);
   };
 

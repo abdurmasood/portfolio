@@ -25,10 +25,11 @@ const windowCommands = (dispatch) => ({
 })
 
 /**
- * @param {{ dispatch: Function, getState: () => object, getLayout: () => object, vfs: object }} deps
+ * @param {{ dispatch: Function, getState: () => object, getLayout: () => object, getVfs: () => object }} deps
  */
-export const createWindowManager = ({ dispatch, getState, getLayout, vfs }) => {
+export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) => {
   const openOrigins = new Map()
+  const closeGuards = new Map()
   const commands = windowCommands(dispatch)
 
   /**
@@ -48,6 +49,7 @@ export const createWindowManager = ({ dispatch, getState, getLayout, vfs }) => {
 
   /** Opens a file in its default app; false for web links and apps that aren't built yet. */
   const openPath = (path, { from = null } = {}) => {
+    const vfs = getVfs()
     const target = realPath(vfs, path)
     const node = vfs[target]
     const appId = node ? handlerFor(node) : null
@@ -65,10 +67,25 @@ export const createWindowManager = ({ dispatch, getState, getLayout, vfs }) => {
     else commands.unsnap(id)
   }
 
+  const close = (id, next) => {
+    const guard = closeGuards.get(id)
+    if (guard && guard(next) === false) return
+    commands.close(id)
+    next?.()
+  }
+
+  const setCloseGuard = (id, guard) => {
+    if (guard) closeGuards.set(id, guard)
+    else closeGuards.delete(id)
+  }
+
   const remove = (id) => {
     openOrigins.delete(id)
+    closeGuards.delete(id)
     dispatch({ type: 'remove', id })
   }
+
+  const setArg = (id, arg) => dispatch({ type: 'setArg', id, arg })
 
   const setTitle = (id, title) => {
     if (getState().byId[id]?.title !== title) dispatch({ type: 'setTitle', id, title })
@@ -76,12 +93,15 @@ export const createWindowManager = ({ dispatch, getState, getLayout, vfs }) => {
 
   return Object.freeze({
     ...commands,
+    close,
     openApp,
     openPath,
     snap,
     toggleMax,
     remove,
     setTitle,
+    setArg,
+    setCloseGuard,
     activateApp: (appId, from) => activateApp({ appId, from, getState, openApp, commands }),
     openOrigin: (id) => openOrigins.get(id) ?? null,
     snapPreview: createSnapPreviewStore(),

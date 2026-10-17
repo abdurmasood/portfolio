@@ -1,13 +1,16 @@
 import { memo, useCallback } from 'react'
-import { useDockRegistry, useLayout, useShellDispatch, useShellState, useWindowManager, useWindowsState } from '../state/contexts'
+import { useDockRegistry, useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '../state/contexts'
 import { DOCK_FAVORITES, getApp } from '../apps/registry'
 import { isImplemented } from '../apps/availability'
 import { runningApps, windowsForApp } from '../state/selectors'
 import { TRASH } from '../vfs/buildVfs'
+import { children } from '../vfs/queries'
 import { AppIcon } from '../icons/appIcons'
 import { rectOfElement } from '../wm/windowAnimations'
 import { useMenu } from './useMenu'
 import { dockMenuItems, dockMenuPlacement } from './menus'
+import { menuItem } from './menuItems'
+import { useEmptyTrash } from './useTrashActions'
 import { OVERVIEW_MODES } from './overviewModel'
 
 const MAX_DOTS = 4
@@ -88,11 +91,14 @@ const ShowAppsButton = () => {
 }
 
 export const Dock = () => {
+  const { vfs } = useVfs()
   const windows = useWindowsState()
   const { dockPos } = useLayout()
   const windowManager = useWindowManager()
   const shellDispatch = useShellDispatch()
   const openDockMenu = useDockMenu(windows, dockPos)
+  const openMenu = useMenu()
+  const emptyTrash = useEmptyTrash()
   const focusedApp = windows.byId[windows.focusedId]?.appId ?? null
   // Dock clicks leave the overview first, then act as usual
   const leaveShell = useCallback(() => {
@@ -124,8 +130,19 @@ export const Dock = () => {
       ))}
       <div className="grow" />
       <div className="dsep" />
-      <button type="button" className="dk" data-name="Trash" aria-label="Trash" onClick={openTrash}>
-        <AppIcon name="trash" />
+      <button
+        type="button"
+        className="dk"
+        data-name="Trash"
+        aria-label="Trash"
+        onClick={openTrash}
+        onContextMenu={(event) => {
+          event.preventDefault()
+          const { point, anchorBottom } = dockMenuPlacement(rectOfElement(event.currentTarget), dockPos)
+          openMenu([menuItem('Empty Trash', emptyTrash)], point, { shell: true, anchorBottom })
+        }}
+      >
+        <AppIcon name="trash" full={children(vfs, TRASH).length > 0} />
       </button>
       <ShowAppsButton />
     </div>

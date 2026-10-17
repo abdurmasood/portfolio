@@ -31,7 +31,7 @@ export default [
   },
   {
     // Plain JS with JSDoc and no prop-types dependency; props are covered by component tests instead
-    files: ['components/rafeyos/**/*.{js,jsx}', 'app/rafeyos/**/*.{js,jsx}'],
+    files: ['components/rafeyos/**/*.{js,jsx}', 'app/os/**/*.{js,jsx}'],
     rules: { 'react/prop-types': 'off' },
   },
 ]

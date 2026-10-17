@@ -1,7 +1,7 @@
 // Playback state for the one track. `played` turns on with the first play that actually starts
-// (a blocked autoplay doesn't count), and shows the media card and the track's speaker icon.
+// (a blocked autoplay doesn't count), and shows the media card. `repeat` loops the track at its end.
 
-export const initialMusic = Object.freeze({ playing: false, position: 0, played: false })
+export const initialMusic = Object.freeze({ playing: false, position: 0, played: false, repeat: false })
 
 /** Whole seconds: the element reports several updates a second, but the UI only shows seconds. */
 const toSeconds = (seconds) => (Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0)
@@ -18,6 +18,7 @@ const HANDLERS = Object.freeze({
   time: (state, { position }) => merge(state, { position: toSeconds(position) }),
   seek: (state, { position }) => merge(state, { position: toSeconds(position) }),
   stop: (state) => merge(state, { playing: false, position: 0 }),
+  toggleRepeat: (state) => merge(state, { repeat: !state.repeat }),
 })
 
 export const musicReducer = (state, action) => {

@@ -4,12 +4,15 @@ import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import {
   chooseMenuItem,
   clickDock,
+  dock,
+  memoryStorage,
   menuEntry,
   menuLabels,
   renderDesktop,
   rightClick,
   windowsOf,
 } from '../../testing/renderRafeyOS'
+import { createDocumentsStore, trashItemPath } from '../../vfs/documents'
 
 afterEach(cleanup)
 
@@ -106,6 +109,103 @@ describe('Files background menu', () => {
     goTo(ui, 'Recent')
     rightClick(body(win))
     expect(screen.queryByRole('menu')).toBeNull()
+  })
+})
+
+describe('Trash', () => {
+  it('moves a created file into Trash and restores it to its folder', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({ files: { '~/Documents/notes.txt': 'hello\n' }, trash: {} }),
+    })
+    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+    const ui = within(win)
+
+    goTo(ui, 'Documents')
+    rightClick(item(win, '~/Documents/notes.txt'))
+    expect(menuEntry('Move to Trash').disabled).toBe(false)
+    chooseMenuItem('Move to Trash')
+
+    expect(item(win, '~/Documents/notes.txt')).toBeNull()
+    goTo(ui, 'Trash')
+    const trashed = trashItemPath('~/Documents/notes.txt')
+    expect(item(win, trashed).textContent).toContain('notes.txt')
+    rightClick(item(win, trashed))
+    chooseMenuItem('Restore')
+
+    goTo(ui, 'Documents')
+    expect(item(win, '~/Documents/notes.txt')).toBeTruthy()
+    expect(JSON.parse(disk.getItem('rafeyos-documents'))).toEqual({
+      files: { '~/Documents/notes.txt': 'hello\n' },
+      trash: {},
+    })
+  })
+
+  it('keeps the file in Trash when its original place is taken', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '~/bio.txt': 'nope\n' } }),
+    })
+    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+
+    goTo(within(win), 'Trash')
+    const trashed = trashItemPath('~/bio.txt')
+    rightClick(item(win, trashed))
+    chooseMenuItem('Restore')
+
+    expect(screen.getByRole('status').textContent).toContain('already in Home')
+    expect(item(win, trashed)).toBeTruthy()
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/bio.txt']).toBe('nope\n')
+  })
+
+  it('empties Trash from the folder and from a file inside it', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({
+        files: { '~/Desktop/keep.txt': 'stay\n' },
+        trash: { '~/Documents/notes.txt': 'gone\n' },
+      }),
+    })
+    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+    const ui = within(win)
+    const trashed = trashItemPath('~/Documents/notes.txt')
+
+    goTo(ui, 'Trash')
+    rightClick(body(win))
+    expect(menuEntry('Empty Trash').disabled).toBe(false)
+    fireEvent.keyDown(window, { key: 'Escape' })
+    rightClick(item(win, trashed))
+    chooseMenuItem('Empty Trash')
+
+    expect(ui.getByText('Trash is Empty')).toBeTruthy()
+    expect(JSON.parse(disk.getItem('rafeyos-documents'))).toEqual({
+      files: { '~/Desktop/keep.txt': 'stay\n' },
+      trash: {},
+    })
+  })
+
+  it('empties Trash from the dock icon, and disables the command when the bin is empty', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '~/Desktop/old.txt': 'old\n' } }),
+    })
+    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const trashButton = () => within(dock()).getByRole('button', { name: 'Trash' })
+
+    rightClick(trashButton())
+    chooseMenuItem('Empty Trash')
+
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash).toEqual({})
+    rightClick(trashButton())
+    expect(menuEntry('Empty Trash').disabled).toBe(true)
+
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+    goTo(within(win), 'Trash')
+    rightClick(body(win))
+    expect(menuEntry('Empty Trash').disabled).toBe(true)
   })
 })
 

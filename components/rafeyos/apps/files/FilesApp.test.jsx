@@ -21,7 +21,7 @@ describe('Files app', () => {
 
     const names = [...win.querySelectorAll('.fitem .nm')].map((node) => node.textContent)
 
-    expect(names.slice(0, 5)).toEqual(['blog', 'contact', 'Desktop', 'Music', 'projects'])
+    expect(names.slice(0, 6)).toEqual(['blog', 'contact', 'Desktop', 'Documents', 'Music', 'projects'])
     expect(currentLocation(win)).toBe('Home')
   })
 

@@ -3,6 +3,7 @@ import { createWindowManager } from './windowManager'
 import { initialWindows, windowsReducer } from '../state/windowsReducer'
 import { SNAP_MODES } from './geometry'
 import { realVfs } from '../vfs/testVfs'
+import { mergeDocuments } from '../vfs/documents'
 
 const layout = { area: { x: 54, y: 28, w: 970, h: 740 }, compact: false }
 
@@ -12,7 +13,7 @@ const setup = () => {
   const dispatch = vi.fn((action) => {
     state = windowsReducer(state, action)
   })
-  const wm = createWindowManager({ dispatch, getState: () => state, getLayout: () => layout, vfs: realVfs })
+  const wm = createWindowManager({ dispatch, getState: () => state, getLayout: () => layout, getVfs: () => realVfs })
   return { wm, dispatch, state: () => state }
 }
 
@@ -57,6 +58,24 @@ describe('window manager', () => {
     expect(opened).toEqual([['files', '~/projects'], ['editor', '~/bio.txt'], ['mail', ''], ['music', '']])
   })
 
+  it('opens a path from the filesystem as it is now', () => {
+    let vfs = realVfs
+    let state = initialWindows
+    const wm = createWindowManager({
+      dispatch: (action) => {
+        state = windowsReducer(state, action)
+      },
+      getState: () => state,
+      getLayout: () => layout,
+      getVfs: () => vfs,
+    })
+
+    vfs = mergeDocuments(realVfs, { 'notes.txt': 'hello\n' })
+
+    expect(wm.openPath('~/Documents/notes.txt')).toBe(true)
+    expect(state.byId[1].arg).toBe('~/Documents/notes.txt')
+  })
+
   it('leaves web links, missing paths and unbuilt apps to the caller', () => {
     const { wm, dispatch } = setup()
 
@@ -65,13 +84,46 @@ describe('window manager', () => {
     expect(dispatch).not.toHaveBeenCalled()
   })
 
-  it('opens single-instance file apps on their default document, once', () => {
+  it('opens the blank editor once, and a named file beside it', () => {
     const { wm, state } = setup()
 
     wm.openApp('editor')
+    wm.openApp('editor')
     wm.openApp('editor', { path: '~/README.txt' })
 
-    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['~/README.txt'])
+    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['', '~/README.txt'])
+  })
+
+  it('lets a close guard keep the window open', () => {
+    const { wm, state } = setup()
+    wm.openApp('files')
+    wm.setCloseGuard(1, () => false)
+
+    wm.close(1)
+    expect(state().byId[1].phase).toBe('open')
+
+    wm.setCloseGuard(1, null)
+    wm.close(1)
+    expect(state().byId[1].phase).toBe('closing')
+  })
+
+  it('runs the follow-up after a close the guard allows, and skips it when the guard blocks', () => {
+    const { wm, state } = setup()
+    const next = vi.fn()
+    wm.openApp('files')
+    wm.setCloseGuard(1, (follow) => {
+      expect(follow).toBe(next)
+      return false
+    })
+
+    wm.close(1, next)
+    expect(state().byId[1].phase).toBe('open')
+    expect(next).not.toHaveBeenCalled()
+
+    wm.setCloseGuard(1, null)
+    wm.close(1, next)
+    expect(state().byId[1].phase).toBe('closing')
+    expect(next).toHaveBeenCalledTimes(1)
   })
 
   it('passes launch options to the new window', () => {

@@ -60,6 +60,7 @@ export const FilesHeader = ({ vfs, state, dispatch, onViewOptions, sidebarToggle
   const isGrid = state.view === FILE_VIEWS.GRID
   return (
     <HeaderBar
+      className="files-hb"
       start={
         <>
           {sidebarToggle}

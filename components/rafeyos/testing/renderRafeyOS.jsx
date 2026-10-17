@@ -5,6 +5,7 @@ import { vi } from 'vitest'
 import { RafeyOSRoot } from '../RafeyOSRoot'
 import { SESSION_KEY } from '../session/sessionStore'
 import { fakeAudioFactory } from './fakeAudio'
+import { createDocumentsStore } from '../vfs/documents'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))
@@ -19,13 +20,18 @@ export const memoryStorage = (entries = {}) => {
 // 17 Oct 2026, 21:04 local time
 export const FIXED_NOW = new Date(2026, 9, 17, 21, 4)
 
+// A rising ramp, so the waveform's bars get taller from left to right
+export const FAKE_SAMPLES = Float32Array.from({ length: 4800 }, (_, i) => i / 4800)
+
 export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),
   storage: memoryStorage(),
+  documents: createDocumentsStore(memoryStorage()),
   now: () => FIXED_NOW,
   openExternal: vi.fn(),
   clipboard: { writeText: vi.fn(() => Promise.resolve()) },
   createAudio: fakeAudioFactory(),
+  loadAudioSamples: () => Promise.resolve(FAKE_SAMPLES),
   mediaSession: null,
   reducedMotion: () => true,
   prefersDark: () => true,
@@ -74,10 +80,12 @@ export const rightClick = (element, point = { clientX: 200, clientY: 200 }) => f
 
 export const openMenu = () => screen.getByRole('menu')
 
-/** The open menu's entries (separators and headings aside), as their labels. */
-export const menuLabels = () => within(openMenu()).getAllByRole('menuitem').map((entry) => entry.textContent)
+/** The open menu's entries (separators and headings aside), as their labels. Choice items count too. */
+export const menuLabels = () =>
+  [...openMenu().querySelectorAll('[role="menuitem"], [role="menuitemradio"]')].map((entry) => entry.textContent)
 
-export const menuEntry = (name) => within(openMenu()).getByRole('menuitem', { name })
+export const menuEntry = (name) =>
+  within(openMenu()).queryByRole('menuitem', { name }) ?? within(openMenu()).getByRole('menuitemradio', { name })
 
 export const chooseMenuItem = (name) => fireEvent.click(menuEntry(name))
 

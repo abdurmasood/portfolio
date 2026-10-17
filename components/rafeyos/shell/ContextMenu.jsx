@@ -5,6 +5,7 @@ import { menuPosition } from './menuPosition'
 import { useEscapeKey } from './useEscapeKey'
 import { useReturnFocus } from './useFocusTrap'
 import { menuStep } from './keyboardNavigation'
+import { Sym } from '../icons/symbols'
 
 const sizeOf = (element) => ({ w: element.offsetWidth, h: element.offsetHeight })
 
@@ -19,7 +20,7 @@ const usePlacement = (ref, menu) => {
   }, [ref, menu, viewport])
 }
 
-const ENABLED_ITEM = '[role="menuitem"]:not(:disabled)'
+const ENABLED_ITEM = ':is([role="menuitem"], [role="menuitemradio"]):not(:disabled)'
 
 /** The first item takes focus; arrows, Home and End move it (wrapping); Tab closes the menu. */
 const useMenuKeys = (ref, close) => {
@@ -49,9 +50,20 @@ const useMenuKeys = (ref, close) => {
 const Entry = ({ entry, onChoose }) => {
   if (entry.kind === MENU_ITEM_KINDS.SEPARATOR) return <div className="msep" role="separator" />
   if (entry.kind === MENU_ITEM_KINDS.HEADING) return <div className="mhead">{entry.label}</div>
+  // Choice items carry `checked`; plain items don't have the key at all
+  const isChoice = 'checked' in entry
   return (
-    <button type="button" className="mi" role="menuitem" disabled={entry.disabled} onClick={() => onChoose(entry)}>
+    <button
+      type="button"
+      className="mi"
+      role={isChoice ? 'menuitemradio' : 'menuitem'}
+      aria-checked={isChoice ? entry.checked : undefined}
+      disabled={entry.disabled}
+      onClick={() => onChoose(entry)}
+    >
+      {entry.icon && <Sym name={entry.icon} className="mic" />}
       <span>{entry.label}</span>
+      {entry.checked && <Sym name="check" className="chk" />}
     </button>
   )
 }

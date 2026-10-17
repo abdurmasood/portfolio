@@ -25,6 +25,23 @@ describe('file and wall menus', () => {
     expect(labels(fileMenuItems({ commands, isFolder: false, onDesktop: false }))).not.toContain('Show in Files')
   })
 
+  it('trashes a created file and restores a trashed one', () => {
+    const trash = vi.fn()
+    const restore = vi.fn()
+    const live = fileMenuItems({ commands: { ...commands, trash }, isFolder: false, onDesktop: false })
+    const gone = fileMenuItems({ commands: { ...commands, restore }, isFolder: false, onDesktop: false })
+
+    expect(live.find((item) => item.label === 'Move to Trash').disabled).toBe(false)
+    expect(labels(gone)).toContain('Restore')
+    expect(labels(gone)).not.toContain('Move to Trash')
+    live.find((item) => item.label === 'Move to Trash').action()
+    gone.find((item) => item.label === 'Restore').action()
+
+    expect(trash).toHaveBeenCalled()
+    expect(restore).toHaveBeenCalled()
+    expect(fileMenuItems({ commands, isFolder: false, onDesktop: false }).find((item) => item.label === 'Move to Trash').disabled).toBe(true)
+  })
+
   it('wires the wall actions', () => {
     const actions = { selectAll: vi.fn(), showDesktop: vi.fn(), openTerminal: vi.fn(), changeBackground: vi.fn(), iconSettings: vi.fn() }
     const items = wallMenuItems(actions)

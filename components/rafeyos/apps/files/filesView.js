@@ -17,6 +17,7 @@ export const SIDEBAR = Object.freeze([
   { path: STARRED, label: 'Starred', icon: 'star' },
   { path: HOME, label: 'Home', icon: 'home' },
   { path: '~/Desktop', label: 'Desktop', icon: 'desktop' },
+  { path: '~/Documents', label: 'Documents', icon: 'folder' },
   { path: '~/Music', label: 'Music', icon: 'music' },
   null,
   { path: '~/projects', label: 'projects', icon: 'folder' },
@@ -53,9 +54,10 @@ export const pathSegments = (path) => {
 }
 
 export const floatbarText = (vfs, selection) => {
-  if (!selection.length) return null
-  if (selection.length > 1) return `${selection.length} items selected`
-  const [path] = selection
+  const present = selection.filter((path) => vfs[path])
+  if (!present.length) return null
+  if (present.length > 1) return `${present.length} items selected`
+  const [path] = present
   return `“${displayName(vfs, path)}” selected (${sizeLabel(vfs, path)})`
 }
 

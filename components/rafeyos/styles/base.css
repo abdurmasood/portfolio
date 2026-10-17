@@ -3,6 +3,10 @@
 .rafeyos {
   --accent: #E95420;
   --win: #242424; --view: #1e1e1e; --hb: #303030; --side: #2e2e2e;
+  /* Music: tinted from the disc artwork */
+  /* Dialog fields: --view reads in dark, but is the dialog's own white in light */
+  --field: #1e1e1e;
+  --np-tint: #4a2418; --np-art-a: #3a2a26; --np-art-b: #1f1716; --np-bar: rgba(255,255,255,.2);
   --fg: #ffffff; --fg2: rgba(255,255,255,.6); --line: rgba(255,255,255,.1);
   --btn: rgba(255,255,255,.1); --btnh: rgba(255,255,255,.16);
   --card: #353535; --menu: #383838;
@@ -13,10 +17,11 @@
   color-scheme: dark;
 }
 .rafeyos { position: fixed; inset: 0; font-family: var(--ui); font-size: 13px; line-height: 1.35; color: var(--fg); background: #1d1d1d; overflow: hidden; user-select: none; -webkit-user-select: none; cursor: default; }
-.rafeyos.light { --win: #fafafa; --view: #ffffff; --hb: #ebebeb; --side: #ebebeb; --fg: rgba(0,0,0,.82); --fg2: rgba(0,0,0,.55); --line: rgba(0,0,0,.1); --btn: rgba(0,0,0,.07); --btnh: rgba(0,0,0,.12); --card: #ffffff; --menu: #ffffff; --tbg: #ffffff; --tfg: #171717; --tgreen: #26a269; --tblue: #1a5fb4; --tcyan: #1c71d8; --tred: #c01c28; color-scheme: light; }
+.rafeyos.light { --field: rgba(0,0,0,.06); --np-tint: #f8dccd; --np-art-a: #f7e4da; --np-art-b: #ecd2c5; --np-bar: rgba(0,0,0,.15); --win: #fafafa; --view: #ffffff; --hb: #ebebeb; --side: #ebebeb; --fg: rgba(0,0,0,.82); --fg2: rgba(0,0,0,.55); --line: rgba(0,0,0,.1); --btn: rgba(0,0,0,.07); --btnh: rgba(0,0,0,.12); --card: #ffffff; --menu: #ffffff; --tbg: #ffffff; --tfg: #171717; --tgreen: #26a269; --tblue: #1a5fb4; --tcyan: #1c71d8; --tred: #c01c28; color-scheme: light; }
 .rafeyos button { font: inherit; color: inherit; cursor: default; }
 .rafeyos svg { display: block; }
 .rafeyos :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
+.rafeyos input:focus-visible, .rafeyos textarea:focus-visible { outline: none; }
 .rafeyos .seltext, .rafeyos .seltext * { user-select: text; -webkit-user-select: text; cursor: text; }
 .rafeyos ::selection { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 :where(.rafeyos) .mono { font-family: var(--mono); }

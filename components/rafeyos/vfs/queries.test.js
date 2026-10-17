@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from './queries'
 import { buildVfs } from './buildVfs'
+import { mergeDocuments, trashItemPath } from './documents'
 import { fixtureContent, realVfs } from './testVfs'
 
 const vfs = buildVfs(fixtureContent)
@@ -8,7 +9,7 @@ const vfs = buildVfs(fixtureContent)
 describe('children', () => {
   it('lists folders first, then files, ignoring case', () => {
     expect(children(vfs, '~')).toEqual([
-      '~/blog', '~/contact', '~/Desktop', '~/Music', '~/projects', '~/bio.txt', '~/README.txt', '~/skills.txt',
+      '~/blog', '~/contact', '~/Desktop', '~/Documents', '~/Music', '~/projects', '~/bio.txt', '~/README.txt', '~/skills.txt',
     ])
   })
 
@@ -97,5 +98,12 @@ describe('textDocuments', () => {
     expect(docs).toContain('~/bio.txt')
     expect(docs).toContain('~/Music/story.txt')
     expect(docs.every((path) => realVfs[path].type === 'text')).toBe(true)
+  })
+
+  it('skips a file sitting in Trash', () => {
+    const merged = mergeDocuments(realVfs, {}, { '~/Desktop/notes.txt': 'hello\n' })
+
+    expect(textDocuments(merged)).not.toContain(trashItemPath('~/Desktop/notes.txt'))
+    expect(textDocuments(merged)).toContain('~/bio.txt')
   })
 })

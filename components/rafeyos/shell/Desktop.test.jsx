@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, dock, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
+import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '../testing/renderRafeyOS'
+import { createDocumentsStore, trashItemPath } from '../vfs/documents'
 
 afterEach(cleanup)
 
@@ -137,6 +138,27 @@ describe('dock', () => {
 
     const [files] = windowsOf(container, 'files')
     expect(files.getAttribute('aria-label')).toBe('Trash')
+    expect(within(files).getByText('Trash is Empty')).toBeTruthy()
+  })
+
+  it('puts a sheet in the dock bin while Trash holds a file', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+    })
+    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const paper = () => within(dock()).getByRole('button', { name: 'Trash' }).querySelector('[data-paper]')
+
+    expect(paper()).toBeNull()
+    rightClick(icon(container, '~/Desktop/note.txt'))
+    chooseMenuItem('Move to Trash')
+    expect(paper()).toBeTruthy()
+
+    clickDock('Trash')
+    const files = windowsOf(container, 'files')[0]
+    rightClick(files.querySelector(`[data-path="${trashItemPath('~/Desktop/note.txt')}"]`))
+    chooseMenuItem('Restore')
+
+    expect(paper()).toBeNull()
     expect(within(files).getByText('Trash is Empty')).toBeTruthy()
   })
 })
