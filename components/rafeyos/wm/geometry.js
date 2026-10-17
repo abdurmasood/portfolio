@@ -112,3 +112,38 @@ export const overviewLayout = (rects, region) => {
     }
   })
 }
+
+// The overview leaves room for the search field above the workspace card (mockup: 28 + 58)
+const OVERVIEW_SEARCH_SPACE = 58
+const OVERVIEW_PAD = 24
+const OVERVIEW_LABEL_GAP = 8
+
+/**
+ * The Activities overview shrinks the whole workspace into a card below the search field.
+ * @param {{ w: number, h: number }} viewport
+ * @param {object} area - the work area (the dock and top bar stay outside the card)
+ * @returns {{ x: number, y: number, scale: number }} translate then scale, origin top-left
+ */
+export const overviewWorkspaceRect = (viewport, area, topBar = TOP_BAR_HEIGHT) => {
+  const top = topBar + OVERVIEW_SEARCH_SPACE
+  const availableW = area.w - OVERVIEW_PAD * 2
+  const availableH = area.y + area.h - top - OVERVIEW_PAD
+  const scale = Math.min(availableW / viewport.w, availableH / viewport.h)
+  return {
+    x: area.x + OVERVIEW_PAD + (availableW - viewport.w * scale) / 2,
+    y: top + (availableH - viewport.h * scale) / 2,
+    scale,
+  }
+}
+
+/**
+ * Where a window's title label sits in the overview: centred just below the shrunken window.
+ * @param {object} workspace - from overviewWorkspaceRect
+ * @param {object} rect - the window's own rect
+ * @param {object} target - its overviewLayout entry, in workspace coordinates
+ * @returns {{ x: number, y: number }} viewport point (x is the label's centre)
+ */
+export const overviewLabelPoint = (workspace, rect, target) => ({
+  x: workspace.x + workspace.scale * (target.x + (rect.w * target.scale) / 2),
+  y: workspace.y + workspace.scale * (target.y + rect.h * target.scale) + OVERVIEW_LABEL_GAP,
+})

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   workArea, snapRect, snapModeAt, resizeRect, cascadeRect, clampRect, unsnapForDragRect, overviewRegion, overviewLayout,
+  overviewWorkspaceRect, overviewLabelPoint,
 } from './geometry'
 
 const viewport = { w: 1280, h: 800 }
@@ -171,5 +172,27 @@ describe('overview', () => {
 
   it('returns nothing for no windows', () => {
     expect(overviewLayout([], { x: 0, y: 0, w: 1000, h: 600 })).toEqual([])
+  })
+})
+
+describe('overview workspace card', () => {
+  it('scales the whole screen into the work area below the search field (mockup maths)', () => {
+    expect(overviewWorkspaceRect(viewport, area)).toEqual({ x: 115, y: 86, scale: 0.8625 })
+  })
+
+  it('is limited by width on a tall screen, centred vertically', () => {
+    const tall = { w: 400, h: 1200 }
+    const card = overviewWorkspaceRect(tall, { x: 0, y: 28, w: 400, h: 1172 })
+
+    expect(card.scale).toBeCloseTo(352 / 400)
+    expect(card.x).toBeCloseTo(24)
+    expect(card.y).toBeCloseTo(86 + (1090 - 1200 * card.scale) / 2)
+  })
+
+  it('puts a window label centred 8px below the shrunken window', () => {
+    const workspace = { x: 100, y: 50, scale: 0.5 }
+    const point = overviewLabelPoint(workspace, { x: 0, y: 0, w: 400, h: 200 }, { x: 200, y: 100, scale: 0.5 })
+
+    expect(point).toEqual({ x: 100 + 0.5 * (200 + 100), y: 50 + 0.5 * (100 + 100) + 8 })
   })
 })
