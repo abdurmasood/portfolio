@@ -4,7 +4,7 @@ import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 
 export default [
-  { ignores: ['dist', '.next'] },
+  { ignores: ['dist', '.next', 'coverage'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
