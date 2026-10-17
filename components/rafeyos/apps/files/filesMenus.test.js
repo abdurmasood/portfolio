@@ -9,6 +9,12 @@ describe('Files menus', () => {
 
     expect(terminal(true).disabled).toBe(true)
     expect(terminal(false).disabled).toBe(false)
+    const empty = (inTrash, action) => backgroundMenuItems({ ...actions, inTrash, emptyTrash: action }).find((item) => item.label === 'Empty Trash')
+    expect(empty(false, vi.fn())).toBeUndefined()
+    expect(empty(true, null).disabled).toBe(true)
+    const run = vi.fn()
+    empty(true, run).action()
+    expect(run).toHaveBeenCalled()
   })
 
   it('sets the view from View options', () => {

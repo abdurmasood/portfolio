@@ -13,11 +13,12 @@ export const fileMenuItems = ({ commands, isFolder, onDesktop }) => [
   disabledItem('Cut'),
   disabledItem('Copy'),
   disabledItem('Rename…'),
-  disabledItem('Move to Trash'),
+  commands.restore ? menuItem('Restore', commands.restore) : menuItem('Move to Trash', commands.trash),
   SEPARATOR,
   ...(isFolder ? [menuItem('Open in Terminal', commands.openTerminal)] : []),
   ...(onDesktop ? [menuItem('Show in Files', commands.showInFiles)] : []),
   menuItem('Properties', commands.properties),
+  ...(commands.emptyTrash !== undefined ? [SEPARATOR, menuItem('Empty Trash', commands.emptyTrash)] : []),
 ]
 
 /** Right-click on the wallpaper. changeBackground and iconSettings open their Settings pages. */

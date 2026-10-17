@@ -3,13 +3,14 @@ import { SEPARATOR, disabledItem, menuItem } from '../../shell/menuItems'
 import { FILE_VIEWS } from './filesReducer'
 
 /** Right-click on empty space in a folder. Trash has no terminal. */
-export const backgroundMenuItems = ({ inTrash, selectAll, openTerminal, properties }) => [
+export const backgroundMenuItems = ({ inTrash, selectAll, openTerminal, properties, emptyTrash = null }) => [
   disabledItem('New Folder…'),
   disabledItem('Paste'),
   menuItem('Select All', selectAll),
   SEPARATOR,
   menuItem('Open in Terminal', inTrash ? null : openTerminal),
   menuItem('Properties', properties),
+  ...(inTrash ? [SEPARATOR, menuItem('Empty Trash', emptyTrash)] : []),
 ]
 
 export const viewOptionsItems = (setView) => [

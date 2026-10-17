@@ -54,9 +54,10 @@ export const pathSegments = (path) => {
 }
 
 export const floatbarText = (vfs, selection) => {
-  if (!selection.length) return null
-  if (selection.length > 1) return `${selection.length} items selected`
-  const [path] = selection
+  const present = selection.filter((path) => vfs[path])
+  if (!present.length) return null
+  if (present.length > 1) return `${present.length} items selected`
+  const [path] = present
   return `“${displayName(vfs, path)}” selected (${sizeLabel(vfs, path)})`
 }
 

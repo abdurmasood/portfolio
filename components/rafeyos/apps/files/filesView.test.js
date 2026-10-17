@@ -38,6 +38,7 @@ describe('files view', () => {
     expect(floatbarText(realVfs, [])).toBeNull()
     expect(floatbarText(realVfs, ['~/Music'])).toBe('“Music” selected (2 items)')
     expect(floatbarText(realVfs, ['~/Music', '~/blog'])).toBe('2 items selected')
+    expect(floatbarText(realVfs, ['~/missing.txt'])).toBeNull()
   })
 
   it('shortens type labels for the list view', () => {
