@@ -1,43 +1,55 @@
-import { useState } from 'react'
-import { useShellDispatch } from '../state/contexts'
+import { useCallback, useState } from 'react'
+import { useSessionDispatch, useShellDispatch } from '../state/contexts'
+import { SESSION_EVENTS } from '../session/sessionMachine'
 import { Sym } from '../icons/symbols'
+import { useOpenSettings } from '../apps/settings/useOpenSettings'
+import { SETTINGS_PAGES } from '../apps/settings/settingsPages'
+import { QuickToggles, QuickVolume } from './QuickToggles'
+import { useEscapeKey } from './useEscapeKey'
 
-// Not built yet (P2): shown as in the mockup, but inert
+// Screenshot isn't built: shown as in the mockup, but inert
 const DISABLED = { opacity: 0.5 }
 
-const PowerMenu = ({ onChoose }) => (
+const PowerMenu = ({ onDialog, onSession }) => (
   <div className="qs-power">
-    <button type="button" className="mi" disabled>
+    <button type="button" className="mi" onClick={() => onSession(SESSION_EVENTS.SUSPEND)}>
       Suspend
     </button>
-    <button type="button" className="mi" disabled>
+    <button type="button" className="mi" onClick={() => onDialog('restart')}>
       Restart…
     </button>
-    <button type="button" className="mi" onClick={() => onChoose('poweroff')}>
+    <button type="button" className="mi" onClick={() => onDialog('poweroff')}>
       Power Off…
     </button>
     <div className="msep" style={{ background: 'rgba(255,255,255,.1)' }} />
-    <button type="button" className="mi" onClick={() => onChoose('logout')}>
+    <button type="button" className="mi" onClick={() => onDialog('logout')}>
       Log Out…
     </button>
   </div>
 )
 
-/** P1 subset: the top row and the power submenu. Toggles and the volume slider come in P3. */
+/** The top row, the power submenu, the volume slider and the toggle tiles. */
 export const QuickSettings = () => {
   const shellDispatch = useShellDispatch()
+  const sessionDispatch = useSessionDispatch()
+  const openSettings = useOpenSettings()
   const [powerOpen, setPowerOpen] = useState(false)
+  useEscapeKey(useCallback(() => shellDispatch({ type: 'closePopup' }), [shellDispatch]))
   const openDialog = (kind) => shellDispatch({ type: 'openDialog', kind })
+  const sendSession = (event) => {
+    shellDispatch({ type: 'closeTransients' })
+    sessionDispatch(event)
+  }
   return (
     <div className="qs" role="dialog" aria-label="Quick settings">
       <div className="qs-top">
         <button type="button" className="qs-ic" aria-label="Take Screenshot" disabled style={DISABLED}>
           <Sym name="camera" />
         </button>
-        <button type="button" className="qs-ic" aria-label="Settings" disabled style={DISABLED}>
+        <button type="button" className="qs-ic" aria-label="Settings" onClick={() => openSettings(SETTINGS_PAGES.APPEARANCE)}>
           <Sym name="gear" />
         </button>
-        <button type="button" className="qs-ic" aria-label="Lock" disabled style={DISABLED}>
+        <button type="button" className="qs-ic" aria-label="Lock" onClick={() => sendSession(SESSION_EVENTS.LOCK)}>
           <Sym name="lock" />
         </button>
         <button
@@ -50,7 +62,9 @@ export const QuickSettings = () => {
           <Sym name="power" />
         </button>
       </div>
-      {powerOpen && <PowerMenu onChoose={openDialog} />}
+      {powerOpen && <PowerMenu onDialog={openDialog} onSession={sendSession} />}
+      <QuickVolume />
+      <QuickToggles />
     </div>
   )
 }
