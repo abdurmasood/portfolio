@@ -28,6 +28,8 @@ export const useSession = ({ storage, navigate, reducedMotion }) => {
   useBootTimer(state, dispatch, reducedMotion)
   useEffect(() => {
     if (state === SESSION_STATES.DESKTOP) rememberDesktop(storage)
+    // A restart boots again; a refresh mid-boot should too, so the skip flag goes until the desktop is back
+    if (state === SESSION_STATES.BOOT) forgetDesktop(storage)
     if (state === SESSION_STATES.EXITED) {
       forgetDesktop(storage)
       navigate(HOME_HREF)
