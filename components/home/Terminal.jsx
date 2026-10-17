@@ -224,7 +224,7 @@ const Terminal = () => {
         case 'cat bio.txt':
         case 'bio':
         case 'Bio':
-          output = bioDescription;
+          output = bioDescription();
           break;
 
         case 'cat projects.txt':
