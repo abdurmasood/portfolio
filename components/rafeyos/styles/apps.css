@@ -42,9 +42,10 @@
 :where(.rafeyos) .tline .ghost { position: absolute; left: 0; top: 0; opacity: .4; pointer-events: none; white-space: pre; }
 
 /* text editor */
+:where(.rafeyos) .editor-app { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
 :where(.rafeyos) .editor { flex: 1; display: flex; min-height: 0; background: var(--view); }
 :where(.rafeyos) .editor textarea { all: unset; flex: 1; box-sizing: border-box; padding: 14px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow: auto; cursor: text; user-select: text; -webkit-user-select: text; color: var(--fg); tab-size: 4; }
-:where(.rafeyos) .editor textarea.small { font-size: 10.5px; line-height: 1.2; }
+:where(.rafeyos) .editor textarea[readonly] { cursor: default; }
 
 /* music: a now-playing player for the one track, after Amberol */
 :where(.rafeyos) .np { flex: 1; min-height: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, var(--np-tint), var(--view) 85%); container-type: inline-size; }

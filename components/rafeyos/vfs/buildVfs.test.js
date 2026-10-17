@@ -48,7 +48,9 @@ describe('buildVfs', () => {
     expect(vfs['~/contact/email.desktop']).toMatchObject({ type: 'mailto', display: 'Email Rafey', href: 'mailto:me@example.com' })
     expect(vfs['~/contact/linkedin.desktop']).toMatchObject({ type: 'weblink', display: 'LinkedIn', href: 'https://linkedin.example/me' })
     expect(vfs['~/contact/linkedin.desktop'].text).toContain('URL=https://linkedin.example/me')
-    expect(vfs['~/README.txt']).toMatchObject({ text: 'README\n', small: true })
+    expect(vfs['~/README.txt']).toEqual(expect.objectContaining({ type: 'text', text: 'README\n' }))
+    expect(vfs['~/README.txt'].small).toBeUndefined()
+    expect(vfs['~/Documents']).toMatchObject({ type: 'dir', name: 'Documents' })
   })
 
   it('freezes the map and every node', () => {

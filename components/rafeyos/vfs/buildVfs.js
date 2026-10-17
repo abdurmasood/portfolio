@@ -74,7 +74,7 @@ const entriesFor = (content) => [
   ]),
   ['~/bio.txt', { type: 'text', text: content.bio }],
   ['~/skills.txt', { type: 'text', text: content.skills }],
-  ['~/README.txt', { type: 'text', text: content.readme, small: true }],
+  ['~/README.txt', { type: 'text', text: content.readme }],
   [TRASH, { type: 'dir', name: 'Trash' }],
 ]
 
