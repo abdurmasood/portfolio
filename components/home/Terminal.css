@@ -433,6 +433,29 @@
   cursor: default;
 }
 
+.terminal .picker-tap {
+  display: flex;
+  gap: 1ch;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.terminal .picker-tap:hover,
+.terminal .picker-tap:focus {
+  border-color: transparent;
+  outline: none;
+}
+
 .terminal .picker-row.is-selected {
   background: var(--term-selected);
   color: var(--term-fg);
@@ -504,5 +527,11 @@
 
   .terminal .picker-row {
     align-items: center;
+    pointer-events: auto;
+  }
+
+  .terminal .picker-tap {
+    min-height: 44px;
+    cursor: pointer;
   }
 }
