@@ -1,12 +1,12 @@
 /* App bodies: files, terminal, editor, music, mail, projects, settings, properties */
 /* files */
-:where(.rafeyos) .pathbar { display: flex; align-items: center; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 4px; max-width: 46%; min-width: 0; overflow: hidden; margin: 0 auto; }
+:where(.rafeyos) .pathbar { display: flex; align-items: center; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 4px; max-width: 100%; min-width: 0; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
 :where(.rafeyos) .pathbar button { all: unset; height: 24px; padding: 0 8px; border-radius: 6px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 :where(.rafeyos) .pathbar button:hover { background: var(--btn); }
 :where(.rafeyos) .pathbar button.cur { font-weight: 700; }
 :where(.rafeyos) .pathbar .sl { opacity: .35; padding: 0 1px; }
 :where(.rafeyos) .pathbar svg { width: 14px; height: 14px; }
-:where(.rafeyos) .searchbar { display: flex; align-items: center; gap: 8px; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 10px; width: 46%; margin: 0 auto; box-sizing: border-box; }
+:where(.rafeyos) .searchbar { display: flex; align-items: center; gap: 8px; height: 28px; border-radius: 8px; background: var(--btn); padding: 0 10px; width: 100%; margin: 0 auto; box-sizing: border-box; }
 :where(.rafeyos) .searchbar input { all: unset; flex: 1; cursor: text; user-select: text; }
 :where(.rafeyos) .searchbar svg { width: 16px; height: 16px; opacity: .7; }
 :where(.rafeyos) .fgrid { display: grid; grid-template-columns: repeat(auto-fill, 92px); gap: 2px; padding: 10px; align-content: start; }
