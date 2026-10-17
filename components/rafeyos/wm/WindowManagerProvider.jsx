@@ -1,15 +1,7 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { WindowManagerContext, DockRegistryContext, useLayout, useVfs, useWindowsDispatch, useWindowsState } from '../state/contexts'
 import { createWindowManager } from './windowManager'
-
-/** Keeps a ref pointed at the latest committed value, for callbacks that must stay stable. */
-const useLatest = (value) => {
-  const ref = useRef(value)
-  useLayoutEffect(() => {
-    ref.current = value
-  }, [value])
-  return ref
-}
+import { useLatest } from '../state/useLatest'
 
 export const WindowManagerProvider = ({ children }) => {
   const dispatch = useWindowsDispatch()
