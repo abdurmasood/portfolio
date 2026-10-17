@@ -118,3 +118,5 @@
 
 /* Port additions: the ghost suggestion is tappable on touch, like the home terminal's */
 :where(.rafeyos) .tline .ghost.tap { pointer-events: auto; cursor: pointer; }
+/* Port additions: a clickable settings row is a real button, laid out like the other rows */
+:where(.rafeyos) button.row { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; }
