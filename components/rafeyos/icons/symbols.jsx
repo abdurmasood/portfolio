@@ -1,5 +1,25 @@
 // 16px symbolic icons from the approved mockup (Yaru-style strokes in currentColor)
 
+// Inner, middle, outer. The reconnect sweep shows one at a time, then all three.
+export const WIFI_ARCS = Object.freeze([
+  'M6.1 11a2.9 2.9 0 0 1 3.8 0',
+  'M3.8 8.6a6.2 6.2 0 0 1 8.4 0',
+  'M1.5 6.2a9.5 9.5 0 0 1 13 0',
+])
+
+const SYMBOL_SVG = Object.freeze({
+  viewBox: '0 0 16 16',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.5,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  'aria-hidden': true,
+})
+
+const wifiDot = () => <circle cx="8" cy="13" r=".6" fill="currentColor" />
+const wifiArc = (d) => <path key={d} d={d} />
+
 const SYMBOL_PATHS = Object.freeze({
   back: <path d="M10 3L5 8l5 5" />,
   fwd: <path d="M6 3l5 5-5 5" />,
@@ -27,7 +47,7 @@ const SYMBOL_PATHS = Object.freeze({
   repeat: <><path d="M2.5 8V6.5a2 2 0 0 1 2-2h9M11.5 2.5l2 2-2 2" /><path d="M13.5 8v1.5a2 2 0 0 1-2 2h-9M4.5 13.5l-2-2 2-2" /></>,
   vol: <><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z" fill="currentColor" /><path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.5a6.5 6.5 0 0 1 0 9" /></>,
   vol0: <><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z" fill="currentColor" /><path d="M11 6l3 4M14 6l-3 4" /></>,
-  wifi: <><path d="M1.5 6.2a9.5 9.5 0 0 1 13 0M3.8 8.6a6.2 6.2 0 0 1 8.4 0M6.1 11a2.9 2.9 0 0 1 3.8 0" /><circle cx="8" cy="13" r=".6" fill="currentColor" /></>,
+  wifi: <>{WIFI_ARCS.map(wifiArc)}{wifiDot()}</>,
   wifioff: <><path d="M3.8 8.6a6.2 6.2 0 0 1 8.4 0M6.1 11a2.9 2.9 0 0 1 3.8 0" opacity=".35" /><path d="M2 2l12 12" /></>,
   power: <><path d="M8 2v6" /><path d="M4.6 4.4a5 5 0 1 0 6.8 0" /></>,
   gear: <><circle cx="8" cy="8" r="2.2" /><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" /></>,
@@ -58,17 +78,18 @@ export const Sym = ({ name, className }) => {
   const paths = SYMBOL_PATHS[name]
   if (!paths) throw new Error(`Unknown symbol: ${name}`)
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
+    <svg {...SYMBOL_SVG} className={className}>
       {paths}
     </svg>
   )
 }
+
+/** All three arcs. While reconnecting, only `arc` is visible and the others fade out. Null means connected. */
+export const WifiGlyph = ({ arc = null }) => (
+  <svg {...SYMBOL_SVG} className="wifi-live">
+    {WIFI_ARCS.map((d, index) => (
+      <path key={d} d={d} style={{ opacity: arc == null || index === arc ? 1 : 0 }} />
+    ))}
+    {wifiDot()}
+  </svg>
+)
