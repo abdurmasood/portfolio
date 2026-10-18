@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyTerminalEffects } from '@/components/rafeyos/apps/terminal/terminalEffects'
+import { applyTerminalEffects } from '@/components/rafeyos/apps/terminal/logic/terminalEffects'
 import { realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 const handlers = (overrides = {}) => ({
