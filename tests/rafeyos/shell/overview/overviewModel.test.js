@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { overviewTargets, overviewWindows, spreadsWindows, windowOverviewTransform, workspaceTransform } from '../js/overviewModel'
-import { overviewLayout, overviewRegion } from '../../../wm/geometry'
+import { overviewTargets, overviewWindows, spreadsWindows, windowOverviewTransform, workspaceTransform } from '@/components/rafeyos/shell/overview/js/overviewModel'
+import { overviewLayout, overviewRegion } from '@/components/rafeyos/wm/geometry'
 
 const AREA = { x: 0, y: 28, w: 1000, h: 700 }
 const win = (id, extra = {}) => ({ id, rect: { x: 10 * id, y: 40, w: 400, h: 300 }, minimized: false, phase: 'open', ...extra })
