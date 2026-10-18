@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { useShellDispatch, useShellState, useWindowManager } from '../../../state/logic/contexts'
-import { useLatest } from '../../../state/logic/useLatest'
-import { HOME } from '../../../vfs/buildVfs'
-import { OVERVIEW_MODES } from '../../overview/logic/overviewModel'
-import { OVERVIEW_SEARCH_ID } from '../../overview/Overview'
+import { useShellDispatch, useShellState, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
+import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/overview/Overview'
 
 export const KEY_ACTIONS = Object.freeze({
   ARM_META: 'armMeta',

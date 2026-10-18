@@ -1,8 +1,8 @@
-import { useSettings, useShellDispatch, useShellState, useWifiLink } from '../../state/logic/contexts'
-import { Sym, WifiGlyph } from '../../icons/symbols'
+import { useSettings, useShellDispatch, useShellState, useWifiLink } from '@/components/rafeyos/state/logic/contexts'
+import { Sym, WifiGlyph } from '@/components/rafeyos/ui/icons/symbols'
 import { Clock } from './Clock'
-import { CALENDAR_POPUP } from '../calendar/CalendarPopover'
-import { OVERVIEW_MODES } from '../overview/logic/overviewModel'
+import { CALENDAR_POPUP } from '@/components/rafeyos/shell/calendar/CalendarPopover'
+import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
 
 export const QUICK_SETTINGS_POPUP = 'qs'
 

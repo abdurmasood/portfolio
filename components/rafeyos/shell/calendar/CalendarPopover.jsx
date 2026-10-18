@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react'
-import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellDispatch, useVfs } from '../../state/logic/contexts'
-import { Sym } from '../../icons/symbols'
-import { AppIcon } from '../../icons/appIcons'
+import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellDispatch, useVfs } from '@/components/rafeyos/state/logic/contexts'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
 import { calendarGrid } from './logic/calendarGrid'
-import { Switch } from '../../controls/Switch'
-import { useEscapeKey } from '../popups/logic/useEscapeKey'
-import { useNow } from '../chrome/logic/useNow'
+import { Switch } from '@/components/rafeyos/ui/controls/Switch'
+import { useEscapeKey } from '@/components/rafeyos/shell/popups/logic/useEscapeKey'
+import { useNow } from '@/components/rafeyos/shell/chrome/logic/useNow'
 
 export const CALENDAR_POPUP = 'cal'
 
