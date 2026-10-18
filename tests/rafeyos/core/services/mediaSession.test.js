@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createMediaSession } from '@/components/rafeyos/services/mediaSession'
+import { createMediaSession } from '@/components/rafeyos/core/services/mediaSession'
 
 const fakeWindow = ({ setActionHandler = vi.fn(), Metadata } = {}) => {
   const session = { setActionHandler, metadata: null, playbackState: 'none' }

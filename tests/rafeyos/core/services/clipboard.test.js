@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { browserClipboard, copyQuietly } from '@/components/rafeyos/services/clipboard'
+import { browserClipboard, copyQuietly } from '@/components/rafeyos/core/services/clipboard'
 
 describe('clipboard', () => {
   it('writes through the browser Clipboard API', async () => {
