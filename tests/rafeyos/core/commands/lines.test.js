@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pre, error, dim, link, ls, prompt } from '@/components/rafeyos/terminal/lines'
+import { pre, error, dim, link, ls, prompt } from '@/components/rafeyos/core/commands/lines'
 
 describe('line constructors', () => {
   it('build plain typed objects', () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { complete } from '@/components/rafeyos/terminal/complete'
-import { COMPLETION_COMMANDS } from '@/components/rafeyos/terminal/exec'
-import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { complete } from '@/components/rafeyos/core/commands/complete'
+import { COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
+import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 
 const vfs = buildVfs(fixtureContent)
