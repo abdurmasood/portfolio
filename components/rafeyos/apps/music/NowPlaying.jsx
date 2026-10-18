@@ -1,8 +1,8 @@
-import { useMusic, useMusicControls, useSettings, useSettingsDispatch } from '../../state/logic/contexts'
-import { VOLUME_RANGE } from '../../state/logic/settingsReducer'
-import { AppIcon } from '../../icons/appIcons'
-import { Sym } from '../../icons/symbols'
-import { Slider } from '../../controls/Slider'
+import { useMusic, useMusicControls, useSettings, useSettingsDispatch } from '@/components/rafeyos/state/logic/contexts'
+import { VOLUME_RANGE } from '@/components/rafeyos/state/logic/settingsReducer'
+import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { Slider } from '@/components/rafeyos/ui/controls/Slider'
 import { WaveScrubber } from './WaveScrubber'
 
 // There's no cover art yet: the dock's disc stands in, so the window matches the icon clicked
