@@ -1,6 +1,6 @@
 // The Activities overview's window spread, from the windows state. Pure.
-import { overviewLayout, overviewRegion } from '../../../wm/logic/geometry'
-import { WINDOW_PHASES } from '../../../state/logic/windowsReducer'
+import { overviewLayout, overviewRegion } from '@/components/rafeyos/core/geometry'
+import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
 
 export const OVERVIEW_MODES = Object.freeze({ WINDOWS: 'windows', APPS: 'apps' })
 

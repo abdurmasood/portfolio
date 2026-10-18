@@ -1,11 +1,11 @@
-import { useShellDispatch, useShellState, useSettings, useLayout } from '../state/logic/contexts'
+import { useShellDispatch, useShellState, useSettings, useLayout } from '@/components/rafeyos/state/logic/contexts'
 import { Workspace } from './desktop/Workspace'
-import { WindowLayer } from '../wm/WindowLayer'
+import { WindowLayer } from '@/components/rafeyos/wm/WindowLayer'
 import { TopBar } from './chrome/TopBar'
 import { Dock } from './chrome/Dock'
 import { ShellLayer } from './popups/ShellLayer'
 import { OverviewStage } from './overview/Overview'
-import { spreadsWindows } from './overview/logic/overviewModel'
+import { spreadsWindows } from '@/components/rafeyos/wm/logic/overviewModel'
 import { useGlobalKeys } from './chrome/logic/useGlobalKeys'
 
 // Presses inside these keep the open popup; anywhere else closes it
