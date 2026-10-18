@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { next, initialSessionState, SESSION_STATES, SESSION_EVENTS } from '@/components/rafeyos/session/logic/sessionMachine'
+import { next, initialSessionState, SESSION_STATES, SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
 
 describe('sessionMachine', () => {
   it.each([
