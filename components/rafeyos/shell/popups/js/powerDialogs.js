@@ -1,6 +1,6 @@
 // The session confirmations (mockup wording). Each counts down and runs `confirm` at zero.
 // Log Out and Power Off leave rafeyOS for the home terminal; Restart replays the boot.
-import { SESSION_EVENTS } from '../session/sessionMachine'
+import { SESSION_EVENTS } from '../../../session/sessionMachine'
 
 export const POWER_DIALOG_SECONDS = 60
 

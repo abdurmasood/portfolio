@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { useSettings, useShellDispatch } from '../state/contexts'
-import { useLatest } from '../state/useLatest'
+import { useSettings, useShellDispatch } from '../../../state/contexts'
+import { useLatest } from '../../../state/useLatest'
 
 /**
  * Shows a notification banner unless Do Not Disturb is on. Stable across DND changes,

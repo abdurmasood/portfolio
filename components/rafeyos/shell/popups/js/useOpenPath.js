@@ -1,9 +1,9 @@
 import { useCallback } from 'react'
-import { useMusicControls, useVfs, useWindowManager } from '../state/contexts'
-import { handlerFor, isAudio, isWebLink, unavailableNote } from '../apps/availability'
-import { realPath } from '../vfs/paths'
-import { displayName } from '../vfs/queries'
-import { useOpenLinkDialog } from './OpenLinkDialog'
+import { useMusicControls, useVfs, useWindowManager } from '../../../state/contexts'
+import { handlerFor, isAudio, isWebLink, unavailableNote } from '../../../apps/availability'
+import { realPath } from '../../../vfs/paths'
+import { displayName } from '../../../vfs/queries'
+import { useOpenLinkDialog } from '../OpenLinkDialog'
 import { useNotify } from './useNotify'
 
 /** The banner shown when a file needs an app that isn't built yet. */
