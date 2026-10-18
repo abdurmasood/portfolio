@@ -1,7 +1,7 @@
 // Filesystem commands: ls, cd, pwd, cat
-import { error, ls as lsLine, pre } from '../lines'
-import { realPath, absPath } from '../../vfs/paths'
-import { children, isDir } from '../../vfs/queries'
+import { error, ls as lsLine, pre } from '@/components/rafeyos/core/commands/lines'
+import { realPath, absPath } from '@/components/rafeyos/core/vfs/paths'
+import { children, isDir } from '@/components/rafeyos/core/vfs/queries'
 import { result } from './result'
 import { target } from './target'
 

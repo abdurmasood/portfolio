@@ -1,5 +1,5 @@
 // Commands that print Rafey's content: help, bio, projects, blog, skills, music, contact
-import { pre, dim } from '../lines'
+import { pre, dim } from '@/components/rafeyos/core/commands/lines'
 import { result, EFFECTS } from './result'
 
 const PROJECT_NAME_WIDTH = 22

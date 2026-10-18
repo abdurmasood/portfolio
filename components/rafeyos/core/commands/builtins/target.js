@@ -1,4 +1,4 @@
-import { resolvePath } from '../../vfs/paths'
+import { resolvePath } from '@/components/rafeyos/core/vfs/paths'
 
 // Names the home terminal advertises that don't exist as files here
 const PATH_ALIASES = Object.freeze({ 'music.txt': '~/Music' })

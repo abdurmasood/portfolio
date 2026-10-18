@@ -1,7 +1,7 @@
 // Commands that open apps or files: open/xdg-open/gio open, nautilus, text editors
-import { dim, error, pre } from '../lines'
-import { realPath } from '../../vfs/paths'
-import { isDir } from '../../vfs/queries'
+import { dim, error, pre } from '@/components/rafeyos/core/commands/lines'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
+import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { result, EFFECTS } from './result'
 import { target } from './target'
 
