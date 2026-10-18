@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { FileIcon } from '../../icons/FileIcon'
 import { Sym } from '../../icons/symbols'
 import { displayName, sizeLabel } from '../../vfs/queries'
-import { emptyState, typeLabel } from './filesView'
+import { emptyState, typeLabel } from './logic/filesView'
 
 /** Click selects (Ctrl/⌘ toggles), double click opens, a tap opens on touch, right-click opens its menu. */
 const useItemHandlers = ({ onSelect, onOpen, onMenu }) => {

@@ -2,8 +2,8 @@ import { Fragment, useEffect, useRef } from 'react'
 import { HeaderBar } from '../../wm/HeaderBar'
 import { Sym } from '../../icons/symbols'
 import { HOME } from '../../vfs/buildVfs'
-import { FILE_VIEWS } from './filesReducer'
-import { PLACES, locationLabel, pathSegments } from './filesView'
+import { FILE_VIEWS } from './logic/filesReducer'
+import { PLACES, locationLabel, pathSegments } from './logic/filesView'
 
 const Pathbar = ({ vfs, path, onGo }) => {
   const place = PLACES[path]
