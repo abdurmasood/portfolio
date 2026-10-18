@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react'
-import { useShellDispatch, useVfs } from '../../state/logic/contexts'
-import { displayLink } from '../../vfs/content'
-import { useFocusTrap } from './logic/useFocusTrap'
+import { useShellDispatch, useVfs } from '@/components/rafeyos/state/logic/contexts'
+import { displayLink } from '@/components/rafeyos/core/vfs/content'
+import { useFocusTrap } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
 
 export const OPEN_LINK_DIALOG = 'openLink'
 

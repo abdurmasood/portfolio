@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { linkLabel } from '@/components/rafeyos/shell/popups/OpenLinkDialog'
+import { linkLabel } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 
 const blockNavigation = (event) => event.preventDefault()
 beforeEach(() => document.addEventListener('click', blockNavigation))
