@@ -1,4 +1,4 @@
-import { WALLS } from '../../theme/walls'
+import { WALLS } from '@/components/rafeyos/core/theme/walls'
 
 export const STYLES = Object.freeze({ DARK: 'dark', LIGHT: 'light' })
 export const DOCK_POSITIONS = Object.freeze(['left', 'bottom', 'right'])

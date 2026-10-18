@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { WALLS } from '@/components/rafeyos/theme/walls'
-import { ACCENTS } from '@/components/rafeyos/theme/accents'
+import { WALLS } from '@/components/rafeyos/core/theme/walls'
+import { ACCENTS } from '@/components/rafeyos/core/theme/accents'
 
 describe('theme data', () => {
   it('has the four mockup wallpapers, frozen', () => {
