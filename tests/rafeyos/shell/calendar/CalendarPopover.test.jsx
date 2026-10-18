@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, renderDesktop, settle, windowsOf } from '../../../testing/renderRafeyOS'
-import { monthLabel } from '../CalendarPopover'
+import { clickDock, renderDesktop, settle, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { monthLabel } from '@/components/rafeyos/shell/calendar/CalendarPopover'
 
 afterEach(cleanup)
 

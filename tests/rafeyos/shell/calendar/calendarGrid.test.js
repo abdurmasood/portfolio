@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calendarGrid } from '../js/calendarGrid'
+import { calendarGrid } from '@/components/rafeyos/shell/calendar/js/calendarGrid'
 
 describe('calendarGrid', () => {
   it('returns 42 cells starting on Sunday, padded with neighbouring months', () => {
