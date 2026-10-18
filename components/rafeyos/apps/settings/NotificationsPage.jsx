@@ -1,5 +1,5 @@
 import { useSettings } from '../../state/logic/contexts'
-import { Switch } from '../../shell/chrome/controls'
+import { Switch } from '../../controls/Switch'
 import { BoxedGroup, Page, Row, ValueRow } from './SettingsRows'
 import { useSettingActions } from './logic/useSettingActions'
 

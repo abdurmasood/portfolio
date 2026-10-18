@@ -3,7 +3,7 @@ import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellD
 import { Sym } from '../../icons/symbols'
 import { AppIcon } from '../../icons/appIcons'
 import { calendarGrid } from './logic/calendarGrid'
-import { Switch } from '../chrome/controls'
+import { Switch } from '../../controls/Switch'
 import { useEscapeKey } from '../popups/logic/useEscapeKey'
 import { useNow } from '../chrome/logic/useNow'
 
