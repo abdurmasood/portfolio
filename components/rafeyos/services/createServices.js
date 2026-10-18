@@ -1,5 +1,5 @@
 // Everything rafeyOS needs from the outside world, injected so tests can pass fakes
-import { localStorageOrNull, sessionStorageOrNull } from './browserStorage'
+import { localStorageOrNull, sessionStorageOrNull } from '../../../lib/browserStorage'
 import { createDocumentsStore } from '../vfs/documents'
 import { browserClipboard } from './clipboard'
 import { createAudio } from './audio'

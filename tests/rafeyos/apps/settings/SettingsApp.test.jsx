@@ -4,8 +4,8 @@ import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { chooseMenuItem, clickDock, renderDesktop, rightClick, settle, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
 import { buildContent } from '@/components/rafeyos/vfs/content'
 import { age } from '@/lib/descriptions'
-import { ABOUT_TEXT, aboutRows } from '@/components/rafeyos/apps/settings/aboutData'
-import { PAGE_TITLES, isSettingsPage, sidebarPageOf } from '@/components/rafeyos/apps/settings/settingsPages'
+import { ABOUT_TEXT, aboutRows } from '@/components/rafeyos/apps/settings/logic/aboutData'
+import { PAGE_TITLES, isSettingsPage, sidebarPageOf } from '@/components/rafeyos/apps/settings/logic/settingsPages'
 
 afterEach(cleanup)
 

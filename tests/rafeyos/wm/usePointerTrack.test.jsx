@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
-import { usePointerTrack } from '@/components/rafeyos/wm/usePointerTrack'
+import { usePointerTrack } from '@/components/rafeyos/wm/logic/usePointerTrack'
 
 afterEach(cleanup)
 

@@ -1,4 +1,4 @@
-import { useVfs } from '../../state/contexts'
+import { useVfs } from '../../state/logic/contexts'
 import { HeaderBar } from '../../wm/HeaderBar'
 import { NowPlaying } from './NowPlaying'
 

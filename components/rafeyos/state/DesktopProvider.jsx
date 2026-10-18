@@ -2,12 +2,12 @@
 // dispatch contexts, plus layout, the window manager and the music player built on top of them.
 // Settings live above (SettingsProvider), so they survive a restart.
 import { useReducer } from 'react'
-import { ShellDispatchContext, ShellStateContext, WindowsDispatchContext, WindowsStateContext } from './contexts'
-import { initialWindows, windowsReducer } from './windowsReducer'
-import { initialShell, shellReducer } from './shellReducer'
+import { ShellDispatchContext, ShellStateContext, WindowsDispatchContext, WindowsStateContext } from './logic/contexts'
+import { initialWindows, windowsReducer } from './logic/windowsReducer'
+import { initialShell, shellReducer } from './logic/shellReducer'
 import { LayoutProvider } from './LayoutProvider'
 import { WindowManagerProvider } from '../wm/WindowManagerProvider'
-import { MusicProvider } from '../apps/music/MusicProvider'
+import { MusicProvider } from './MusicProvider'
 
 export const DesktopProvider = ({ children }) => {
   const [windows, windowsDispatch] = useReducer(windowsReducer, initialWindows)

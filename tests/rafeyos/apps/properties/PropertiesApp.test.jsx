@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, within } from '@testing-library/react'
 import { chooseMenuItem, desktopIcon, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
-import { propertiesRows } from '@/components/rafeyos/apps/properties/propertiesRows'
+import { propertiesRows } from '@/components/rafeyos/apps/properties/logic/propertiesRows'
 import { realVfs } from '@/components/rafeyos/vfs/testVfs'
 import { sizeLabel } from '@/components/rafeyos/vfs/queries'
 import { createDocumentsStore, mergeDocuments, trashItemPath } from '@/components/rafeyos/vfs/documents'

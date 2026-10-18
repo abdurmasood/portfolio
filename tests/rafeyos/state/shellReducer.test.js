@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { shellReducer, initialShell } from '@/components/rafeyos/state/shellReducer'
+import { shellReducer, initialShell } from '@/components/rafeyos/state/logic/shellReducer'
 import { deepFreeze } from '@/components/rafeyos/vfs/content'
 
 const reduce = (state, ...actions) => actions.reduce((s, a) => shellReducer(deepFreeze(s), a), state)

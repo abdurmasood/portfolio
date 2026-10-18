@@ -1,5 +1,5 @@
 import { Sym } from '../icons/symbols'
-import { useWindowChrome } from './WindowChromeContext'
+import { useWindowChrome } from './logic/WindowChromeContext'
 
 /** Minimize, maximize/restore and close, as in GNOME's header bars. */
 export const WindowControls = () => {

@@ -1,6 +1,6 @@
 import { HeaderBar } from '../../wm/HeaderBar'
 import { Sym } from '../../icons/symbols'
-import { SIDEBAR } from './filesView'
+import { SIDEBAR } from './logic/filesView'
 
 /** Places list; the current location is highlighted unless a search is open. */
 export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { dockMenuItems, dockMenuPlacement, fileMenuItems, wallMenuItems } from '@/components/rafeyos/shell/menus/js/menus'
-import { MENU_ITEM_KINDS, SEPARATOR, disabledItem, menuHeading, menuItem } from '@/components/rafeyos/shell/menus/js/menuItems'
-import { pathCommands } from '@/components/rafeyos/shell/menus/js/pathCommands'
-import { bandRect, passedThreshold, pathsInBand, rectsTouch, sameSelection } from '@/components/rafeyos/shell/desktop/js/rubberBand'
+import { dockMenuItems, dockMenuPlacement, fileMenuItems, wallMenuItems } from '@/components/rafeyos/shell/menus/logic/menus'
+import { MENU_ITEM_KINDS, SEPARATOR, disabledItem, menuHeading, menuItem } from '@/components/rafeyos/shell/menus/logic/menuItems'
+import { pathCommands } from '@/components/rafeyos/shell/menus/logic/pathCommands'
+import { bandRect, passedThreshold, pathsInBand, rectsTouch, sameSelection } from '@/components/rafeyos/shell/desktop/logic/rubberBand'
 import { realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 const labels = (items) => items.filter((item) => item.kind === MENU_ITEM_KINDS.ITEM).map((item) => item.label)

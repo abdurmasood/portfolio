@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useVfs, useWindowManager } from '../../state/contexts'
+import { useVfs, useWindowManager } from '../../state/logic/contexts'
 import { HeaderBar } from '../../wm/HeaderBar'
 import { Sym } from '../../icons/symbols'
 import { tilde } from '../../vfs/paths'
-import { useTerminalSession } from './useTerminalSession'
-import { STARTER_COMMAND, useTerminalKeys } from './useTerminalKeys'
+import { useTerminalSession } from './logic/useTerminalSession'
+import { STARTER_COMMAND, useTerminalKeys } from './logic/useTerminalKeys'
 import { TerminalLine, TerminalPrompt } from './TerminalLine'
 
 // The mockup focuses the prompt just after the open animation starts

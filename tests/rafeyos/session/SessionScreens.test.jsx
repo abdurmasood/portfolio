@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, dock, flushTimers, memoryStorage, openPowerMenu, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
-import { SESSION_KEY } from '@/components/rafeyos/session/sessionStore'
-import { BOOT_MS } from '@/components/rafeyos/session/useSession'
+import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
+import { BOOT_MS } from '@/components/rafeyos/session/logic/useSession'
 import { UNLOCK_KEY_DELAY_MS } from '@/components/rafeyos/session/SessionScreens'
 
 afterEach(() => {

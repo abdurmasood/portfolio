@@ -1,7 +1,7 @@
-import { useSettings } from '../../state/contexts'
+import { useSettings } from '../../state/logic/contexts'
 import { Switch } from '../../shell/chrome/controls'
 import { BoxedGroup, Page, Row, ValueRow } from './SettingsRows'
-import { useSettingActions } from './useSettingActions'
+import { useSettingActions } from './logic/useSettingActions'
 
 const NOTIFYING_APPS = Object.freeze(['Files', 'Music', 'Terminal', 'Text Editor'])
 

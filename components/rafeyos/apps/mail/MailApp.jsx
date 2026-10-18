@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { useServices, useVfs, useWindowManager } from '../../state/contexts'
+import { useServices, useVfs, useWindowManager } from '../../state/logic/contexts'
 import { HeaderBar } from '../../wm/HeaderBar'
 import { Sym } from '../../icons/symbols'
 import { copyQuietly } from '../../services/clipboard'

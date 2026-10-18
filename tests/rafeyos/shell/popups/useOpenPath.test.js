@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { unavailableBanner } from '@/components/rafeyos/shell/popups/js/useOpenPath'
+import { unavailableBanner } from '@/components/rafeyos/shell/popups/logic/useOpenPath'
 import { realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 describe('useOpenPath', () => {

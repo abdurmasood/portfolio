@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, fireEvent, within } from '@testing-library/react'
 import { clickDock, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
-import { TOP_BAR_HEIGHT } from '@/components/rafeyos/wm/geometry'
+import { TOP_BAR_HEIGHT } from '@/components/rafeyos/wm/logic/geometry'
 
 afterEach(cleanup)
 

@@ -1,8 +1,8 @@
 import { useId } from 'react'
-import { useShellDispatch, useShellState } from '../../state/contexts'
+import { useShellDispatch, useShellState } from '../../state/logic/contexts'
 import { Sym } from '../../icons/symbols'
-import { belowElement, useMenu } from '../../shell/menus/js/useMenu'
-import { choiceItem } from '../../shell/menus/js/menuItems'
+import { belowElement, useMenu } from '../../shell/menus/logic/useMenu'
+import { choiceItem } from '../../shell/menus/logic/menuItems'
 import { SAVE_FOLDERS } from '../../vfs/documents'
 
 /**

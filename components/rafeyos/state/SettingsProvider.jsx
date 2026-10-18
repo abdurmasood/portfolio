@@ -1,7 +1,7 @@
 // Settings outlive a restart (the boot splash shows the chosen accent) but not the page: in memory only.
 import { useEffect, useReducer } from 'react'
-import { SettingsDispatchContext, SettingsStateContext, useServices } from './contexts'
-import { initialSettings, settingsReducer } from './settingsReducer'
+import { SettingsDispatchContext, SettingsStateContext, useServices } from './logic/contexts'
+import { initialSettings, settingsReducer } from './logic/settingsReducer'
 import { WifiLinkProvider } from './WifiLink'
 
 /** Light or dark follows the visitor's system once, when rafeyOS starts. */

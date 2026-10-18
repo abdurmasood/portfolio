@@ -1,4 +1,6 @@
-// App metadata only. The UI layer attaches components by id; nothing here imports React.
+// App list and what each app opens. Screens live in appComponents.js so this file stays free of React.
+import { NODE_TYPES } from '../vfs/buildVfs'
+import { realPath } from '../vfs/paths'
 
 // defaultPath: what a single-instance file app opens when launched without one (e.g. from the dock)
 const app = ({ id, name, size, minSize, multi = false, inDock = true, defaultPath = '' }) =>
@@ -24,3 +26,27 @@ export const getApp = (id) => {
   if (!entry) throw new Error(`Unknown app: ${id}`)
   return entry
 }
+
+export const IMPLEMENTED_APPS = Object.freeze(['files', 'terminal', 'editor', 'music', 'mail', 'projects', 'settings', 'properties'])
+
+export const isImplemented = (appId) => IMPLEMENTED_APPS.includes(appId)
+
+// The app that would open each kind of file (GNOME's default handlers)
+const HANDLERS = Object.freeze({
+  [NODE_TYPES.DIR]: 'files',
+  [NODE_TYPES.TEXT]: 'editor',
+  [NODE_TYPES.AUDIO]: 'music',
+  [NODE_TYPES.MAILTO]: 'mail',
+})
+
+/** @returns {string|null} app id, or null for web links (opened in the browser) */
+export const handlerFor = (node) => HANDLERS[node.type] ?? null
+
+/** Web links open through the "Open Link" dialog rather than an app. Follows a symlink. */
+export const isWebLink = (vfs, path) => vfs[realPath(vfs, path)]?.type === NODE_TYPES.WEBLINK
+
+/** Audio files play as they open (Music starts the track). Follows a symlink. */
+export const isAudio = (vfs, path) => vfs[realPath(vfs, path)]?.type === NODE_TYPES.AUDIO
+
+export const unavailableNote = (appId) =>
+  appId ? `${APPS[appId]?.name ?? appId} isn't available yet` : "Opening links isn't available yet"

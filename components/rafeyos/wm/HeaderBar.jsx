@@ -1,4 +1,4 @@
-import { useWindowChrome } from './WindowChromeContext'
+import { useWindowChrome } from './logic/WindowChromeContext'
 import { WindowControls } from './WindowControls'
 
 const IGNORE_DOUBLE_CLICK = 'button, input, a, .nodrag'

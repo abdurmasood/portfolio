@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { handlerFor, isAudio, isImplemented, isWebLink, unavailableNote } from '@/components/rafeyos/apps/availability'
+import { handlerFor, isAudio, isImplemented, isWebLink, unavailableNote } from '@/components/rafeyos/apps/registry'
 import { realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 describe('app availability', () => {

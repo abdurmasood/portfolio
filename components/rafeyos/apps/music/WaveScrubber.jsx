@@ -1,7 +1,7 @@
-import { useMusic, useMusicControls } from '../../state/contexts'
+import { useMusic, useMusicControls } from '../../state/logic/contexts'
 import { formatDuration } from '../../vfs/content'
 import { Slider } from '../../shell/chrome/controls'
-import { useWaveLevels } from './useWaveLevels'
+import { useWaveLevels } from './logic/useWaveLevels'
 
 const BAR_COUNT = 48
 // The shortest bar, so quiet passages and the not-yet-decoded state still read as a waveform

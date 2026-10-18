@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { getPostBySlug, getPublishedPosts, readingMinutes } from '../../app/blog/posts'
+import { getPostBySlug, getPublishedPosts, readingMinutes } from '../../lib/posts'
 
 const POSTS = getPublishedPosts()
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { useVfs } from '../../state/contexts'
+import { useVfs } from '../../state/logic/contexts'
 import { BoxedGroup, Page, ValueRow } from './SettingsRows'
-import { ABOUT_TEXT, aboutRows } from './aboutData'
+import { ABOUT_TEXT, aboutRows } from './logic/aboutData'
 
 const Rows = ({ rows }) => rows.map((row) => <ValueRow key={row.title} title={row.title} value={row.value} />)
 

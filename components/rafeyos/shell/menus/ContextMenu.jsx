@@ -1,10 +1,10 @@
 import { useCallback, useLayoutEffect, useRef } from 'react'
-import { useLayout, useShellDispatch } from '../../state/contexts'
-import { MENU_ITEM_KINDS } from './js/menuItems'
-import { menuPosition } from './js/menuPosition'
-import { useEscapeKey } from '../popups/js/useEscapeKey'
-import { useReturnFocus } from '../popups/js/useFocusTrap'
-import { menuStep } from './js/keyboardNavigation'
+import { useLayout, useShellDispatch } from '../../state/logic/contexts'
+import { MENU_ITEM_KINDS } from './logic/menuItems'
+import { menuPosition } from './logic/menuPosition'
+import { useEscapeKey } from '../popups/logic/useEscapeKey'
+import { useReturnFocus } from '../popups/logic/useFocusTrap'
+import { menuStep } from './logic/keyboardNavigation'
 import { Sym } from '../../icons/symbols'
 
 const sizeOf = (element) => ({ w: element.offsetWidth, h: element.offsetHeight })
