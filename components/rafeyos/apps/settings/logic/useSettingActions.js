@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useSettingsDispatch } from '../../../state/logic/contexts'
+import { useSettingsDispatch } from '@/components/rafeyos/state/logic/contexts'
 
 /** settingsReducer's set and toggle as plain calls, stable for the desktop's lifetime. */
 export const useSettingActions = () => {
