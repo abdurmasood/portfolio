@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from './contact.js'
+import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '@/lib/contact.js'
 
 describe('contact constants', () => {
   it('keeps the strings the home terminal used before extraction', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { HELP_LINES, HELP_HINT, HOME_HELP_LINES, RAFEYOS_HELP_LINE, helpRow } from './help.js'
+import { HELP_LINES, HELP_HINT, HOME_HELP_LINES, RAFEYOS_HELP_LINE, helpRow } from '@/lib/help.js'
 
 // Copied verbatim from components/home/Terminal.jsx before the extraction (HEAD)
 const ORIGINAL_HELP = [

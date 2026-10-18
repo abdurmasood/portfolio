@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ARTIST_BLURB, computeLevels, computePeaks, formatTime, getFeaturedTrack } from './music.js'
+import { ARTIST_BLURB, computeLevels, computePeaks, formatTime, getFeaturedTrack } from '@/lib/music.js'
 
 describe('featured track metadata', () => {
   it('carries the measured file size and duration', () => {
