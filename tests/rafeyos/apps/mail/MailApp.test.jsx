@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, waitFor, within } from '@testing-library/react'
-import { clickDock, headerTitle, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
-import { realContent } from '@/components/rafeyos/vfs/testVfs'
+import { clickDock, headerTitle, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { realContent } from '@/tests/rafeyos/helpers/testVfs'
 
 // jsdom can't follow a mailto link; the app's own click handler still runs before this
 const blockNavigation = (event) => event.preventDefault()

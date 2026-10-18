@@ -2,10 +2,10 @@
 import { StrictMode } from 'react'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { vi } from 'vitest'
-import { RafeyOSRoot } from '../RafeyOSRoot'
-import { SESSION_KEY } from '../session/logic/sessionStore'
-import { fakeAudioFactory } from './fakeAudio'
-import { createDocumentsStore } from '../vfs/documents'
+import { RafeyOSRoot } from '@/components/rafeyos/RafeyOSRoot'
+import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
+import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
+import { createDocumentsStore } from '@/components/rafeyos/vfs/documents'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))

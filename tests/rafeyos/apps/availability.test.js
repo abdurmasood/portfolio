@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { handlerFor, isAudio, isImplemented, isWebLink, unavailableNote } from '@/components/rafeyos/apps/registry'
-import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('app availability', () => {
   it('knows which apps have a UI in this phase', () => {

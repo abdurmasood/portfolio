@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { dock, flushTimers, memoryStorage, renderDesktop, renderRafeyOS } from '@/components/rafeyos/testing/renderRafeyOS'
+import { dock, flushTimers, memoryStorage, renderDesktop, renderRafeyOS } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
 import { BOOT_MS } from '@/components/rafeyos/session/logic/useSession'
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parentOf, realPath, resolvePath, tilde, absPath } from '@/components/rafeyos/vfs/paths'
 import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
-import { fixtureContent } from '@/components/rafeyos/vfs/testVfs'
+import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 
 const vfs = buildVfs(fixtureContent)
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { unavailableBanner } from '@/components/rafeyos/shell/popups/logic/useOpenPath'
-import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('useOpenPath', () => {
   it('names the file and the missing app in the banner', () => {

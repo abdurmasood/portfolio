@@ -12,8 +12,8 @@ import {
   menuLabels,
   renderDesktop,
   windowsOf,
-} from '@/components/rafeyos/testing/renderRafeyOS'
-import { realContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
+} from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { textDocuments } from '@/components/rafeyos/vfs/queries'
 import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
 import { documentLabel } from '@/components/rafeyos/apps/editor/logic/editorMenus'

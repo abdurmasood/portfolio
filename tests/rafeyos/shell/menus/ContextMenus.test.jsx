@@ -11,7 +11,7 @@ import {
   renderDesktop,
   rightClick,
   windowsOf,
-} from '@/components/rafeyos/testing/renderRafeyOS'
+} from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { createDocumentsStore } from '@/components/rafeyos/vfs/documents'
 
 afterEach(cleanup)
