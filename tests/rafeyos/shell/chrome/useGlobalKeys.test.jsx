@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
-import { openPowerMenu, openTerminal, renderDesktop, rightClick, windowsOf } from '../../../testing/renderRafeyOS'
-import { KEY_ACTIONS, isTextField, keyDownAction } from '../js/useGlobalKeys'
-import { OVERVIEW_SEARCH_ID } from '../../overview/Overview'
+import { openPowerMenu, openTerminal, renderDesktop, rightClick, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { KEY_ACTIONS, isTextField, keyDownAction } from '@/components/rafeyos/shell/chrome/js/useGlobalKeys'
+import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/overview/Overview'
 
 afterEach(() => {
   cleanup()
