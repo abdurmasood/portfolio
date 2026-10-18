@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useLatest } from '../state/useLatest'
-import { windowOverviewTransform } from '../shell/overviewModel'
+import { windowOverviewTransform } from '../shell/overview/js/overviewModel'
 
 // Matches the mockup's overview spread (transform .3s)
 export const OVERVIEW_TRANSITION_MS = 300
