@@ -1,9 +1,9 @@
 import { useId } from 'react'
-import { useShellDispatch, useShellState } from '../../state/logic/contexts'
-import { Sym } from '../../icons/symbols'
-import { belowElement, useMenu } from '../../shell/menus/logic/useMenu'
-import { choiceItem } from '../../shell/menus/logic/menuItems'
-import { SAVE_FOLDERS } from '../../vfs/documents'
+import { useShellDispatch, useShellState } from '@/components/rafeyos/state/logic/contexts'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { belowElement, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
+import { choiceItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
+import { SAVE_FOLDERS } from '@/components/rafeyos/core/vfs/documents'
 
 /**
  * The save dialog's folder picker, as a GTK dropdown: a button showing the folder, opening the
