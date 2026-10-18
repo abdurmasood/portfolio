@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useShellDispatch } from '../../state/logic/contexts'
-import { AppIcon } from '../../icons/appIcons'
+import { useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
+import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
 
 export const BANNER_MS = 4200
 

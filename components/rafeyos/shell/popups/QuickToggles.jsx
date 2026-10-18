@@ -1,8 +1,8 @@
-import { useSettings, useSettingsDispatch, useWifiLink } from '../../state/logic/contexts'
-import { STYLES, VOLUME_RANGE } from '../../state/logic/settingsReducer'
-import { Sym } from '../../icons/symbols'
-import { Slider } from '../../controls/Slider'
-import { WifiStatusIcon } from '../chrome/TopBar'
+import { useSettings, useSettingsDispatch, useWifiLink } from '@/components/rafeyos/state/logic/contexts'
+import { STYLES, VOLUME_RANGE } from '@/components/rafeyos/state/logic/settingsReducer'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { Slider } from '@/components/rafeyos/ui/controls/Slider'
+import { WifiStatusIcon } from '@/components/rafeyos/shell/chrome/TopBar'
 
 // Quick Settings' toggle tiles, in the mockup's order. `key` is the setting each one toggles.
 const TOGGLES = Object.freeze([
