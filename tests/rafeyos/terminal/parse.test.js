@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parse } from './parse'
+import { parse } from '@/components/rafeyos/terminal/parse'
 
 describe('parse', () => {
   it('splits name, args and flags on any whitespace', () => {

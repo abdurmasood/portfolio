@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { complete } from './complete'
-import { COMPLETION_COMMANDS } from './exec'
-import { buildVfs } from '../vfs/buildVfs'
-import { fixtureContent } from '../vfs/testVfs'
+import { complete } from '@/components/rafeyos/terminal/complete'
+import { COMPLETION_COMMANDS } from '@/components/rafeyos/terminal/exec'
+import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { fixtureContent } from '@/components/rafeyos/vfs/testVfs'
 
 const vfs = buildVfs(fixtureContent)
 const tab = (input, { cwd = '~', tabCount = 1 } = {}) =>

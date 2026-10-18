@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { exec, COMMANDS, COMPLETION_COMMANDS } from './exec'
-import { buildVfs } from '../vfs/buildVfs'
-import { fixtureContent, realContent, realVfs } from '../vfs/testVfs'
+import { exec, COMMANDS, COMPLETION_COMMANDS } from '@/components/rafeyos/terminal/exec'
+import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { fixtureContent, realContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 const vfs = buildVfs(fixtureContent)
 const run = (raw, cwd = '~', content = fixtureContent) => exec(raw, { vfs: content === fixtureContent ? vfs : realVfs, cwd, content })
