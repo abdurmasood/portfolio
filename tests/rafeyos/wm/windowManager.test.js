@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createWindowManager } from '@/components/rafeyos/wm/logic/windowManager'
 import { initialWindows, windowsReducer } from '@/components/rafeyos/state/logic/windowsReducer'
 import { SNAP_MODES } from '@/components/rafeyos/wm/logic/geometry'
-import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { mergeDocuments } from '@/components/rafeyos/vfs/documents'
 
 const layout = { area: { x: 54, y: 28, w: 970, h: 740 }, compact: false }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyState, floatbarText, listItems, locationLabel, pathSegments, typeLabel, windowTitle } from '@/components/rafeyos/apps/files/logic/filesView'
 import { initialFilesState } from '@/components/rafeyos/apps/files/logic/filesReducer'
-import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 const at = (path, search = null) => ({ ...initialFilesState(path), search })
 

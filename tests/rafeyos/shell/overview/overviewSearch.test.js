@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { RESULT_KINDS, firstResult, hasResults, overviewApps, overviewResults, MAX_FILE_RESULTS } from '@/components/rafeyos/shell/overview/logic/overviewSearch'
-import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('overview search', () => {
   it('offers every launchable app, in registry order, without Properties', () => {
