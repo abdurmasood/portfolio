@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildContent, htmlToText, slugify, displayLink, shapeForIndex, deepFreeze, formatDuration } from '@/components/rafeyos/vfs/content'
+import { buildContent, htmlToText, slugify, displayLink, shapeForIndex, deepFreeze, formatDuration } from '@/components/rafeyos/core/vfs/content'
 import { age } from '@/lib/descriptions'
 import { projects } from '@/lib/projects'
 import { getPublishedPosts } from '@/lib/posts'

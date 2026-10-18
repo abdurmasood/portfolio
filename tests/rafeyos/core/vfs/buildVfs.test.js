@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildVfs, HOME, TRASH } from '@/components/rafeyos/vfs/buildVfs'
+import { buildVfs, HOME, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('buildVfs', () => {

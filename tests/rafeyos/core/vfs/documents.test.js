@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
-import { children } from '@/components/rafeyos/vfs/queries'
+import { children } from '@/components/rafeyos/core/vfs/queries'
 import {
   DOCUMENTS,
   DOCUMENTS_KEY,
@@ -14,7 +14,7 @@ import {
   restoreFromTrash,
   saveChoice,
   trashItemPath,
-} from '@/components/rafeyos/vfs/documents'
+} from '@/components/rafeyos/core/vfs/documents'
 
 const storage = (raw = null) => {
   const map = new Map(raw === null ? [] : [[DOCUMENTS_KEY, raw]])
