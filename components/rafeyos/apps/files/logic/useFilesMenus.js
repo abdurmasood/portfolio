@@ -1,13 +1,13 @@
-import { useVfs, useWindowManager } from '../../../state/logic/contexts'
-import { useOpenPath } from '../../../shell/popups/logic/useOpenPath'
-import { belowElement, pointOfEvent, useMenu } from '../../../shell/menus/logic/useMenu'
-import { pathCommands } from '../../../shell/menus/logic/pathCommands'
-import { fileMenuItems } from '../../../shell/menus/logic/menus'
-import { useEmptyTrash, useTrashActions } from '../../../shell/menus/logic/useTrashActions'
-import { TRASH } from '../../../vfs/buildVfs'
-import { isDir } from '../../../vfs/queries'
+import { useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
+import { belowElement, pointOfEvent, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
+import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
+import { fileMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
+import { useEmptyTrash, useTrashActions } from '@/components/rafeyos/ui/menus/logic/useTrashActions'
+import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
-import { projectForPath } from '../../../vfs/projectPaths'
+import { projectForPath } from '@/components/rafeyos/core/vfs/projectPaths'
 
 // View options sits near the window's right edge, so it opens inwards (mockup offset)
 const VIEW_OPTIONS_SHIFT = 120

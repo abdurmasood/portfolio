@@ -1,6 +1,6 @@
 // What a Files window shows for its reducer state. Pure, so the components stay thin.
-import { HOME, TRASH } from '../../../vfs/buildVfs'
-import { children, displayName, isDir, kindOf, search, sizeLabel } from '../../../vfs/queries'
+import { HOME, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { children, displayName, isDir, kindOf, search, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 
 export const RECENT = 'recent'
 export const STARRED = 'starred'

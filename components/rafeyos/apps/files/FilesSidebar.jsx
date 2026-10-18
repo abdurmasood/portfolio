@@ -1,5 +1,5 @@
-import { HeaderBar } from '../../wm/HeaderBar'
-import { Sym } from '../../icons/symbols'
+import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { SIDEBAR } from './logic/filesView'
 
 /** Places list; the current location is highlighted unless a search is open. */
