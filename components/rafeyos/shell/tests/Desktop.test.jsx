@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '../testing/renderRafeyOS'
-import { createDocumentsStore, trashItemPath } from '../vfs/documents'
+import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '../../testing/renderRafeyOS'
+import { createDocumentsStore, trashItemPath } from '../../vfs/documents'
 
 afterEach(cleanup)
 
