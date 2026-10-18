@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useLayout, useSettings, useVfs } from '../state/contexts'
-import { HOME } from '../vfs/buildVfs'
-import { children } from '../vfs/queries'
+import { useLayout, useSettings, useVfs } from '../../../state/contexts'
+import { HOME } from '../../../vfs/buildVfs'
+import { children } from '../../../vfs/queries'
 import { iconLayout } from './iconLayout'
 
 export const DESKTOP = '~/Desktop'

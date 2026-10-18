@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { useSettings, useShellDispatch, useWindowManager } from '../state/contexts'
-import { WALLS } from '../theme/walls'
+import { useSettings, useShellDispatch, useWindowManager } from '../../state/contexts'
+import { WALLS } from '../../theme/walls'
 import { DesktopIcons } from './DesktopIcons'
-import { DESKTOP, useDesktopIconModel } from './useDesktopIconModel'
-import { useRubberBand } from './useRubberBand'
-import { pointOfEvent, useMenu } from './useMenu'
-import { wallMenuItems } from './menus'
-import { useOpenSettings } from '../apps/settings/useOpenSettings'
-import { SETTINGS_PAGES } from '../apps/settings/settingsPages'
+import { DESKTOP, useDesktopIconModel } from './js/useDesktopIconModel'
+import { useRubberBand } from './js/useRubberBand'
+import { pointOfEvent, useMenu } from '../menus/js/useMenu'
+import { wallMenuItems } from '../menus/js/menus'
+import { useOpenSettings } from '../../apps/settings/useOpenSettings'
+import { SETTINGS_PAGES } from '../../apps/settings/settingsPages'
 
 /** Right-click on the wallpaper. */
 const useWallMenu = (selectAll) => {
