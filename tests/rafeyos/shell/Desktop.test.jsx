@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
 
 afterEach(cleanup)

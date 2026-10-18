@@ -2,7 +2,7 @@
 // Phone widths (under 760px): bottom dock with 34px icons, maximized windows, narrow sidebars, taps
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, dock, flushTimers, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { clickDock, dock, flushTimers, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { RESIZE_DEBOUNCE_MS } from '@/components/rafeyos/shell/chrome/logic/useViewport'
 
 const WIDE = { w: window.innerWidth, h: window.innerHeight }

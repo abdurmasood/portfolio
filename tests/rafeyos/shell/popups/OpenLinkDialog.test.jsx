@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { clickDock, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { linkLabel } from '@/components/rafeyos/shell/popups/OpenLinkDialog'
 
 const blockNavigation = (event) => event.preventDefault()
