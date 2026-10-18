@@ -1,9 +1,9 @@
 // rafeyOS with its dependencies injected; RafeyOS.jsx wires in the real browser services
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { ServicesContext, VfsContext } from './state/logic/contexts'
-import { buildContent } from './vfs/content'
-import { buildVfs } from './vfs/buildVfs'
-import { asDocuments, documentName, emptyTrash, filePath, isSaveFolder, mergeDocuments, moveToTrash, restoreFromTrash } from './vfs/documents'
+import { buildContent } from '@/components/rafeyos/core/vfs/content'
+import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
+import { asDocuments, documentName, emptyTrash, filePath, isSaveFolder, mergeDocuments, moveToTrash, restoreFromTrash } from '@/components/rafeyos/core/vfs/documents'
 import { SessionGate } from './session/SessionGate'
 
 /** @param {{ services: object }} props - see services/createServices.js */

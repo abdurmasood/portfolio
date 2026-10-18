@@ -1,14 +1,14 @@
 // The only adapter between the site's content sources and rafeyOS. Everything downstream
 // (vfs, terminal commands, apps) reads the plain object built here, never lib/* directly.
-import { age, bioDescription, skillsDescription, compactReadme } from '../../../lib/descriptions'
-import { projects, getVisibleProjects } from '../../../lib/projects'
-import { MILESTONES, ARTIST_BLURB, getFeaturedTrack } from '../../../lib/music'
-import { getPublishedPosts, readingMinutes } from '../../../lib/posts'
-import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '../../../lib/contact'
-import { HELP_LINES, HELP_HINT } from '../../../lib/help'
+import { age, bioDescription, skillsDescription, compactReadme } from '@/lib/descriptions'
+import { projects, getVisibleProjects } from '@/lib/projects'
+import { MILESTONES, ARTIST_BLURB, getFeaturedTrack } from '@/lib/music'
+import { getPublishedPosts, readingMinutes } from '@/lib/posts'
+import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '@/lib/contact'
+import { HELP_LINES, HELP_HINT } from '@/lib/help'
 
 // "2:38": track times as the home terminal's player shows them; the waveform's 0..1 bar levels
-export { formatTime as formatDuration, computeLevels } from '../../../lib/music'
+export { formatTime as formatDuration, computeLevels } from '@/lib/music'
 
 // Indexed like the 3D /projects scene (app/projects/Projects.jsx): by position in the FULL list
 export const PROJECT_SHAPES = Object.freeze(['octa', 'torus', 'icosa', 'sphere', 'cylinder', 'tetra', 'knot'])
