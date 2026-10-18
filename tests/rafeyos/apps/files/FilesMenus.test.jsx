@@ -11,8 +11,8 @@ import {
   renderDesktop,
   rightClick,
   windowsOf,
-} from '../../testing/renderRafeyOS'
-import { createDocumentsStore, trashItemPath } from '../../vfs/documents'
+} from '@/components/rafeyos/testing/renderRafeyOS'
+import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
 
 afterEach(cleanup)
 

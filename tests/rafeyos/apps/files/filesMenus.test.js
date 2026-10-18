@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
-import { filesReducer, initialFilesState } from './filesReducer'
+import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from '@/components/rafeyos/apps/files/filesMenus'
+import { filesReducer, initialFilesState } from '@/components/rafeyos/apps/files/filesReducer'
 
 describe('Files menus', () => {
   it('disables the terminal in Trash only', () => {
