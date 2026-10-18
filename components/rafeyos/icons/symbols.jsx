@@ -1,11 +1,36 @@
 // 16px symbolic icons from the approved mockup (Yaru-style strokes in currentColor)
 
+// Wi-Fi bands are filled ring segments fanned out from a point just below the icon
+const WIFI_ORIGIN = Object.freeze({ x: 8, y: 13.6 })
+const WIFI_SPREAD_RADIANS = (42 * Math.PI) / 180
+const wifiPoint = (radius, angle) =>
+  `${(WIFI_ORIGIN.x + Math.cos(angle) * radius).toFixed(2)} ${(WIFI_ORIGIN.y + Math.sin(angle) * radius).toFixed(2)}`
+const bandPath = (innerRadius, outerRadius) => {
+  const start = -Math.PI / 2 - WIFI_SPREAD_RADIANS
+  const end = -Math.PI / 2 + WIFI_SPREAD_RADIANS
+  return `M${wifiPoint(outerRadius, start)} A${outerRadius} ${outerRadius} 0 0 1 ${wifiPoint(outerRadius, end)} `
+    + `L${wifiPoint(innerRadius, end)} A${innerRadius} ${innerRadius} 0 0 0 ${wifiPoint(innerRadius, start)} Z`
+}
+
 // Inner, middle, outer. The reconnect sweep shows one at a time, then all three.
-export const WIFI_ARCS = Object.freeze([
-  'M6.1 11a2.9 2.9 0 0 1 3.8 0',
-  'M3.8 8.6a6.2 6.2 0 0 1 8.4 0',
-  'M1.5 6.2a9.5 9.5 0 0 1 13 0',
-])
+export const WIFI_ARCS = Object.freeze([bandPath(3.7, 5.5), bandPath(7, 8.8), bandPath(10.3, 12)])
+
+// Filled 8-tooth cog with a centre hole (evenodd)
+const GEAR_TEETH = 8
+const gearPath = () => {
+  const points = []
+  const toothWidth = Math.PI / GEAR_TEETH
+  for (let tooth = 0; tooth < GEAR_TEETH; tooth += 1) {
+    const angle = (tooth / GEAR_TEETH) * Math.PI * 2
+    const outline = [[-0.5, 5.6], [-0.32, 7.4], [0.32, 7.4], [0.5, 5.6], [1, 5.6]]
+    outline.forEach(([offset, radius]) => {
+      const at = angle + offset * toothWidth
+      points.push(`${(8 + Math.cos(at) * radius).toFixed(2)} ${(8 + Math.sin(at) * radius).toFixed(2)}`)
+    })
+  }
+  return `M${points.join(' L')} Z M10.4 8 A2.4 2.4 0 1 0 5.6 8 A2.4 2.4 0 1 0 10.4 8 Z`
+}
+const GEAR_PATH = gearPath()
 
 const SYMBOL_SVG = Object.freeze({
   viewBox: '0 0 16 16',
@@ -17,8 +42,9 @@ const SYMBOL_SVG = Object.freeze({
   'aria-hidden': true,
 })
 
-const wifiDot = () => <circle cx="8" cy="13" r=".6" fill="currentColor" />
-const wifiArc = (d) => <path key={d} d={d} />
+const FILLED = Object.freeze({ fill: 'currentColor', stroke: 'none' })
+const wifiDot = () => <circle cx="8" cy="12.4" r="1.6" {...FILLED} />
+const wifiArc = (d) => <path key={d} d={d} {...FILLED} />
 
 const SYMBOL_PATHS = Object.freeze({
   back: <path d="M10 3L5 8l5 5" />,
@@ -48,9 +74,9 @@ const SYMBOL_PATHS = Object.freeze({
   vol: <><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z" fill="currentColor" /><path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.5a6.5 6.5 0 0 1 0 9" /></>,
   vol0: <><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z" fill="currentColor" /><path d="M11 6l3 4M14 6l-3 4" /></>,
   wifi: <>{WIFI_ARCS.map(wifiArc)}{wifiDot()}</>,
-  wifioff: <><path d="M3.8 8.6a6.2 6.2 0 0 1 8.4 0M6.1 11a2.9 2.9 0 0 1 3.8 0" opacity=".35" /><path d="M2 2l12 12" /></>,
+  wifioff: <><path d={WIFI_ARCS[0] + WIFI_ARCS[1]} {...FILLED} opacity=".35" /><path d="M2 2l12 12" /></>,
   power: <><path d="M8 2v6" /><path d="M4.6 4.4a5 5 0 1 0 6.8 0" /></>,
-  gear: <><circle cx="8" cy="8" r="2.2" /><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" /></>,
+  gear: <path d={GEAR_PATH} {...FILLED} fillRule="evenodd" />,
   lock: <><rect x="3.5" y="7" width="9" height="7" rx="1.5" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" /></>,
   camera: <><rect x="1.75" y="4.5" width="12.5" height="9" rx="1.5" /><circle cx="8" cy="9" r="2.5" /><path d="M5.5 4.5l1-2h3l1 2" /></>,
   bt: <path d="M5 5l6 6-3 2.5V2.5L11 5l-6 6" />,
@@ -84,11 +110,11 @@ export const Sym = ({ name, className }) => {
   )
 }
 
-/** All three arcs. While reconnecting, only `arc` is visible and the others fade out. Null means connected. */
+/** All three bands. While reconnecting, only `arc` is visible and the others fade out. Null means connected. */
 export const WifiGlyph = ({ arc = null }) => (
   <svg {...SYMBOL_SVG} className="wifi-live">
     {WIFI_ARCS.map((d, index) => (
-      <path key={d} d={d} style={{ opacity: arc == null || index === arc ? 1 : 0 }} />
+      <path key={d} d={d} {...FILLED} style={{ opacity: arc == null || index === arc ? 1 : 0 }} />
     ))}
     {wifiDot()}
   </svg>
