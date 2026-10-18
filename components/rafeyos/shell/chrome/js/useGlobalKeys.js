@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { useShellDispatch, useShellState, useWindowManager } from '../state/contexts'
-import { useLatest } from '../state/useLatest'
-import { HOME } from '../vfs/buildVfs'
-import { OVERVIEW_MODES } from './overviewModel'
-import { OVERVIEW_SEARCH_ID } from './Overview'
+import { useShellDispatch, useShellState, useWindowManager } from '../../../state/contexts'
+import { useLatest } from '../../../state/useLatest'
+import { HOME } from '../../../vfs/buildVfs'
+import { OVERVIEW_MODES } from '../../overview/js/overviewModel'
+import { OVERVIEW_SEARCH_ID } from '../../overview/Overview'
 
 export const KEY_ACTIONS = Object.freeze({
   ARM_META: 'armMeta',

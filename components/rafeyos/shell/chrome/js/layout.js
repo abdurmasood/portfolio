@@ -1,5 +1,5 @@
 // Viewport-derived layout: compact mode, where the dock sits and the windows' work area
-import { workArea } from '../wm/geometry'
+import { workArea } from '../../../wm/geometry'
 
 export const COMPACT_BREAKPOINT = 760
 export const COMPACT_ICON_SIZE = 34
