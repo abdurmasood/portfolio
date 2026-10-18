@@ -3,7 +3,7 @@
 import { age, bioDescription, skillsDescription, compactReadme } from '../../../lib/descriptions'
 import { projects, getVisibleProjects } from '../../../lib/projects'
 import { MILESTONES, ARTIST_BLURB, getFeaturedTrack } from '../../../lib/music'
-import { getPublishedPosts, readingMinutes } from '../../../app/blog/posts'
+import { getPublishedPosts, readingMinutes } from '../../../lib/posts'
 import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '../../../lib/contact'
 import { HELP_LINES, HELP_HINT } from '../../../lib/help'
 

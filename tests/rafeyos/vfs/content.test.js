@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildContent, htmlToText, slugify, displayLink, shapeForIndex, deepFreeze, formatDuration } from '@/components/rafeyos/vfs/content'
 import { age } from '@/lib/descriptions'
 import { projects } from '@/lib/projects'
-import { getPublishedPosts } from '@/app/blog/posts'
+import { getPublishedPosts } from '@/lib/posts'
 
 describe('htmlToText', () => {
   it('strips tags and decodes the entities the terminal strings use', () => {
