@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react'
-import { useVfs, useWindowManager } from '../../state/contexts'
+import { useVfs, useWindowManager } from '../../state/logic/contexts'
 import { HeaderBar } from '../../wm/HeaderBar'
 import { FileIcon } from '../../icons/FileIcon'
 import { realPath } from '../../vfs/paths'
 import { displayName, isDir } from '../../vfs/queries'
-import { propertiesRows } from './propertiesRows'
+import { propertiesRows } from './logic/propertiesRows'
 
 export const propertiesTitle = (name) => `${name} Properties`
 
