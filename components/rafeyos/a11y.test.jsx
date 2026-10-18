@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, dock, openPowerMenu, renderDesktop, rightClick, settle, windowsOf } from './testing/renderRafeyOS'
-import { overviewApps } from './shell/overviewSearch'
+import { overviewApps } from './shell/overview/js/overviewSearch'
 import { getApp } from './apps/registry'
 
 afterEach(cleanup)

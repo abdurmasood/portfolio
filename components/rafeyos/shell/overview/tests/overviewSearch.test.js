@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { RESULT_KINDS, firstResult, hasResults, overviewApps, overviewResults, MAX_FILE_RESULTS } from './overviewSearch'
-import { realVfs } from '../vfs/testVfs'
+import { RESULT_KINDS, firstResult, hasResults, overviewApps, overviewResults, MAX_FILE_RESULTS } from '../js/overviewSearch'
+import { realVfs } from '../../../vfs/testVfs'
 
 describe('overview search', () => {
   it('offers every launchable app, in registry order, without Properties', () => {
