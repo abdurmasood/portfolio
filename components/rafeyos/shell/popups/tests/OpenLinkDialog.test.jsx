@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
-import { linkLabel } from './OpenLinkDialog'
+import { clickDock, renderDesktop, windowsOf } from '../../../testing/renderRafeyOS'
+import { linkLabel } from '../OpenLinkDialog'
 
 const blockNavigation = (event) => event.preventDefault()
 beforeEach(() => document.addEventListener('click', blockNavigation))
