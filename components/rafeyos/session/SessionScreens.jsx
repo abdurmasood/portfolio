@@ -2,9 +2,9 @@
 import { useEffect } from 'react'
 import { useSettings } from '../state/contexts'
 import { WALLS } from '../theme/walls'
-import { formatClock, formatLongDate, formatTime } from '../shell/clockFormat'
-import { useNow } from '../shell/useNow'
-import { StatusIcons } from '../shell/TopBar'
+import { formatClock, formatLongDate, formatTime } from '../shell/chrome/js/clockFormat'
+import { useNow } from '../shell/chrome/js/useNow'
+import { StatusIcons } from '../shell/chrome/TopBar'
 
 // The mockup waits this long before listening for keys, so the key that locked can't unlock
 export const UNLOCK_KEY_DELAY_MS = 50
