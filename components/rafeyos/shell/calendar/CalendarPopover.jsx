@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react'
-import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellDispatch, useVfs } from '../state/contexts'
-import { Sym } from '../icons/symbols'
-import { AppIcon } from '../icons/appIcons'
-import { calendarGrid } from './calendarGrid'
-import { Switch } from './controls'
-import { useEscapeKey } from './useEscapeKey'
-import { useNow } from './useNow'
+import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellDispatch, useVfs } from '../../state/contexts'
+import { Sym } from '../../icons/symbols'
+import { AppIcon } from '../../icons/appIcons'
+import { calendarGrid } from './js/calendarGrid'
+import { Switch } from '../chrome/controls'
+import { useEscapeKey } from '../popups/js/useEscapeKey'
+import { useNow } from '../chrome/js/useNow'
 
 export const CALENDAR_POPUP = 'cal'
 
