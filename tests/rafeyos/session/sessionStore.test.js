@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { rememberDesktop, forgetDesktop, isDesktopRemembered, SESSION_KEY } from '@/components/rafeyos/session/sessionStore'
+import { rememberDesktop, forgetDesktop, isDesktopRemembered, SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
 
 const memoryStorage = () => {
   const items = new Map()
