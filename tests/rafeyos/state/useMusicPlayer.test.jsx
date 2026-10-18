@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { clickDock, fakeServices, openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
-import { fakeAudioFactory } from '@/components/rafeyos/testing/fakeAudio'
+import { clickDock, fakeServices, openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
 import { ServicesContext, ShellDispatchContext, VfsContext, useMusic, useMusicControls } from '@/components/rafeyos/state/logic/contexts'
 import { SettingsProvider } from '@/components/rafeyos/state/SettingsProvider'
 import { buildContent } from '@/components/rafeyos/vfs/content'

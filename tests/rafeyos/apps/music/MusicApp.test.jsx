@@ -7,8 +7,8 @@ import {
   renderDesktop,
   settle,
   windowsOf,
-} from '@/components/rafeyos/testing/renderRafeyOS'
-import { fakeAudioFactory } from '@/components/rafeyos/testing/fakeAudio'
+} from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
 
 afterEach(cleanup)
 
