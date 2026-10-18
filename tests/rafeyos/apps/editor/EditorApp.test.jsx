@@ -16,7 +16,7 @@ import {
 import { realContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
 import { textDocuments } from '@/components/rafeyos/vfs/queries'
 import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
-import { documentLabel } from '@/components/rafeyos/apps/editor/editorMenus'
+import { documentLabel } from '@/components/rafeyos/apps/editor/logic/editorMenus'
 
 afterEach(cleanup)
 
