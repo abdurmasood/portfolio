@@ -2,9 +2,9 @@
 // Accessibility audit through RTL's role queries: names, roles and keyboard paths
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, dock, openPowerMenu, renderDesktop, rightClick, settle, windowsOf } from './testing/renderRafeyOS'
-import { overviewApps } from './shell/overview/js/overviewSearch'
-import { getApp } from './apps/registry'
+import { clickDock, dock, openPowerMenu, renderDesktop, rightClick, settle, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { overviewApps } from '@/components/rafeyos/shell/overview/js/overviewSearch'
+import { getApp } from '@/components/rafeyos/apps/registry'
 
 afterEach(cleanup)
 

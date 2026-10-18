@@ -8,7 +8,7 @@ afterEach(cleanup)
 
 describe('RafeyOS entry', () => {
   it('is what lib/loadRafeyOS loads, and boots with the real browser services', async () => {
-    const { loadRafeyOS } = await import('../../lib/loadRafeyOS')
+    const { loadRafeyOS } = await import('@/lib/loadRafeyOS')
     const { RafeyOS } = await loadRafeyOS()
 
     render(<RafeyOS />)

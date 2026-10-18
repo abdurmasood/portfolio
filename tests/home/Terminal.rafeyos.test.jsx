@@ -4,11 +4,11 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 const push = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
-vi.mock('../../lib/loadRafeyOS', () => ({ loadRafeyOS: vi.fn(() => Promise.resolve({})) }))
+vi.mock('@/lib/loadRafeyOS', () => ({ loadRafeyOS: vi.fn(() => Promise.resolve({})) }))
 
-const { default: Terminal } = await import('./Terminal')
-const { TerminalProvider } = await import('./TerminalProvider')
-const { loadRafeyOS } = await import('../../lib/loadRafeyOS')
+const { default: Terminal } = await import('@/components/home/Terminal')
+const { TerminalProvider } = await import('@/components/home/TerminalProvider')
+const { loadRafeyOS } = await import('@/lib/loadRafeyOS')
 
 const renderTerminal = () =>
   render(
