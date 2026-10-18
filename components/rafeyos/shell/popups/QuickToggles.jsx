@@ -1,8 +1,8 @@
-import { useSettings, useSettingsDispatch, useWifiLink } from '../state/contexts'
-import { STYLES, VOLUME_RANGE } from '../state/settingsReducer'
-import { Sym } from '../icons/symbols'
-import { Slider } from './controls'
-import { WifiStatusIcon } from './TopBar'
+import { useSettings, useSettingsDispatch, useWifiLink } from '../../state/contexts'
+import { STYLES, VOLUME_RANGE } from '../../state/settingsReducer'
+import { Sym } from '../../icons/symbols'
+import { Slider } from '../chrome/controls'
+import { WifiStatusIcon } from '../chrome/TopBar'
 
 // Quick Settings' toggle tiles, in the mockup's order. `key` is the setting each one toggles.
 const TOGGLES = Object.freeze([

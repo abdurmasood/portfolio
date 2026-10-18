@@ -1,13 +1,13 @@
-import { useShellState } from '../state/contexts'
+import { useShellState } from '../../state/contexts'
 import { QuickSettings } from './QuickSettings'
 import { PowerDialog } from './PowerDialog'
-import { isPowerDialog } from './powerDialogs'
+import { isPowerDialog } from './js/powerDialogs'
 import { OPEN_LINK_DIALOG, OpenLinkDialog } from './OpenLinkDialog'
-import { ContextMenu } from './ContextMenu'
+import { ContextMenu } from '../menus/ContextMenu'
 import { Banner } from './Banner'
-import { CALENDAR_POPUP, CalendarPopover } from './CalendarPopover'
-import { QUICK_SETTINGS_POPUP } from './TopBar'
-import { SnapPreview } from '../wm/SnapPreview'
+import { CALENDAR_POPUP, CalendarPopover } from '../calendar/CalendarPopover'
+import { QUICK_SETTINGS_POPUP } from '../chrome/TopBar'
+import { SnapPreview } from '../../wm/SnapPreview'
 
 const ShellDialog = ({ kind }) => {
   if (isPowerDialog(kind)) return <PowerDialog kind={kind} />

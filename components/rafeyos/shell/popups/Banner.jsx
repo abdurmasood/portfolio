@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useShellDispatch } from '../state/contexts'
-import { AppIcon } from '../icons/appIcons'
+import { useShellDispatch } from '../../state/contexts'
+import { AppIcon } from '../../icons/appIcons'
 
 export const BANNER_MS = 4200
 
