@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { projectForPath, projectIndexFor } from '@/components/rafeyos/vfs/projectPaths'
-import { buildContent } from '@/components/rafeyos/vfs/content'
-import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { projectForPath, projectIndexFor } from '@/components/rafeyos/core/vfs/projectPaths'
+import { buildContent } from '@/components/rafeyos/core/vfs/content'
+import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('project paths', () => {
