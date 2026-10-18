@@ -6,7 +6,7 @@ import { DESKTOP, useDesktopIconModel } from './js/useDesktopIconModel'
 import { useRubberBand } from './js/useRubberBand'
 import { pointOfEvent, useMenu } from '../menus/js/useMenu'
 import { wallMenuItems } from '../menus/js/menus'
-import { useOpenSettings } from '../../apps/settings/useOpenSettings'
+import { useOpenSettings } from '../popups/js/useOpenSettings'
 import { SETTINGS_PAGES } from '../../apps/settings/settingsPages'
 
 /** Right-click on the wallpaper. */

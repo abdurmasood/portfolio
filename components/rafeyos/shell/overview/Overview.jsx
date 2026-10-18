@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '../../state/contexts'
 import { getApp } from '../../apps/registry'
-import { useOpenSettings } from '../../apps/settings/useOpenSettings'
+import { useOpenSettings } from '../popups/js/useOpenSettings'
 import { AppIcon } from '../../icons/appIcons'
 import { FileIcon } from '../../icons/FileIcon'
 import { Sym } from '../../icons/symbols'

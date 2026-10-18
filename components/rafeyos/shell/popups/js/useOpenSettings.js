@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { useShellDispatch, useWindowManager } from '../../state/contexts'
-import { SETTINGS_PAGES } from './settingsPages'
+import { useShellDispatch, useWindowManager } from '../../../state/contexts'
+import { SETTINGS_PAGES } from '../../../apps/settings/settingsPages'
 
 /** Opens Settings (one window) on a page; if it's already open, it comes forward and turns to the page. */
 export const useOpenSettings = () => {
