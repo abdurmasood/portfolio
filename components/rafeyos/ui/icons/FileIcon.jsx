@@ -1,6 +1,6 @@
 // File and folder icons from the approved mockup; folders take the accent colour
-import { HOME, TRASH, NODE_TYPES } from '../vfs/buildVfs'
-import { children } from '../vfs/queries'
+import { HOME, TRASH, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { children } from '@/components/rafeyos/core/vfs/queries'
 import { MailIcon, TrashIcon } from './appIcons'
 
 const FOLDER_TAB = { fill: 'color-mix(in srgb, var(--accent) 62%, #000)' }
