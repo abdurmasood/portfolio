@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeLayout, COMPACT_ICON_SIZE } from '@/components/rafeyos/shell/chrome/logic/layout'
+import { computeLayout, COMPACT_ICON_SIZE } from '@/components/rafeyos/state/logic/layout'
 
 describe('layout', () => {
   it('puts the dock where settings say on wide screens', () => {

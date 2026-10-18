@@ -1,5 +1,5 @@
 // Viewport-derived layout: compact mode, where the dock sits and the windows' work area
-import { workArea } from '../../../wm/logic/geometry'
+import { workArea } from '@/components/rafeyos/core/geometry'
 
 export const COMPACT_BREAKPOINT = 760
 export const COMPACT_ICON_SIZE = 34
