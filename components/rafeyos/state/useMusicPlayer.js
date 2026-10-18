@@ -2,9 +2,9 @@
 // The adapter is created on the first play, which always comes from a click or a key press,
 // so the browser's autoplay policy allows it; if it refuses anyway, the player stays paused.
 import { useEffect, useMemo, useReducer, useRef } from 'react'
-import { useServices, useSettings } from '../../state/contexts'
-import { useLatest } from '../../state/useLatest'
-import { useNotify } from '../../shell/popups/js/useNotify'
+import { useServices, useSettings } from './contexts'
+import { useLatest } from './useLatest'
+import { useNotify } from '../shell/popups/js/useNotify'
 import { initialMusic, musicReducer } from './musicReducer'
 
 // Refusals the visitor caused or expects (autoplay policy, a pause during play()): no error to show

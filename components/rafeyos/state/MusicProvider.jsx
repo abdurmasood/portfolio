@@ -1,4 +1,4 @@
-import { MusicControlsContext, MusicStateContext, useVfs } from '../../state/contexts'
+import { MusicControlsContext, MusicStateContext, useVfs } from './contexts'
 import { useMusicPlayer } from './useMusicPlayer'
 
 /**

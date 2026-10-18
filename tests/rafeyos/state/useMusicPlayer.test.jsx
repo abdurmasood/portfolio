@@ -6,7 +6,7 @@ import { fakeAudioFactory } from '@/components/rafeyos/testing/fakeAudio'
 import { ServicesContext, ShellDispatchContext, VfsContext, useMusic, useMusicControls } from '@/components/rafeyos/state/contexts'
 import { SettingsProvider } from '@/components/rafeyos/state/SettingsProvider'
 import { buildContent } from '@/components/rafeyos/vfs/content'
-import { MusicProvider } from '@/components/rafeyos/apps/music/MusicProvider'
+import { MusicProvider } from '@/components/rafeyos/state/MusicProvider'
 
 afterEach(cleanup)
 

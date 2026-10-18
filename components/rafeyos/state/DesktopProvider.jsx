@@ -7,7 +7,7 @@ import { initialWindows, windowsReducer } from './windowsReducer'
 import { initialShell, shellReducer } from './shellReducer'
 import { LayoutProvider } from './LayoutProvider'
 import { WindowManagerProvider } from '../wm/WindowManagerProvider'
-import { MusicProvider } from '../apps/music/MusicProvider'
+import { MusicProvider } from './MusicProvider'
 
 export const DesktopProvider = ({ children }) => {
   const [windows, windowsDispatch] = useReducer(windowsReducer, initialWindows)
