@@ -19,7 +19,7 @@ export default defineConfig({
       provider: 'v8',
       // Scoped to modules added or extracted for rafeyOS
       include: ['lib/browserStorage.js', 'lib/contact.js', 'lib/help.js', 'lib/loadRafeyOS.js', 'components/rafeyos/**/*.{js,jsx}'],
-      exclude: ['**/*.test.{js,jsx}', 'components/rafeyos/testing/**'],
+      exclude: ['**/*.test.{js,jsx}'],
       thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },
     },
   },
