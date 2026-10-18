@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { dockMenuItems, dockMenuPlacement, fileMenuItems, wallMenuItems } from './menus'
-import { MENU_ITEM_KINDS, SEPARATOR, disabledItem, menuHeading, menuItem } from './menuItems'
-import { pathCommands } from './pathCommands'
-import { bandRect, passedThreshold, pathsInBand, rectsTouch, sameSelection } from './rubberBand'
-import { realVfs } from '../vfs/testVfs'
+import { dockMenuItems, dockMenuPlacement, fileMenuItems, wallMenuItems } from '../js/menus'
+import { MENU_ITEM_KINDS, SEPARATOR, disabledItem, menuHeading, menuItem } from '../js/menuItems'
+import { pathCommands } from '../js/pathCommands'
+import { bandRect, passedThreshold, pathsInBand, rectsTouch, sameSelection } from '../../desktop/js/rubberBand'
+import { realVfs } from '../../../vfs/testVfs'
 
 const labels = (items) => items.filter((item) => item.kind === MENU_ITEM_KINDS.ITEM).map((item) => item.label)
 
