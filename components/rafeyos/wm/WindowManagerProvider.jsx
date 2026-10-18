@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { WindowManagerContext, DockRegistryContext, useLayout, useVfs, useWindowsDispatch, useWindowsState } from '../state/contexts'
-import { createWindowManager } from './windowManager'
-import { useLatest } from '../state/useLatest'
+import { WindowManagerContext, DockRegistryContext, useLayout, useVfs, useWindowsDispatch, useWindowsState } from '../state/logic/contexts'
+import { createWindowManager } from './logic/windowManager'
+import { useLatest } from '../state/logic/useLatest'
 
 export const WindowManagerProvider = ({ children }) => {
   const dispatch = useWindowsDispatch()
