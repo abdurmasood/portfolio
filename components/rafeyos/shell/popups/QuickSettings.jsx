@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react'
-import { useSessionDispatch, useShellDispatch } from '../../state/contexts'
-import { SESSION_EVENTS } from '../../session/sessionMachine'
+import { useSessionDispatch, useShellDispatch } from '../../state/logic/contexts'
+import { SESSION_EVENTS } from '../../session/logic/sessionMachine'
 import { Sym } from '../../icons/symbols'
-import { useOpenSettings } from './js/useOpenSettings'
-import { SETTINGS_PAGES } from '../../apps/settings/settingsPages'
+import { useOpenSettings } from './logic/useOpenSettings'
+import { SETTINGS_PAGES } from '../../apps/settings/logic/settingsPages'
 import { QuickToggles, QuickVolume } from './QuickToggles'
-import { useEscapeKey } from './js/useEscapeKey'
+import { useEscapeKey } from './logic/useEscapeKey'
 
 // Screenshot isn't built: shown as in the mockup, but inert
 const DISABLED = { opacity: 0.5 }
