@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react'
-import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellDispatch, useVfs } from '../../state/contexts'
+import { useMusic, useMusicControls, useSettings, useSettingsDispatch, useShellDispatch, useVfs } from '../../state/logic/contexts'
 import { Sym } from '../../icons/symbols'
 import { AppIcon } from '../../icons/appIcons'
-import { calendarGrid } from './js/calendarGrid'
+import { calendarGrid } from './logic/calendarGrid'
 import { Switch } from '../chrome/controls'
-import { useEscapeKey } from '../popups/js/useEscapeKey'
-import { useNow } from '../chrome/js/useNow'
+import { useEscapeKey } from '../popups/logic/useEscapeKey'
+import { useNow } from '../chrome/logic/useNow'
 
 export const CALENDAR_POPUP = 'cal'
 

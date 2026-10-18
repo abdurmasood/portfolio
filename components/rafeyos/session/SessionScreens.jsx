@@ -1,9 +1,9 @@
 // Lock and suspend: drawn over the live desktop, so every window is still there afterwards.
 import { useEffect } from 'react'
-import { useSettings } from '../state/contexts'
+import { useSettings } from '../state/logic/contexts'
 import { WALLS } from '../theme/walls'
-import { formatClock, formatLongDate, formatTime } from '../shell/chrome/js/clockFormat'
-import { useNow } from '../shell/chrome/js/useNow'
+import { formatClock, formatLongDate, formatTime } from '../shell/chrome/logic/clockFormat'
+import { useNow } from '../shell/chrome/logic/useNow'
 import { StatusIcons } from '../shell/chrome/TopBar'
 
 // The mockup waits this long before listening for keys, so the key that locked can't unlock

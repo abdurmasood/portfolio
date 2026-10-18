@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { LayoutContext, useSettings, useWindowsDispatch } from './contexts'
-import { computeLayout } from '../shell/chrome/js/layout'
-import { useViewport } from '../shell/chrome/js/useViewport'
+import { LayoutContext, useSettings, useWindowsDispatch } from './logic/contexts'
+import { computeLayout } from '../shell/chrome/logic/layout'
+import { useViewport } from '../shell/chrome/logic/useViewport'
 
 /** Re-fits every window whenever the work area or compact mode changes (not on first render). */
 const useRelayout = (layout) => {
