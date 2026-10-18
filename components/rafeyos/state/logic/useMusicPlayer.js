@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react'
 import { useServices, useSettings } from './contexts'
 import { useLatest } from './useLatest'
-import { useNotify } from '../../shell/popups/logic/useNotify'
+import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 import { initialMusic, musicReducer } from './musicReducer'
 
 // Refusals the visitor caused or expects (autoplay policy, a pause during play()): no error to show

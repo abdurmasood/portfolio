@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { useSettings, useShellDispatch } from '../../../state/logic/contexts'
-import { useLatest } from '../../../state/logic/useLatest'
+import { useSettings, useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
+import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
 
 /**
  * Shows a notification banner unless Do Not Disturb is on. Stable across DND changes,
