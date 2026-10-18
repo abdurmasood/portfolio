@@ -1,9 +1,9 @@
 import { useLayout, useSettings } from '../../state/contexts'
 import { DOCK_POSITIONS, ICON_CORNERS, ICON_SIZE_RANGE } from '../../state/settingsReducer'
 import { Sym } from '../../icons/symbols'
-import { Slider, Switch } from '../../shell/controls'
-import { belowElement, useMenu } from '../../shell/useMenu'
-import { menuItem } from '../../shell/menuItems'
+import { Slider, Switch } from '../../shell/chrome/controls'
+import { belowElement, useMenu } from '../../shell/menus/js/useMenu'
+import { menuItem } from '../../shell/menus/js/menuItems'
 import { BoxedGroup, Page, Row } from './SettingsRows'
 import { useSettingActions } from './useSettingActions'
 

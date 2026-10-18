@@ -2,7 +2,7 @@ import { useMusic, useMusicControls, useSettings, useSettingsDispatch } from '..
 import { VOLUME_RANGE } from '../../state/settingsReducer'
 import { AppIcon } from '../../icons/appIcons'
 import { Sym } from '../../icons/symbols'
-import { Slider } from '../../shell/controls'
+import { Slider } from '../../shell/chrome/controls'
 import { WaveScrubber } from './WaveScrubber'
 
 // There's no cover art yet: the dock's disc stands in, so the window matches the icon clicked

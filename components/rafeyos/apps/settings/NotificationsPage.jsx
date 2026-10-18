@@ -1,5 +1,5 @@
 import { useSettings } from '../../state/contexts'
-import { Switch } from '../../shell/controls'
+import { Switch } from '../../shell/chrome/controls'
 import { BoxedGroup, Page, Row, ValueRow } from './SettingsRows'
 import { useSettingActions } from './useSettingActions'
 
