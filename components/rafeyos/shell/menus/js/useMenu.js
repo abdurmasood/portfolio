@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { useShellDispatch } from '../state/contexts'
-import { rectOfElement } from '../wm/windowAnimations'
+import { useShellDispatch } from '../../../state/contexts'
+import { rectOfElement } from '../../../wm/windowAnimations'
 
 // Popovers from header buttons open just below the button, as in the mockup
 const BELOW_GAP = 4

@@ -1,11 +1,11 @@
 import { useCallback } from 'react'
-import { useVfs, useWindowManager, useWindowsState } from '../state/contexts'
-import { WINDOW_PHASES } from '../state/windowsReducer'
-import { TRASH } from '../vfs/buildVfs'
-import { children } from '../vfs/queries'
-import { parentOf } from '../vfs/paths'
-import { placeLabel } from '../vfs/documents'
-import { useNotify } from './useNotify'
+import { useVfs, useWindowManager, useWindowsState } from '../../../state/contexts'
+import { WINDOW_PHASES } from '../../../state/windowsReducer'
+import { TRASH } from '../../../vfs/buildVfs'
+import { children } from '../../../vfs/queries'
+import { parentOf } from '../../../vfs/paths'
+import { placeLabel } from '../../../vfs/documents'
+import { useNotify } from '../../popups/js/useNotify'
 
 /** Clears Trash for good. Null while the bin is empty, so the menu item stays disabled. */
 export const useEmptyTrash = () => {
