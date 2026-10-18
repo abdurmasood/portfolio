@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, flushTimers, renderDesktop, windowsOf } from '../../../testing/renderRafeyOS'
-import { WIFI_STEP_MS, WIFI_SWEEPS_MAX, WIFI_SWEEPS_MIN } from '../../../state/WifiLink'
-import { sliderFill } from '../../chrome/controls'
+import { clickDock, flushTimers, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { WIFI_STEP_MS, WIFI_SWEEPS_MAX, WIFI_SWEEPS_MIN } from '@/components/rafeyos/state/WifiLink'
+import { sliderFill } from '@/components/rafeyos/shell/chrome/controls'
 // Inner, then middle, then outer: the reconnect sweep, one band at a time
-import { WIFI_ARCS } from '../../../icons/symbols'
+import { WIFI_ARCS } from '@/components/rafeyos/icons/symbols'
 
 afterEach(() => {
   cleanup()
