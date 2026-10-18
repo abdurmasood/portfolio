@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { initialMusic, musicReducer } from '@/components/rafeyos/state/musicReducer'
+import { initialMusic, musicReducer } from '@/components/rafeyos/state/logic/musicReducer'
 import { deepFreeze } from '@/components/rafeyos/vfs/content'
 
 const reduce = (state, ...actions) => actions.reduce((current, action) => musicReducer(deepFreeze(current), action), state)

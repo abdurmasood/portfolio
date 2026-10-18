@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { settingsReducer, initialSettings, DEFAULT_SETTINGS } from '@/components/rafeyos/state/settingsReducer'
+import { settingsReducer, initialSettings, DEFAULT_SETTINGS } from '@/components/rafeyos/state/logic/settingsReducer'
 
 describe('settingsReducer', () => {
   it('starts from the mockup defaults', () => {

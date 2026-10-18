@@ -1,5 +1,5 @@
-import { useMusic, useMusicControls, useSettings, useSettingsDispatch } from '../../state/contexts'
-import { VOLUME_RANGE } from '../../state/settingsReducer'
+import { useMusic, useMusicControls, useSettings, useSettingsDispatch } from '../../state/logic/contexts'
+import { VOLUME_RANGE } from '../../state/logic/settingsReducer'
 import { AppIcon } from '../../icons/appIcons'
 import { Sym } from '../../icons/symbols'
 import { Slider } from '../../shell/chrome/controls'

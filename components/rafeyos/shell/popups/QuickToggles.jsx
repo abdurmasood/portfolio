@@ -1,5 +1,5 @@
-import { useSettings, useSettingsDispatch, useWifiLink } from '../../state/contexts'
-import { STYLES, VOLUME_RANGE } from '../../state/settingsReducer'
+import { useSettings, useSettingsDispatch, useWifiLink } from '../../state/logic/contexts'
+import { STYLES, VOLUME_RANGE } from '../../state/logic/settingsReducer'
 import { Sym } from '../../icons/symbols'
 import { Slider } from '../chrome/controls'
 import { WifiStatusIcon } from '../chrome/TopBar'
