@@ -8,13 +8,20 @@ afterEach(cleanup)
 
 const icon = (container, path) => container.querySelector(`.dicon[data-path="${path}"]`)
 
+const desktopWithNote = () => {
+  const disk = memoryStorage({
+    'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+  })
+  return renderDesktop({ documents: createDocumentsStore(disk) })
+}
+
 describe('desktop', () => {
   it('lays out Home and the ~/Desktop entries as icons', () => {
     const { container } = renderDesktop()
 
     const names = [...container.querySelectorAll('.dicon .nm')].map((node) => node.textContent)
 
-    expect(names).toEqual(['Home', 'projects', 'bio.txt'])
+    expect(names).toEqual(['Home'])
   })
 
   it('opens Home in Files on double click', () => {
@@ -24,14 +31,6 @@ describe('desktop', () => {
 
     const [files] = windowsOf(container, 'files')
     expect(files.getAttribute('aria-label')).toBe('Home')
-  })
-
-  it('opens the projects link in Files at its target', () => {
-    const { container } = renderDesktop()
-
-    fireEvent.doubleClick(icon(container, '~/Desktop/projects'))
-
-    expect(windowsOf(container, 'files')[0].getAttribute('aria-label')).toBe('projects')
   })
 
   it('opens on a single tap with touch', () => {
@@ -55,21 +54,21 @@ describe('desktop', () => {
   })
 
   it('adds to the selection with Ctrl held', () => {
-    const { container } = renderDesktop()
+    const { container } = desktopWithNote()
 
     fireEvent.pointerDown(icon(container, '~'), { button: 0 })
-    fireEvent.pointerDown(icon(container, '~/Desktop/bio.txt'), { button: 0, ctrlKey: true })
+    fireEvent.pointerDown(icon(container, '~/Desktop/note.txt'), { button: 0, ctrlKey: true })
 
     expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
   })
 
-  it('opens the bio link in the Text Editor at its target', () => {
-    const { container } = renderDesktop()
+  it('opens a file on the desktop in the Text Editor', () => {
+    const { container } = desktopWithNote()
 
-    fireEvent.doubleClick(icon(container, '~/Desktop/bio.txt'))
+    fireEvent.doubleClick(icon(container, '~/Desktop/note.txt'))
 
     const [editor] = windowsOf(container, 'editor')
-    expect(editor.getAttribute('aria-label')).toBe('bio.txt')
+    expect(editor.getAttribute('aria-label')).toBe('note.txt')
     expect(windowsOf(container, 'files')).toHaveLength(0)
   })
 

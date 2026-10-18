@@ -87,39 +87,39 @@ describe('path commands', () => {
   }
 
   it('opens files and folders through the injected opener', () => {
-    const { openPath, commands } = setup('~/Desktop/bio.txt')
+    const { openPath, commands } = setup('~/bio.txt')
 
     commands.open()
 
-    expect(openPath).toHaveBeenCalledWith('~/Desktop/bio.txt')
+    expect(openPath).toHaveBeenCalledWith('~/bio.txt')
   })
 
   it("opens a file's terminal in its folder and a folder's inside it", () => {
     const file = setup('~/blog/x.md')
     file.commands.openTerminal()
-    const folder = setup('~/Desktop/projects')
+    const folder = setup('~/projects')
     folder.commands.openTerminal()
 
     expect(file.windowManager.openApp).toHaveBeenCalledWith('terminal', { path: '~/blog' })
     expect(folder.windowManager.openApp).toHaveBeenCalledWith('terminal', { path: '~/projects' })
   })
 
-  it('shows the real file selected in its folder, and Home inside Home', () => {
-    const link = setup('~/Desktop/bio.txt')
-    link.commands.showInFiles()
+  it('shows the file selected in its folder, and Home inside Home', () => {
+    const file = setup('~/bio.txt')
+    file.commands.showInFiles()
     const home = setup('~')
     home.commands.showInFiles()
 
-    expect(link.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~', init: { select: '~/bio.txt' } })
+    expect(file.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~', init: { select: '~/bio.txt' } })
     expect(home.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~', init: { select: '~' } })
   })
 
-  it('opens Properties on the path as shown, so links keep their target row', () => {
-    const { windowManager, commands } = setup('~/Desktop/bio.txt')
+  it('opens Properties on the path it was given', () => {
+    const { windowManager, commands } = setup('~/bio.txt')
 
     commands.properties()
 
-    expect(windowManager.openApp).toHaveBeenCalledWith('properties', { path: '~/Desktop/bio.txt' })
+    expect(windowManager.openApp).toHaveBeenCalledWith('properties', { path: '~/bio.txt' })
   })
 })
 

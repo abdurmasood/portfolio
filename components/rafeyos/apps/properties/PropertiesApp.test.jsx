@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, within } from '@testing-library/react'
-import { chooseMenuItem, desktopIcon, renderDesktop, rightClick, windowsOf } from '../../testing/renderRafeyOS'
+import { chooseMenuItem, desktopIcon, memoryStorage, renderDesktop, rightClick, windowsOf } from '../../testing/renderRafeyOS'
 import { propertiesRows } from './propertiesRows'
 import { realVfs } from '../../vfs/testVfs'
 import { sizeLabel } from '../../vfs/queries'
-import { mergeDocuments, trashItemPath } from '../../vfs/documents'
+import { createDocumentsStore, mergeDocuments, trashItemPath } from '../../vfs/documents'
 
 afterEach(cleanup)
 
@@ -21,15 +21,21 @@ const openProperties = (path) => {
 }
 
 describe('Properties', () => {
-  it('shows a link with its target', () => {
-    const { win, ui } = openProperties('~/Desktop/bio.txt')
+  it('shows a file, with no terminal button', () => {
+    const disk = memoryStorage({
+      'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+    })
+    const view = renderDesktop({ documents: createDocumentsStore(disk) })
+    rightClick(desktopIcon(view.container, '~/Desktop/note.txt'))
+    chooseMenuItem('Properties')
+    const [win] = windowsOf(view.container, 'properties')
+    const ui = within(win)
 
-    expect(win.getAttribute('aria-label')).toBe('bio.txt Properties')
-    expect(win.querySelector('.pn').textContent).toBe('bio.txt')
+    expect(win.getAttribute('aria-label')).toBe('note.txt Properties')
+    expect(win.querySelector('.pn').textContent).toBe('note.txt')
     expect(rowsOf(win)).toEqual([
-      ['Size', sizeLabel(realVfs, '~/bio.txt')],
-      ['Type', 'Link to plain text document'],
-      ['Link Target', '/home/visitor/bio.txt'],
+      ['Size', '5 bytes'],
+      ['Type', 'Plain text document'],
       ['Parent Folder', '/home/visitor/Desktop'],
     ])
     expect(ui.queryByRole('button', { name: 'Open in Terminal' })).toBeNull()
@@ -66,14 +72,6 @@ describe('propertiesRows', () => {
       { label: 'Size', value: sizeLabel(realVfs, '~/Music/story.txt') },
       { label: 'Type', value: 'Plain text document' },
       { label: 'Parent Folder', value: '/home/visitor/Music' },
-    ])
-  })
-
-  it('calls a link to a folder a folder, with its target', () => {
-    expect(propertiesRows(realVfs, '~/Desktop/projects').map((row) => row.value).slice(1)).toEqual([
-      'Folder',
-      '/home/visitor/projects',
-      '/home/visitor/Desktop',
     ])
   })
 

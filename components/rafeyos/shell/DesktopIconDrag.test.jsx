@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
-import { desktopIcon, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
+import { desktopIcon, memoryStorage, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
+import { createDocumentsStore } from '../vfs/documents'
 
 // jsdom has no layout: give icons the box their inline position implies
 const ICON_BOX = { w: 90, h: 80 }
@@ -18,6 +19,13 @@ afterEach(() => {
 })
 
 const at = (element) => ({ x: parseFloat(element.style.left), y: parseFloat(element.style.top) })
+
+const desktopWithNote = () => {
+  const disk = memoryStorage({
+    'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+  })
+  return renderDesktop({ documents: createDocumentsStore(disk) })
+}
 
 const drag = (element, from, to, options = {}) => {
   fireEvent.pointerDown(element, { button: 0, pointerId: 1, clientX: from.x, clientY: from.y, ...options })
@@ -40,16 +48,16 @@ describe('desktop icon drag', () => {
   })
 
   it('moves the whole selection together', () => {
-    const { container } = renderDesktop()
+    const { container } = desktopWithNote()
     const home = desktopIcon(container, '~')
-    const bio = desktopIcon(container, '~/Desktop/bio.txt')
-    const bioStart = at(bio)
+    const note = desktopIcon(container, '~/Desktop/note.txt')
+    const noteStart = at(note)
     fireEvent.pointerDown(home, { button: 0 })
     fireEvent.pointerUp(home)
 
-    drag(bio, { x: 0, y: 0 }, { x: 20, y: 30 }, { ctrlKey: true })
+    drag(note, { x: 0, y: 0 }, { x: 20, y: 30 }, { ctrlKey: true })
 
-    expect(at(bio)).toEqual({ x: bioStart.x + 20, y: bioStart.y + 30 })
+    expect(at(note)).toEqual({ x: noteStart.x + 20, y: noteStart.y + 30 })
     expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
   })
 
@@ -93,7 +101,7 @@ describe('desktop icon drag', () => {
 
 describe('rubber band', () => {
   it('selects the icons it touches and hides when released', async () => {
-    const { container } = renderDesktop()
+    const { container } = desktopWithNote()
     const band = container.querySelector('.rubber')
     const wall = screen.getByTestId('wallpaper')
 
@@ -103,7 +111,7 @@ describe('rubber band', () => {
 
     expect(band.hidden).toBe(false)
     expect(band.style.width).toBe('200px')
-    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['~', '~/Desktop/projects'])
+    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['~', '~/Desktop/note.txt'])
 
     fireEvent.pointerUp(wall, { pointerId: 1 })
     expect(band.hidden).toBe(true)
@@ -112,7 +120,7 @@ describe('rubber band', () => {
 
   it('starts each band from an empty selection', () => {
     const { container } = renderDesktop()
-    fireEvent.pointerDown(desktopIcon(container, '~/Desktop/bio.txt'), { button: 0 })
+    fireEvent.pointerDown(desktopIcon(container, '~'), { button: 0 })
     const wall = screen.getByTestId('wallpaper')
 
     fireEvent.pointerDown(wall, { button: 0, pointerId: 1, clientX: 0, clientY: 0 })
