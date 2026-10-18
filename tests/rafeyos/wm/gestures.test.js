@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { startDrag, startResize, stepDrag, stepResize, DRAG_THRESHOLD } from '@/components/rafeyos/wm/logic/gestures'
-import { SNAP_MODES } from '@/components/rafeyos/wm/logic/geometry'
+import { SNAP_MODES } from '@/components/rafeyos/core/geometry'
 
 const area = { x: 54, y: 28, w: 970, h: 740 }
 const normal = { id: 1, rect: { x: 200, y: 100, w: 400, h: 300 }, prevRect: null, mode: SNAP_MODES.NORMAL }

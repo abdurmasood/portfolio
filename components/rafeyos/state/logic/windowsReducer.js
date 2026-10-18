@@ -1,4 +1,4 @@
-import { cascadeRect, clampRect, snapRect, SNAP_MODES } from '../../wm/logic/geometry'
+import { cascadeRect, clampRect, snapRect, SNAP_MODES } from '@/components/rafeyos/core/geometry'
 
 export const WINDOW_PHASES = Object.freeze({ OPEN: 'open', CLOSING: 'closing' })
 

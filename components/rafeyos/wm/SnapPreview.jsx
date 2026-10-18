@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
-import { useLayout, useWindowManager } from '../state/logic/contexts'
-import { snapRect } from './logic/geometry'
+import { useLayout, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { snapRect } from '@/components/rafeyos/core/geometry'
 
 const INSET = 6
 
