@@ -1,8 +1,8 @@
-import { useMusic, useSettings, useVfs } from '../../state/contexts'
-import { VOLUME_RANGE } from '../../state/settingsReducer'
+import { useMusic, useSettings, useVfs } from '../../state/logic/contexts'
+import { VOLUME_RANGE } from '../../state/logic/settingsReducer'
 import { Slider } from '../../shell/chrome/controls'
 import { BoxedGroup, Page, Row, ValueRow } from './SettingsRows'
-import { useSettingActions } from './useSettingActions'
+import { useSettingActions } from './logic/useSettingActions'
 
 /** The music app's stream, as GNOME lists each app playing sound. */
 const MusicLevel = () => {

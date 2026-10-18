@@ -1,11 +1,11 @@
-import { useLayout, useSettings } from '../../state/contexts'
-import { DOCK_POSITIONS, ICON_CORNERS, ICON_SIZE_RANGE } from '../../state/settingsReducer'
+import { useLayout, useSettings } from '../../state/logic/contexts'
+import { DOCK_POSITIONS, ICON_CORNERS, ICON_SIZE_RANGE } from '../../state/logic/settingsReducer'
 import { Sym } from '../../icons/symbols'
 import { Slider, Switch } from '../../shell/chrome/controls'
-import { belowElement, useMenu } from '../../shell/menus/js/useMenu'
-import { menuItem } from '../../shell/menus/js/menuItems'
+import { belowElement, useMenu } from '../../shell/menus/logic/useMenu'
+import { menuItem } from '../../shell/menus/logic/menuItems'
 import { BoxedGroup, Page, Row } from './SettingsRows'
-import { useSettingActions } from './useSettingActions'
+import { useSettingActions } from './logic/useSettingActions'
 
 export const CORNER_LABELS = Object.freeze({ tl: 'Top Left', tr: 'Top Right', bl: 'Bottom Left', br: 'Bottom Right' })
 

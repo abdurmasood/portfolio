@@ -1,9 +1,9 @@
-import { useSettings } from '../../state/contexts'
-import { STYLES } from '../../state/settingsReducer'
+import { useSettings } from '../../state/logic/contexts'
+import { STYLES } from '../../state/logic/settingsReducer'
 import { WALLS } from '../../theme/walls'
 import { ACCENTS } from '../../theme/accents'
 import { Group, Page } from './SettingsRows'
-import { useSettingActions } from './useSettingActions'
+import { useSettingActions } from './logic/useSettingActions'
 
 // Window colours for each style's mini preview (the mockup's --win and --hb)
 const PREVIEW_COLOURS = Object.freeze({
