@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
-import { usePointerTrack } from '../wm/usePointerTrack'
-import { rectOfElement } from '../wm/windowAnimations'
-import { pointOfEvent } from './useMenu'
+import { usePointerTrack } from '../../../wm/usePointerTrack'
+import { rectOfElement } from '../../../wm/windowAnimations'
+import { pointOfEvent } from '../../menus/js/useMenu'
 import { bandRect, pathsInBand, sameSelection } from './rubberBand'
 
 const measureIcons = (layer) =>

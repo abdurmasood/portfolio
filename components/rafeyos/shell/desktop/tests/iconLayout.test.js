@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { iconLayout } from './iconLayout'
+import { iconLayout } from '../js/iconLayout'
 
 const area = { x: 54, y: 28, w: 1000, h: 300 }
 const cell = { w: 90, h: 88 }

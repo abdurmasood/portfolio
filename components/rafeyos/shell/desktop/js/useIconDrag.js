@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react'
-import { usePointerTrack } from '../wm/usePointerTrack'
-import { applyPosition } from '../wm/applyRect'
-import { pointOfEvent } from './useMenu'
+import { usePointerTrack } from '../../../wm/usePointerTrack'
+import { applyPosition } from '../../../wm/applyRect'
+import { pointOfEvent } from '../../menus/js/useMenu'
 import { passedThreshold } from './rubberBand'
 
 const iconElements = (layer, paths) =>
