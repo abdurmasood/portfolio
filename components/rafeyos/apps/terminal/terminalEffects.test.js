@@ -41,7 +41,7 @@ describe('terminal effects', () => {
     const deps = handlers({ windowManager: { openApp: () => false, openPath: () => false } })
 
     const { notes } = applyTerminalEffects(
-      [{ type: 'openApp', app: 'projects' }, { type: 'openPath', path: '~/Desktop/bio.txt' }],
+      [{ type: 'openApp', app: 'projects' }, { type: 'openPath', path: '~/bio.txt' }],
       deps,
     )
 
