@@ -1,7 +1,6 @@
 import { memo, useCallback } from 'react'
 import { useDockRegistry, useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '../../state/contexts'
-import { DOCK_FAVORITES, getApp } from '../../apps/registry'
-import { isImplemented } from '../../apps/availability'
+import { DOCK_FAVORITES, getApp, isImplemented } from '../../apps/registry'
 import { runningApps, windowsForApp } from '../../state/selectors'
 import { TRASH } from '../../vfs/buildVfs'
 import { children } from '../../vfs/queries'

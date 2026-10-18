@@ -1,6 +1,5 @@
 // What the Activities overview's search finds: apps, files and Settings pages (mockup drawOv). Pure.
-import { APP_IDS, getApp } from '../../../apps/registry'
-import { isImplemented } from '../../../apps/availability'
+import { APP_IDS, getApp, isImplemented } from '../../../apps/registry'
 import { SETTINGS_PAGES } from '../../../apps/settings/settingsPages'
 import { displayName, search } from '../../../vfs/queries'
 import { parentOf, tilde } from '../../../vfs/paths'

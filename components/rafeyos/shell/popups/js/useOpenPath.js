@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useMusicControls, useVfs, useWindowManager } from '../../../state/contexts'
-import { handlerFor, isAudio, isWebLink, unavailableNote } from '../../../apps/availability'
+import { handlerFor, isAudio, isWebLink, unavailableNote } from '../../../apps/registry'
 import { realPath } from '../../../vfs/paths'
 import { displayName } from '../../../vfs/queries'
 import { useOpenLinkDialog } from '../OpenLinkDialog'

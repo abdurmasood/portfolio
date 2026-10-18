@@ -1,7 +1,6 @@
 // Window-manager commands on top of windowsReducer. Built once per desktop; it reads the latest
 // state and layout through getters, so the object (and every callback on it) stays stable.
-import { getApp } from '../apps/registry'
-import { handlerFor, isImplemented } from '../apps/availability'
+import { getApp, handlerFor, isImplemented } from '../apps/registry'
 import { SNAP_MODES } from './geometry'
 import { windowsForApp } from '../state/selectors'
 import { WINDOW_PHASES } from '../state/windowsReducer'
