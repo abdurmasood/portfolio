@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 
 afterEach(cleanup)
 

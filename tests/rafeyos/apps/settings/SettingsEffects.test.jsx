@@ -12,7 +12,7 @@ import {
   openPowerMenu,
   renderDesktop,
   windowsOf,
-} from '@/components/rafeyos/testing/renderRafeyOS'
+} from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { BOOT_MS } from '@/components/rafeyos/session/logic/useSession'
 
 afterEach(() => {
