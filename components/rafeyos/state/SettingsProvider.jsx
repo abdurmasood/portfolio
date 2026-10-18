@@ -2,6 +2,7 @@
 import { useEffect, useReducer } from 'react'
 import { SettingsDispatchContext, SettingsStateContext, useServices } from './contexts'
 import { initialSettings, settingsReducer } from './settingsReducer'
+import { WifiLinkProvider } from './WifiLink'
 
 /** Light or dark follows the visitor's system once, when rafeyOS starts. */
 const useInitialStyle = (dispatch) => {
@@ -16,7 +17,9 @@ export const SettingsProvider = ({ children }) => {
   useInitialStyle(dispatch)
   return (
     <SettingsDispatchContext.Provider value={dispatch}>
-      <SettingsStateContext.Provider value={settings}>{children}</SettingsStateContext.Provider>
+      <SettingsStateContext.Provider value={settings}>
+        <WifiLinkProvider wifi={settings.wifi}>{children}</WifiLinkProvider>
+      </SettingsStateContext.Provider>
     </SettingsDispatchContext.Provider>
   )
 }

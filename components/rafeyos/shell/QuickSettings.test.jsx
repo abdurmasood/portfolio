@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
+import { clickDock, flushTimers, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
+import { WIFI_STEP_MS, WIFI_SWEEPS_MAX, WIFI_SWEEPS_MIN } from '../state/WifiLink'
 import { sliderFill } from './controls'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 const openQuickSettings = () => {
   fireEvent.click(screen.getByRole('button', { name: 'System menu' }))
@@ -16,6 +21,19 @@ const topBarIcons = (container) => container.querySelector('.topbar .sti')
 
 /** The symbol's last path, enough to tell wifi from wifioff and vol from vol0. */
 const symbolOf = (element) => element.querySelector('path:last-of-type').getAttribute('d')
+
+// Inner, then middle, then outer: the reconnect sweep, one arc at a time
+const WIFI_ARCS = Object.freeze([
+  'M6.1 11a2.9 2.9 0 0 1 3.8 0',
+  'M3.8 8.6a6.2 6.2 0 0 1 8.4 0',
+  'M1.5 6.2a9.5 9.5 0 0 1 13 0',
+])
+const WIFI_OFF = 'M2 2l12 12'
+const wifiPaths = (element) => [...element.querySelector('svg').querySelectorAll('path')].map((path) => path.getAttribute('d'))
+const visibleArcs = (element) =>
+  [...element.querySelector('svg').querySelectorAll('path')]
+    .filter((path) => path.style.opacity !== '0')
+    .map((path) => path.getAttribute('d'))
 
 describe('quick settings', () => {
   it('shows the four toggles, Wi-Fi on with its network', () => {
@@ -41,6 +59,103 @@ describe('quick settings', () => {
     expect(tile(qs, 'Wi-Fi').querySelector('small')).toBeNull()
     expect(symbolOf(topBarIcons(container))).not.toBe(wifiOn)
     expect(symbolOf(tile(qs, 'Wi-Fi'))).toBe(symbolOf(topBarIcons(container)))
+  })
+
+  it('reconnects one arc at a time, then shows the network', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const { container } = renderDesktop({ reducedMotion: () => false })
+    const qs = openQuickSettings()
+    const wifi = () => tile(qs, 'Wi-Fi')
+
+    expect(visibleArcs(wifi())).toEqual([...WIFI_ARCS])
+    expect(wifi().querySelector('small').textContent).toBe('rafey.ai')
+
+    fireEvent.click(wifi())
+    fireEvent.click(wifi())
+
+    expect(wifi().className).toBe('qt on')
+    expect(wifi().querySelector('small')).toBeNull()
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[0]])
+    expect(visibleArcs(topBarIcons(container))).toEqual([WIFI_ARCS[0]])
+    expect(wifi().querySelector('svg').classList.contains('wifi-live')).toBe(true)
+
+    flushTimers(WIFI_STEP_MS - 1)
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[0]])
+
+    flushTimers(1)
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[1]])
+    expect(visibleArcs(topBarIcons(container))).toEqual([WIFI_ARCS[1]])
+
+    flushTimers(WIFI_STEP_MS)
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[2]])
+    expect(visibleArcs(topBarIcons(container))).toEqual([WIFI_ARCS[2]])
+
+    flushTimers(WIFI_STEP_MS)
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[0]])
+
+    flushTimers(WIFI_STEP_MS * 3)
+    expect(visibleArcs(wifi())).toEqual([...WIFI_ARCS])
+    expect(visibleArcs(topBarIcons(container))).toEqual([...WIFI_ARCS])
+    expect(wifi().querySelector('small').textContent).toBe('rafey.ai')
+
+    fireEvent.click(wifi())
+    fireEvent.click(wifi())
+    flushTimers(WIFI_STEP_MS)
+    fireEvent.click(wifi())
+
+    expect(wifi().className).toBe('qt')
+    expect(wifi().querySelector('small')).toBeNull()
+    expect(wifiPaths(wifi())).toContain(WIFI_OFF)
+    expect(wifiPaths(topBarIcons(container))).toContain(WIFI_OFF)
+
+    flushTimers(WIFI_STEP_MS * WIFI_ARCS.length * WIFI_SWEEPS_MAX)
+    expect(wifiPaths(topBarIcons(container))).toContain(WIFI_OFF)
+    expect(wifi().querySelector('small')).toBeNull()
+  })
+
+  it('keeps the same arc pace and varies how long the search lasts', () => {
+    vi.useFakeTimers()
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    const { container } = renderDesktop({ reducedMotion: () => false })
+    const qs = openQuickSettings()
+    const wifi = () => tile(qs, 'Wi-Fi')
+    const shortMs = WIFI_STEP_MS * WIFI_ARCS.length * WIFI_SWEEPS_MIN
+    const longMs = WIFI_STEP_MS * WIFI_ARCS.length * WIFI_SWEEPS_MAX
+
+    fireEvent.click(wifi())
+    fireEvent.click(wifi())
+    flushTimers(WIFI_STEP_MS)
+    expect(visibleArcs(topBarIcons(container))).toEqual([WIFI_ARCS[1]])
+    flushTimers(shortMs - WIFI_STEP_MS)
+    expect(wifi().querySelector('small').textContent).toBe('rafey.ai')
+
+    fireEvent.click(wifi())
+    random.mockReturnValue(0.999999)
+    fireEvent.click(wifi())
+
+    flushTimers(WIFI_STEP_MS)
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[1]])
+    expect(visibleArcs(topBarIcons(container))).toEqual([WIFI_ARCS[1]])
+    flushTimers(shortMs - WIFI_STEP_MS)
+    expect(wifi().querySelector('small')).toBeNull()
+    expect(visibleArcs(wifi())).toEqual([WIFI_ARCS[0]])
+
+    flushTimers(longMs - shortMs)
+    expect(wifi().querySelector('small').textContent).toBe('rafey.ai')
+    expect(visibleArcs(topBarIcons(container))).toEqual([...WIFI_ARCS])
+  })
+
+  it('reconnects immediately when motion is reduced', () => {
+    const { container } = renderDesktop()
+    const qs = openQuickSettings()
+
+    fireEvent.click(tile(qs, 'Wi-Fi'))
+    fireEvent.click(tile(qs, 'Wi-Fi'))
+
+    expect(tile(qs, 'Wi-Fi').querySelector('small').textContent).toBe('rafey.ai')
+    expect(wifiPaths(tile(qs, 'Wi-Fi'))).toEqual([...WIFI_ARCS])
+    expect(wifiPaths(topBarIcons(container))).toEqual([...WIFI_ARCS])
   })
 
   it('leaves Bluetooth off when clicked', () => {

@@ -83,6 +83,7 @@
 :where(.rafeyos) .qt.on { background: var(--accent); }
 :where(.rafeyos) .qt.on:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); }
 :where(.rafeyos) .qt svg { width: 16px; height: 16px; flex: none; }
+:where(.rafeyos) .wifi-live path { transition: opacity 160ms ease-in-out; }
 :where(.rafeyos) .qt span { display: grid; min-width: 0; line-height: 1.2; }
 :where(.rafeyos) .qt b { font-size: 12.5px; } :where(.rafeyos) .qt small { font-size: 11px; opacity: .85; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 :where(.rafeyos) .qs-power { display: grid; gap: 2px; background: #333; border-radius: 16px; padding: 6px; }
