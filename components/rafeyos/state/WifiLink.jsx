@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { WIFI_ARCS } from '../icons/symbols'
 import { WifiLinkContext, useServices } from './logic/contexts'
 
 // The arc changes at a fixed pace. A reconnect lasts longer or shorter by repeating that sweep.
 export const WIFI_STEP_MS = 200
 export const WIFI_SWEEPS_MIN = 2
 export const WIFI_SWEEPS_MAX = 4
+// Must match the number of arcs drawn in icons/symbols (WIFI_ARCS); state can't import UI.
+export const WIFI_ARC_COUNT = 3
 
 const rollSweeps = () =>
   WIFI_SWEEPS_MIN + Math.floor(Math.random() * (WIFI_SWEEPS_MAX - WIFI_SWEEPS_MIN + 1))
@@ -30,7 +31,7 @@ export const WifiLinkProvider = ({ wifi, children }) => {
 
   useEffect(() => {
     if (!searching) return undefined
-    const steps = WIFI_ARCS.length * rollSweeps()
+    const steps = WIFI_ARC_COUNT * rollSweeps()
     let step = 0
     const id = setInterval(() => {
       step += 1
@@ -39,7 +40,7 @@ export const WifiLinkProvider = ({ wifi, children }) => {
         setSearching(false)
         return
       }
-      setArc(step % WIFI_ARCS.length)
+      setArc(step % WIFI_ARC_COUNT)
     }, WIFI_STEP_MS)
     return () => clearInterval(id)
   }, [searching])
