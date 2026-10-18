@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, dock, openPowerMenu, renderDesktop, rightClick, settle, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { overviewApps } from '@/components/rafeyos/shell/overview/logic/overviewSearch'
-import { getApp } from '@/components/rafeyos/apps/registry'
+import { getApp } from '@/components/rafeyos/core/catalog/apps'
 
 afterEach(cleanup)
 

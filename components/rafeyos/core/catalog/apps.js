@@ -1,6 +1,6 @@
 // App list and what each app opens. Screens live in appComponents.js so this file stays free of React.
-import { NODE_TYPES } from '../vfs/buildVfs'
-import { realPath } from '../vfs/paths'
+import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
 
 // defaultPath: what a single-instance file app opens when launched without one (e.g. from the dock)
 const app = ({ id, name, size, minSize, multi = false, inDock = true, defaultPath = '' }) =>
