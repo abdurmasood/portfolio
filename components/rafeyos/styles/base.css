@@ -12,6 +12,9 @@
   --card: #353535; --menu: #383838;
   --tbg: #1e1e1e; --tfg: #e6e6e6; --tgreen: #8ae234; --tblue: #729fcf; --tcyan: #34e2e2; --tred: #ef2929;
   --shell: #2b2b2b; --shell2: #3d3d3d;
+  /* Frosted top-bar popovers (quick settings, calendar); dark in both themes like --shell */
+  --glass: rgba(38,36,42,.55); --glass-solid: rgba(38,36,42,.94); --glass-edge: rgba(255,255,255,.13);
+  --glass-fill: rgba(255,255,255,.1); --glass-fill-hover: rgba(255,255,255,.16);
   --ui: var(--font-ui, "Ubuntu Sans"), "Ubuntu", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: var(--font-mono, "Ubuntu Sans Mono"), "Ubuntu Mono", ui-monospace, Menlo, monospace;
   color-scheme: dark;
