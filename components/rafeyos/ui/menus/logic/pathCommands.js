@@ -1,8 +1,8 @@
 // What the file menus, Properties and the editor can do with a path. Pure apart from the
 // injected window manager and opener, so the menus built from it are testable alone.
-import { HOME } from '../../../vfs/buildVfs'
-import { parentOf, realPath } from '../../../vfs/paths'
-import { isDir } from '../../../vfs/queries'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { parentOf, realPath } from '@/components/rafeyos/core/vfs/paths'
+import { isDir } from '@/components/rafeyos/core/vfs/queries'
 
 /**
  * @param {{ vfs: object, windowManager: object, openPath: Function }} deps

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { dockMenuItems, dockMenuPlacement, fileMenuItems, wallMenuItems } from '@/components/rafeyos/shell/menus/logic/menus'
-import { MENU_ITEM_KINDS, SEPARATOR, disabledItem, menuHeading, menuItem } from '@/components/rafeyos/shell/menus/logic/menuItems'
-import { pathCommands } from '@/components/rafeyos/shell/menus/logic/pathCommands'
+import { dockMenuItems, dockMenuPlacement, fileMenuItems, wallMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
+import { MENU_ITEM_KINDS, SEPARATOR, disabledItem, menuHeading, menuItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
+import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
 import { bandRect, passedThreshold, pathsInBand, rectsTouch, sameSelection } from '@/components/rafeyos/shell/desktop/logic/rubberBand'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 

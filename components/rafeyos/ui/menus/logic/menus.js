@@ -1,5 +1,5 @@
 // The desktop's context menus (mockup wording)
-import { SEPARATOR, disabledItem, menuItem } from './menuItems'
+import { SEPARATOR, disabledItem, menuItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
 
 /**
  * Right-click on a file or folder, on the desktop or in Files (only the desktop offers "Show in Files").
