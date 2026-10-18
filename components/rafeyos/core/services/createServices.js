@@ -1,10 +1,10 @@
 // Everything rafeyOS needs from the outside world, injected so tests can pass fakes
-import { localStorageOrNull, sessionStorageOrNull } from '../../../lib/browserStorage'
-import { createDocumentsStore } from '../vfs/documents'
+import { localStorageOrNull, sessionStorageOrNull } from '@/lib/browserStorage'
+import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
 import { browserClipboard } from './clipboard'
 import { createAudio } from './audio'
 import { createMediaSession } from './mediaSession'
-import { loadSamples } from '../../../lib/audioSamples'
+import { loadSamples } from '@/lib/audioSamples'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)'

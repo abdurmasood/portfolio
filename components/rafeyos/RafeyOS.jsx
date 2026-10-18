@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { createServices } from './services/createServices'
+import { createServices } from '@/components/rafeyos/core/services/createServices'
 import { RafeyOSRoot } from './RafeyOSRoot'
 import './styles/rafeyos.css'
 
