@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createAudio } from './audio'
+import { createAudio } from '@/components/rafeyos/services/audio'
 
 /** Stands in for HTMLAudioElement: the properties and methods the adapter uses. */
 class FakeElement extends EventTarget {

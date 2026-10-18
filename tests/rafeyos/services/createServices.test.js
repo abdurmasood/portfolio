@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createServices } from './createServices'
-import { localStorageOrNull, sessionStorageOrNull } from './browserStorage'
-import { DOCUMENTS_KEY } from '../vfs/documents'
+import { createServices } from '@/components/rafeyos/services/createServices'
+import { localStorageOrNull, sessionStorageOrNull } from '@/components/rafeyos/services/browserStorage'
+import { DOCUMENTS_KEY } from '@/components/rafeyos/vfs/documents'
 
 const fakeWindow = (overrides = {}) => ({
   sessionStorage: { getItem: () => null },
