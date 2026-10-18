@@ -3,7 +3,7 @@ import { StrictMode } from 'react'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { vi } from 'vitest'
 import { RafeyOSRoot } from '../RafeyOSRoot'
-import { SESSION_KEY } from '../session/sessionStore'
+import { SESSION_KEY } from '../session/logic/sessionStore'
 import { fakeAudioFactory } from './fakeAudio'
 import { createDocumentsStore } from '../vfs/documents'
 

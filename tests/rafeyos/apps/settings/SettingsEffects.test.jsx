@@ -13,7 +13,7 @@ import {
   renderDesktop,
   windowsOf,
 } from '@/components/rafeyos/testing/renderRafeyOS'
-import { BOOT_MS } from '@/components/rafeyos/session/useSession'
+import { BOOT_MS } from '@/components/rafeyos/session/logic/useSession'
 
 afterEach(() => {
   cleanup()
