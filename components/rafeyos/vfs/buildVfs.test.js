@@ -7,7 +7,7 @@ describe('buildVfs', () => {
     const vfs = buildVfs(fixtureContent)
 
     expect(Object.keys(vfs)).toEqual([
-      '~', '~/Desktop', '~/Documents', '~/Desktop/bio.txt', '~/Desktop/projects', '~/Music', '~/Music/song.mp3',
+      '~', '~/Desktop', '~/Documents', '~/Music', '~/Music/song.mp3',
       '~/Music/story.txt', '~/blog', '~/blog/first-post.md', '~/contact', '~/contact/email.desktop',
       '~/contact/linkedin.desktop', '~/projects', '~/projects/alpha-project.txt', '~/projects/beta.txt',
       '~/bio.txt', '~/skills.txt', '~/README.txt', 'trash',
@@ -19,13 +19,6 @@ describe('buildVfs', () => {
 
     expect(vfs[HOME].name).toBe('visitor')
     expect(vfs[TRASH]).toMatchObject({ type: 'dir', name: 'Trash' })
-  })
-
-  it('links the desktop shortcuts to home', () => {
-    const vfs = buildVfs(fixtureContent)
-
-    expect(vfs['~/Desktop/bio.txt']).toMatchObject({ type: 'symlink', target: '~/bio.txt' })
-    expect(vfs['~/Desktop/projects']).toMatchObject({ type: 'symlink', target: '~/projects' })
   })
 
   it('writes project files with an underline, description and optional case study', () => {

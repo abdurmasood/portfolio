@@ -61,8 +61,6 @@ const entriesFor = (content) => [
   [HOME, { type: 'dir' }],
   ['~/Desktop', { type: 'dir' }],
   ['~/Documents', { type: 'dir' }],
-  ['~/Desktop/bio.txt', { type: 'symlink', target: '~/bio.txt' }],
-  ['~/Desktop/projects', { type: 'symlink', target: '~/projects' }],
   ...musicNodes(content.music),
   ['~/blog', { type: 'dir' }],
   ...content.posts.map((post) => [`~/blog/${post.slug}.md`, { type: 'text', text: postText(post) }]),

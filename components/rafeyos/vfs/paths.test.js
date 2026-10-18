@@ -14,8 +14,7 @@ describe('parentOf', () => {
 })
 
 describe('realPath', () => {
-  it('follows symlinks and leaves other paths alone', () => {
-    expect(realPath(vfs, '~/Desktop/projects')).toBe('~/projects')
+  it('leaves paths alone, including missing ones', () => {
     expect(realPath(vfs, '~/bio.txt')).toBe('~/bio.txt')
     expect(realPath(vfs, '~/missing')).toBe('~/missing')
   })
@@ -36,7 +35,7 @@ describe('resolvePath', () => {
     ['Music//story.txt', '~', '~/Music/story.txt'],
     ['story.txt', '~/Music', '~/Music/story.txt'],
     ['./../bio.txt', '~/Music', '~/bio.txt'],
-    ['Desktop/projects', '~', '~/Desktop/projects'],
+    ['Desktop', '~', '~/Desktop'],
   ])('resolves %j from %s to %s', (arg, cwd, expected) => {
     expect(resolvePath(vfs, arg, cwd)).toBe(expected)
   })
@@ -51,9 +50,6 @@ describe('resolvePath', () => {
     expect(resolvePath(vfs, arg, cwd)).toBeNull()
   })
 
-  it('does not follow symlinks itself', () => {
-    expect(resolvePath(vfs, 'Desktop/bio.txt', '~')).toBe('~/Desktop/bio.txt')
-  })
 })
 
 describe('tilde and absPath', () => {
