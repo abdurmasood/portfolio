@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 import { useVfs, useWindowManager } from '../../state/contexts'
-import { useOpenPath } from '../../shell/useOpenPath'
+import { useOpenPath } from '../../shell/popups/js/useOpenPath'
 import { HOME } from '../../vfs/buildVfs'
 import { realPath } from '../../vfs/paths'
 import { isDir } from '../../vfs/queries'
@@ -10,7 +10,7 @@ import { FilesSidebar } from './FilesSidebar'
 import { FilesHeader } from './FilesHeader'
 import { FilesEmpty, FilesGrid, FilesList } from './FilesItems'
 import { useFilesMenus } from './useFilesMenus'
-import { gridColumns, gridStep } from '../../shell/keyboardNavigation'
+import { gridColumns, gridStep } from '../../shell/menus/js/keyboardNavigation'
 import { SidebarToggle, splitClassName, useSidebarToggle } from '../../wm/SidebarToggle'
 
 /** Folders navigate in place; other files go through useOpenPath (a banner until their apps exist). */

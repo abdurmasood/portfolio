@@ -1,5 +1,5 @@
 // Files' menus: the folder background, the header's View options and the sidebar's main menu.
-import { SEPARATOR, disabledItem, menuItem } from '../../shell/menuItems'
+import { SEPARATOR, disabledItem, menuItem } from '../../shell/menus/js/menuItems'
 import { FILE_VIEWS } from './filesReducer'
 
 /** Right-click on empty space in a folder. Trash has no terminal. */

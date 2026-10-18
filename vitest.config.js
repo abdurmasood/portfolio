@@ -1,8 +1,12 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
+
+const root = fileURLToPath(new URL('./', import.meta.url))
 
 export default defineConfig({
   // Vite's built-in oxc transform handles JSX with the automatic runtime, as Next does
   resolve: {
+    alias: [{ find: /^@\//, replacement: root }],
     // Source imports omit extensions (e.g. app/blog/posts.js -> './blogData')
     extensions: ['.js', '.jsx', '.mjs', '.json'],
   },

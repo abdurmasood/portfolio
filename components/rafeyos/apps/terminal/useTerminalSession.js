@@ -6,7 +6,7 @@ import { SESSION_EVENTS } from '../../session/sessionMachine'
 import { isDir } from '../../vfs/queries'
 import { HOME } from '../../vfs/buildVfs'
 import { applyTerminalEffects } from './terminalEffects'
-import { useOpenLinkDialog } from '../../shell/OpenLinkDialog'
+import { useOpenLinkDialog } from '../../shell/popups/OpenLinkDialog'
 
 // Lets "Returning to the rafey.ai terminal…" show before the session ends (as in the mockup)
 export const LOGOUT_DELAY_MS = 300

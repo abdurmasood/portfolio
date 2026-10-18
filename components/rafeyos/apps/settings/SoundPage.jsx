@@ -1,6 +1,6 @@
 import { useMusic, useSettings, useVfs } from '../../state/contexts'
 import { VOLUME_RANGE } from '../../state/settingsReducer'
-import { Slider } from '../../shell/controls'
+import { Slider } from '../../shell/chrome/controls'
 import { BoxedGroup, Page, Row, ValueRow } from './SettingsRows'
 import { useSettingActions } from './useSettingActions'
 
