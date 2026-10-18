@@ -1,4 +1,4 @@
-import { Sym } from '../icons/symbols'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { useWindowChrome } from './logic/WindowChromeContext'
 
 /** Minimize, maximize/restore and close, as in GNOME's header bars. */

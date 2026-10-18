@@ -1,10 +1,10 @@
 import { useCallback } from 'react'
-import { useLayout, useWindowManager } from '../../state/logic/contexts'
+import { useLayout, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { usePointerTrack } from './usePointerTrack'
 import { startResize, stepResize } from './gestures'
 import { applyRect } from './applyRect'
-import { SNAP_MODES } from './geometry'
-import { getApp } from '../../apps/registry'
+import { SNAP_MODES } from '@/components/rafeyos/core/geometry'
+import { getApp } from '@/components/rafeyos/core/catalog/apps'
 
 /** Edge and corner resizing for normal (unsnapped) windows; one commit on release. */
 export const useWindowResize = ({ elementRef, winRef }) => {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Sym } from '../icons/symbols'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 
 /**
  * A split view's sidebar on narrow windows: CSS hides it under 560px of window width (a container
