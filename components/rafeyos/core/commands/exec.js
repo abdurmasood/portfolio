@@ -1,11 +1,11 @@
 import { parse } from './parse'
 import { error } from './lines'
-import { contentCommands } from './commands/content'
-import { fsCommands } from './commands/fs'
-import { launchCommands } from './commands/launch'
-import { systemCommands } from './commands/system'
+import { contentCommands } from './builtins/content'
+import { fsCommands } from './builtins/fs'
+import { launchCommands } from './builtins/launch'
+import { systemCommands } from './builtins/system'
 
-export { EFFECTS } from './commands/result'
+export { EFFECTS } from './builtins/result'
 
 export const COMMANDS = Object.freeze({
   ...contentCommands,

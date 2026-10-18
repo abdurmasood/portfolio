@@ -1,5 +1,5 @@
-import { resolvePath, realPath } from '../vfs/paths'
-import { children, isDir } from '../vfs/queries'
+import { resolvePath, realPath } from '@/components/rafeyos/core/vfs/paths'
+import { children, isDir } from '@/components/rafeyos/core/vfs/queries'
 
 const pathCandidates = (word, { vfs, cwd }) => {
   const slash = word.lastIndexOf('/')

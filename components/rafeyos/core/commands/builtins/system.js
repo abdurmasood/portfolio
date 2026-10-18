@@ -1,5 +1,5 @@
 // System commands: identity, echo, refusals, clear, exit, logout
-import { error, pre } from '../lines'
+import { error, pre } from '@/components/rafeyos/core/commands/lines'
 import { result, EFFECTS } from './result'
 
 const whoami = () => result([pre('visitor')])
