@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react'
-import { usePointerTrack } from '../../../wm/logic/usePointerTrack'
-import { applyPosition } from '../../../wm/logic/applyRect'
-import { pointOfEvent } from '../../menus/logic/useMenu'
+import { usePointerTrack } from '@/components/rafeyos/wm/logic/usePointerTrack'
+import { applyPosition } from '@/components/rafeyos/wm/logic/applyRect'
+import { pointOfEvent } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { passedThreshold } from './rubberBand'
 
 const iconElements = (layer, paths) =>
