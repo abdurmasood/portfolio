@@ -44,6 +44,5 @@ describe('files view', () => {
   it('shortens type labels for the list view', () => {
     expect(typeLabel(realVfs, '~/projects')).toBe('Folder')
     expect(typeLabel(realVfs, '~/bio.txt')).toBe('Plain text')
-    expect(typeLabel(realVfs, '~/Desktop/projects')).toBe('Folder')
   })
 })

@@ -123,7 +123,7 @@ describe('fs commands', () => {
   it('ls lists the cwd with kinds', () => {
     const out = run('ls', '~/Desktop')
 
-    expect(out.lines).toEqual([{ type: 'ls', entries: [{ name: 'projects', kind: 'link' }, { name: 'bio.txt', kind: 'link' }] }])
+    expect(out.lines).toEqual([])
   })
 
   it('ls marks folders and files', () => {
@@ -138,8 +138,8 @@ describe('fs commands', () => {
     expect(run('ls /home/visitor/../../trash').lines[0].type).toBe('error')
   })
 
-  it('ls follows a symlinked folder and the music.txt alias', () => {
-    expect(run('ls Desktop/projects').lines[0].entries.map((e) => e.name)).toEqual(['alpha-project.txt', 'beta.txt'])
+  it('ls follows the music.txt alias', () => {
+    expect(run('ls projects').lines[0].entries.map((e) => e.name)).toEqual(['alpha-project.txt', 'beta.txt'])
     expect(run('ls music.txt').lines[0].entries.map((e) => e.name)).toEqual(['song.mp3', 'story.txt'])
   })
 
@@ -161,9 +161,9 @@ describe('fs commands', () => {
     expect(exec('ls blog', { vfs: noPosts, cwd: '~', content: fixtureContent }).lines).toEqual([])
   })
 
-  it('cd changes cwd, following symlinks; bare cd goes home', () => {
+  it('cd changes cwd; bare cd goes home', () => {
     expect(run('cd Music').cwd).toBe('~/Music')
-    expect(run('cd Desktop/projects').cwd).toBe('~/projects')
+    expect(run('cd projects').cwd).toBe('~/projects')
     expect(run('cd', '~/Music').cwd).toBe('~')
     expect(run('cd ..', '~/Music').cwd).toBe('~')
   })
@@ -177,9 +177,8 @@ describe('fs commands', () => {
     expect(texts(run('pwd', '~/Music'))).toEqual(['/home/visitor/Music'])
   })
 
-  it('cat prints files, following symlinks', () => {
+  it('cat prints files', () => {
     expect(texts(run('cat bio.txt'))).toEqual(['Bio text\n'])
-    expect(texts(run('cat Desktop/bio.txt'))).toEqual(['Bio text\n'])
   })
 
   it('cat without a file prints usage', () => {
@@ -219,7 +218,7 @@ describe('launch commands', () => {
   })
 
   it('open a path emits openPath with the real path and no output', () => {
-    expect(run('open Desktop/projects')).toEqual({ lines: [], effects: [{ type: 'openPath', path: '~/projects' }], cwd: '~' })
+    expect(run('open projects')).toEqual({ lines: [], effects: [{ type: 'openPath', path: '~/projects' }], cwd: '~' })
     expect(run('open music.txt').effects).toEqual([{ type: 'openPath', path: '~/Music' }])
   })
 
@@ -230,7 +229,7 @@ describe('launch commands', () => {
 
   it('nautilus opens Files at a folder, defaulting to cwd', () => {
     expect(run('nautilus', '~/Music').effects).toEqual([{ type: 'openApp', app: 'files', path: '~/Music' }])
-    expect(run('nautilus Desktop/projects').effects).toEqual([{ type: 'openApp', app: 'files', path: '~/projects' }])
+    expect(run('nautilus projects').effects).toEqual([{ type: 'openApp', app: 'files', path: '~/projects' }])
   })
 
   it('nautilus refuses files and missing paths', () => {
@@ -240,7 +239,7 @@ describe('launch commands', () => {
 
   it('gedit and gnome-text-editor open the editor silently', () => {
     expect(run('gedit bio.txt')).toEqual({ lines: [], effects: [{ type: 'openApp', app: 'editor', path: '~/bio.txt' }], cwd: '~' })
-    expect(run('gnome-text-editor Desktop/bio.txt').effects[0].path).toBe('~/bio.txt')
+    expect(run('gnome-text-editor skills.txt').effects[0].path).toBe('~/skills.txt')
   })
 
   it.each(['nano', 'vim', 'vi'])('%s opens the editor with a note', (editor) => {

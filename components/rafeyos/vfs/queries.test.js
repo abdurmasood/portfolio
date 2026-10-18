@@ -13,20 +13,17 @@ describe('children', () => {
     ])
   })
 
-  it('treats a symlink to a folder as a folder', () => {
-    expect(children(vfs, '~/Desktop')).toEqual(['~/Desktop/projects', '~/Desktop/bio.txt'])
-  })
-
   it('returns an empty list for empty folders and files', () => {
+    expect(children(vfs, '~/Desktop')).toEqual([])
     expect(children(vfs, 'trash')).toEqual([])
     expect(children(vfs, '~/bio.txt')).toEqual([])
   })
 })
 
 describe('isDir and displayName', () => {
-  it('follows symlinks when checking for folders', () => {
-    expect(isDir(vfs, '~/Desktop/projects')).toBe(true)
-    expect(isDir(vfs, '~/Desktop/bio.txt')).toBe(false)
+  it('tells folders from files', () => {
+    expect(isDir(vfs, '~/projects')).toBe(true)
+    expect(isDir(vfs, '~/bio.txt')).toBe(false)
     expect(isDir(vfs, '~/missing')).toBe(false)
   })
 
@@ -40,7 +37,6 @@ describe('isDir and displayName', () => {
 describe('sizes', () => {
   it('counts UTF-8 bytes of text and uses sizeBytes for audio', () => {
     expect(sizeOf(vfs, '~/bio.txt')).toBe(9)
-    expect(sizeOf(vfs, '~/Desktop/bio.txt')).toBe(9)
     expect(sizeOf(vfs, '~/Music/song.mp3')).toBe(2500000)
   })
 
@@ -54,7 +50,7 @@ describe('sizes', () => {
     expect(sizeLabel(vfs, '~/blog')).toBe('1 item')
     expect(sizeLabel(vfs, '~/Music')).toBe('2 items')
     expect(sizeLabel(vfs, 'trash')).toBe('0 items')
-    expect(sizeLabel(vfs, '~/Desktop/projects')).toBe('2 items')
+    expect(sizeLabel(vfs, '~/projects')).toBe('2 items')
     expect(sizeLabel(vfs, '~/Music/song.mp3')).toBe('2.5 MB')
   })
 })
@@ -67,8 +63,6 @@ describe('kindOf', () => {
     ['~/Music/song.mp3', 'MP3 audio'],
     ['~/contact/email.desktop', 'Link to email'],
     ['~/contact/linkedin.desktop', 'Link to website'],
-    ['~/Desktop/projects', 'Link to folder'],
-    ['~/Desktop/bio.txt', 'Link to plain text document'],
   ])('%s is %s', (path, kind) => {
     expect(kindOf(vfs, path)).toBe(kind)
   })

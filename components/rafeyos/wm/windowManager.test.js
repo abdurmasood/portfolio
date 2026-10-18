@@ -46,11 +46,11 @@ describe('window manager', () => {
     expect(wm.openOrigin(1)).toBeNull()
   })
 
-  it('opens each file in its app, following links', () => {
+  it('opens each file in its app', () => {
     const { wm, state } = setup()
 
-    expect(wm.openPath('~/Desktop/projects')).toBe(true)
-    expect(wm.openPath('~/Desktop/bio.txt')).toBe(true)
+    expect(wm.openPath('~/projects')).toBe(true)
+    expect(wm.openPath('~/bio.txt')).toBe(true)
     expect(wm.openPath('~/contact/email.desktop')).toBe(true)
     expect(wm.openPath('~/Music/storms-ahead.mp3')).toBe(true)
 

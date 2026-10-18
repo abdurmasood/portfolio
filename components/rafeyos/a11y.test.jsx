@@ -171,8 +171,7 @@ describe('keyboard selection', () => {
     fireEvent.keyDown(desktop, { key: 'ArrowDown' })
     expect(within(desktop).getByRole('option', { selected: true }).textContent).toBe('Home')
     fireEvent.keyDown(desktop, { key: 'ArrowDown' })
-    expect(within(desktop).getByRole('option', { selected: true }).textContent).toBe('projects')
-    fireEvent.keyDown(desktop, { key: 'ArrowUp' })
+    expect(within(desktop).getByRole('option', { selected: true }).textContent).toBe('Home')
     fireEvent.keyDown(desktop, { key: 'Enter' })
 
     expect(windowsOf(container, 'files')[0].getAttribute('aria-label')).toBe('Home')

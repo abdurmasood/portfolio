@@ -40,7 +40,7 @@ describe('documentName', () => {
 
 describe('saveChoice', () => {
   const userPaths = ['~/Documents/notes.txt']
-  const blockedPaths = ['~/bio.txt', '~/Desktop/bio.txt']
+  const blockedPaths = ['~/bio.txt']
 
   it('writes into the chosen folder, and treats the same name elsewhere as a different file', () => {
     expect(saveChoice({ raw: 'ideas', folder: '~/Desktop', userPaths, openPaths: [], blockedPaths })).toEqual({

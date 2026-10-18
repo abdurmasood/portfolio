@@ -22,7 +22,10 @@ afterEach(cleanup)
 
 const openBio = () => {
   const view = renderDesktop()
-  fireEvent.doubleClick(desktopIcon(view.container, '~/Desktop/bio.txt'))
+  clickDock('Terminal')
+  const input = within(windowsOf(view.container, 'terminal')[0]).getByLabelText('Terminal input')
+  fireEvent.change(input, { target: { value: 'xdg-open bio.txt' } })
+  fireEvent.keyDown(input, { key: 'Enter' })
   const [win] = windowsOf(view.container, 'editor')
   return { ...view, win, ui: within(win) }
 }
@@ -78,7 +81,9 @@ describe('Text Editor', () => {
   it('keeps one window per file', () => {
     const { container } = openBio()
 
-    fireEvent.doubleClick(desktopIcon(container, '~/Desktop/bio.txt'))
+    const input = within(windowsOf(container, 'terminal')[0]).getByLabelText('Terminal input')
+    fireEvent.change(input, { target: { value: 'xdg-open bio.txt' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
 
     expect(windowsOf(container, 'editor')).toHaveLength(1)
   })

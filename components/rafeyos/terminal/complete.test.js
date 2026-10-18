@@ -35,9 +35,9 @@ describe('complete', () => {
     expect(tab('cat ../bio', { cwd: '~/Music' })).toEqual({ value: 'cat ../bio.txt ' })
   })
 
-  it('treats a symlinked folder as a folder', () => {
-    expect(tab('ls Desktop/pro')).toEqual({ value: 'ls Desktop/projects/' })
-    expect(tab('ls Desktop/projects/b')).toEqual({ value: 'ls Desktop/projects/beta.txt ' })
+  it('completes inside a folder', () => {
+    expect(tab('ls proj')).toEqual({ value: 'ls projects/' })
+    expect(tab('ls projects/b')).toEqual({ value: 'ls projects/beta.txt ' })
   })
 
   it('lists path matches relative to cwd on the second tab', () => {
