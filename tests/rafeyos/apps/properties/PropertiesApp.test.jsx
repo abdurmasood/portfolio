@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, within } from '@testing-library/react'
-import { chooseMenuItem, desktopIcon, memoryStorage, renderDesktop, rightClick, windowsOf } from '../../testing/renderRafeyOS'
-import { propertiesRows } from './propertiesRows'
-import { realVfs } from '../../vfs/testVfs'
-import { sizeLabel } from '../../vfs/queries'
-import { createDocumentsStore, mergeDocuments, trashItemPath } from '../../vfs/documents'
+import { chooseMenuItem, desktopIcon, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { propertiesRows } from '@/components/rafeyos/apps/properties/propertiesRows'
+import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { sizeLabel } from '@/components/rafeyos/vfs/queries'
+import { createDocumentsStore, mergeDocuments, trashItemPath } from '@/components/rafeyos/vfs/documents'
 
 afterEach(cleanup)
 

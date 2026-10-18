@@ -7,8 +7,8 @@ import {
   projectPoint,
   shapeSegments,
   wireViewport,
-} from './wireframe'
-import { PROJECT_SHAPES, shapeForIndex } from '../../vfs/content'
+} from '@/components/rafeyos/apps/projects3d/wireframe'
+import { PROJECT_SHAPES, shapeForIndex } from '@/components/rafeyos/vfs/content'
 
 const length = ([a, b]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
 const radius = ([x, y, z]) => Math.hypot(x, y, z)

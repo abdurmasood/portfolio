@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { projectForPath, projectIndexFor } from './projectPaths'
-import { buildContent } from '../../vfs/content'
-import { buildVfs } from '../../vfs/buildVfs'
-import { fixtureContent } from '../../vfs/testVfs'
+import { projectForPath, projectIndexFor } from '@/components/rafeyos/apps/projects3d/projectPaths'
+import { buildContent } from '@/components/rafeyos/vfs/content'
+import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { fixtureContent } from '@/components/rafeyos/vfs/testVfs'
 
 describe('project paths', () => {
   it('finds a project by slug, or falls back to the first', () => {
