@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
-import { useDockRegistry, useServices, useWindowManager } from '../../state/logic/contexts'
-import { WINDOW_PHASES } from '../../state/logic/windowsReducer'
+import { useDockRegistry, useServices, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
 import {
   animateClose,
   animateMinimize,
@@ -8,8 +8,8 @@ import {
   animateRestore,
   fallbackTarget,
   minimizeTransform,
-  rectOfElement,
 } from './windowAnimations'
+import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
 
 const useOpenAnimation = (elementRef, win, reduced) => {
   const windowManager = useWindowManager()
