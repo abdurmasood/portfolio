@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { useLayout, useShellState, useWindowsState } from '../state/contexts'
-import { zIndexOf } from '../state/selectors'
-import { overviewTargets, spreadsWindows } from '../shell/overview/js/overviewModel'
+import { useLayout, useShellState, useWindowsState } from '../state/logic/contexts'
+import { zIndexOf } from '../state/logic/selectors'
+import { overviewTargets, spreadsWindows } from '../shell/overview/logic/overviewModel'
 import { Window } from './Window'
 
 /** Windows in creation order (DOM nodes never move); stacking comes from z-index alone. */

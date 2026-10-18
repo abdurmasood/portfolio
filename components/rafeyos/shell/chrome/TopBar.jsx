@@ -1,8 +1,8 @@
-import { useSettings, useShellDispatch, useShellState, useWifiLink } from '../../state/contexts'
+import { useSettings, useShellDispatch, useShellState, useWifiLink } from '../../state/logic/contexts'
 import { Sym, WifiGlyph } from '../../icons/symbols'
 import { Clock } from './Clock'
 import { CALENDAR_POPUP } from '../calendar/CalendarPopover'
-import { OVERVIEW_MODES } from '../overview/js/overviewModel'
+import { OVERVIEW_MODES } from '../overview/logic/overviewModel'
 
 export const QUICK_SETTINGS_POPUP = 'qs'
 
