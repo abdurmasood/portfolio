@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { humanBytes } from './format'
+import { humanBytes } from '@/components/rafeyos/vfs/format'
 
 describe('humanBytes', () => {
   it('uses bytes below 1000', () => {

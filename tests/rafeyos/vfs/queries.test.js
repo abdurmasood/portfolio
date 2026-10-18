@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from './queries'
-import { buildVfs } from './buildVfs'
-import { mergeDocuments, trashItemPath } from './documents'
-import { fixtureContent, realVfs } from './testVfs'
+import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from '@/components/rafeyos/vfs/queries'
+import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { mergeDocuments, trashItemPath } from '@/components/rafeyos/vfs/documents'
+import { fixtureContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 const vfs = buildVfs(fixtureContent)
 
