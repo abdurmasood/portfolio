@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react'
-import { useShellDispatch, useVfs } from '../../state/contexts'
+import { useShellDispatch, useVfs } from '../../state/logic/contexts'
 import { displayLink } from '../../vfs/content'
-import { useFocusTrap } from './js/useFocusTrap'
+import { useFocusTrap } from './logic/useFocusTrap'
 
 export const OPEN_LINK_DIALOG = 'openLink'
 
