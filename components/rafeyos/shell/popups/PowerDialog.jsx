@@ -1,8 +1,8 @@
 import { useCallback, useRef } from 'react'
-import { useSessionDispatch, useShellDispatch } from '../../state/contexts'
-import { POWER_DIALOGS, POWER_DIALOG_SECONDS } from './js/powerDialogs'
-import { useCountdown } from './js/useCountdown'
-import { useFocusTrap } from './js/useFocusTrap'
+import { useSessionDispatch, useShellDispatch } from '../../state/logic/contexts'
+import { POWER_DIALOGS, POWER_DIALOG_SECONDS } from './logic/powerDialogs'
+import { useCountdown } from './logic/useCountdown'
+import { useFocusTrap } from './logic/useFocusTrap'
 
 const ActionButton = ({ action, onRun }) => (
   <button type="button" className={`btn ${action.className}`.trim()} onClick={() => onRun(action.event)}>

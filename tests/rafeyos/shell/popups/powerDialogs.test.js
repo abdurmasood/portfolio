@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { POWER_DIALOGS, isPowerDialog } from '@/components/rafeyos/shell/popups/js/powerDialogs'
+import { POWER_DIALOGS, isPowerDialog } from '@/components/rafeyos/shell/popups/logic/powerDialogs'
 
 describe('powerDialogs', () => {
   it('counts down in the power dialogs', () => {
