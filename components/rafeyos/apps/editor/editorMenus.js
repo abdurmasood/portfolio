@@ -1,5 +1,5 @@
 // The Text Editor's "Open" popover and main menu (mockup wording).
-import { SEPARATOR, disabledItem, menuHeading, menuItem } from '../../shell/menuItems'
+import { SEPARATOR, disabledItem, menuHeading, menuItem } from '../../shell/menus/js/menuItems'
 import { HOME } from '../../vfs/buildVfs'
 import { parentOf, tilde } from '../../vfs/paths'
 import { textDocuments } from '../../vfs/queries'
