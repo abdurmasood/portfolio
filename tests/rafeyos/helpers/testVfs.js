@@ -1,6 +1,6 @@
 // Test helper: a vfs built from the real content, plus a small fixture content for edge cases
-import { buildContent } from '@/components/rafeyos/vfs/content'
-import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
+import { buildContent } from '@/components/rafeyos/core/vfs/content'
+import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 
 export const realContent = buildContent()
 export const realVfs = buildVfs(realContent)

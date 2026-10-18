@@ -12,7 +12,7 @@ import {
   rightClick,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore } from '@/components/rafeyos/vfs/documents'
+import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
 

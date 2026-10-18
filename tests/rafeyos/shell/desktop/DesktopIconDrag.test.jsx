@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
 import { desktopIcon, memoryStorage, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore } from '@/components/rafeyos/vfs/documents'
+import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
 
 // jsdom has no layout: give icons the box their inline position implies
 const ICON_BOX = { w: 90, h: 80 }
