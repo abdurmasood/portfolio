@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { buildVfs, HOME, TRASH } from './buildVfs'
-import { fixtureContent, realContent, realVfs } from './testVfs'
+import { buildVfs, HOME, TRASH } from '@/components/rafeyos/vfs/buildVfs'
+import { fixtureContent, realContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 describe('buildVfs', () => {
   it('builds the mockup tree', () => {
