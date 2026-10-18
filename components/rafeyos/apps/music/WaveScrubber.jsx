@@ -1,6 +1,6 @@
 import { useMusic, useMusicControls } from '../../state/logic/contexts'
 import { formatDuration } from '../../vfs/content'
-import { Slider } from '../../shell/chrome/controls'
+import { Slider } from '../../controls/Slider'
 import { useWaveLevels } from './logic/useWaveLevels'
 
 const BAR_COUNT = 48
