@@ -1,11 +1,11 @@
 import { useCallback, useLayoutEffect, useRef } from 'react'
-import { useLayout, useShellDispatch } from '../../state/logic/contexts'
-import { MENU_ITEM_KINDS } from './logic/menuItems'
+import { useLayout, useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
+import { MENU_ITEM_KINDS } from '@/components/rafeyos/ui/menus/logic/menuItems'
 import { menuPosition } from './logic/menuPosition'
-import { useEscapeKey } from '../popups/logic/useEscapeKey'
-import { useReturnFocus } from '../popups/logic/useFocusTrap'
-import { menuStep } from './logic/keyboardNavigation'
-import { Sym } from '../../icons/symbols'
+import { useEscapeKey } from '@/components/rafeyos/shell/popups/logic/useEscapeKey'
+import { useReturnFocus } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
+import { menuStep } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 
 const sizeOf = (element) => ({ w: element.offsetWidth, h: element.offsetHeight })
 
