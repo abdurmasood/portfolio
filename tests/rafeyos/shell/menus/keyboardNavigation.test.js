@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
-import { gridColumns, gridStep, menuStep, nearestInDirection } from '../js/keyboardNavigation'
+import { gridColumns, gridStep, menuStep, nearestInDirection } from '@/components/rafeyos/shell/menus/js/keyboardNavigation'
 
 describe('menuStep', () => {
   it('wraps around both ends', () => {

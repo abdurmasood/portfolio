@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { menuPosition } from '../js/menuPosition'
+import { menuPosition } from '@/components/rafeyos/shell/menus/js/menuPosition'
 
 const viewport = { w: 1000, h: 700 }
 const size = { w: 200, h: 150 }
