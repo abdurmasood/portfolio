@@ -4,8 +4,8 @@ import { cleanup, fireEvent, within } from '@testing-library/react'
 import { chooseMenuItem, desktopIcon, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { propertiesRows } from '@/components/rafeyos/apps/properties/logic/propertiesRows'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { sizeLabel } from '@/components/rafeyos/vfs/queries'
-import { createDocumentsStore, mergeDocuments, trashItemPath } from '@/components/rafeyos/vfs/documents'
+import { sizeLabel } from '@/components/rafeyos/core/vfs/queries'
+import { createDocumentsStore, mergeDocuments, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
 

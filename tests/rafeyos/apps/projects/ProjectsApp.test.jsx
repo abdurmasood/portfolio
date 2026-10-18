@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { chooseMenuItem, clickDock, menuLabels, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { buildContent } from '@/components/rafeyos/vfs/content'
+import { buildContent } from '@/components/rafeyos/core/vfs/content'
 
 const { projects } = buildContent()
 const linked = projects.find((project) => project.link)

@@ -5,7 +5,7 @@ import { vi } from 'vitest'
 import { RafeyOSRoot } from '@/components/rafeyos/RafeyOSRoot'
 import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
 import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
-import { createDocumentsStore } from '@/components/rafeyos/vfs/documents'
+import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))
