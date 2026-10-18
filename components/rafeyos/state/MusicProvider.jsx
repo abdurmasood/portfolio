@@ -1,5 +1,5 @@
-import { MusicControlsContext, MusicStateContext, useVfs } from './contexts'
-import { useMusicPlayer } from './useMusicPlayer'
+import { MusicControlsContext, MusicStateContext, useVfs } from './logic/contexts'
+import { useMusicPlayer } from './logic/useMusicPlayer'
 
 /**
  * Owns playback for the whole desktop, so music keeps going when the Music window closes.
