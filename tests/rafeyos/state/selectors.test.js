@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { topWindow, windowsForApp, runningApps, zIndexOf } from './selectors'
-import { windowsReducer, initialWindows } from './windowsReducer'
+import { topWindow, windowsForApp, runningApps, zIndexOf } from '@/components/rafeyos/state/selectors'
+import { windowsReducer, initialWindows } from '@/components/rafeyos/state/windowsReducer'
 
 const area = { x: 0, y: 28, w: 1200, h: 700 }
 const open = (appId, arg = '') => ({ type: 'open', appId, arg, multi: appId === 'terminal', size: [400, 300], area })
