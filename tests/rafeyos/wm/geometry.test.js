@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   workArea, snapRect, snapModeAt, resizeRect, cascadeRect, clampRect, unsnapForDragRect, overviewRegion, overviewLayout,
   overviewWorkspaceRect, overviewLabelPoint,
-} from '@/components/rafeyos/wm/geometry'
+} from '@/components/rafeyos/wm/logic/geometry'
 
 const viewport = { w: 1280, h: 800 }
 const area = { x: 54, y: 28, w: 1226, h: 772 }
