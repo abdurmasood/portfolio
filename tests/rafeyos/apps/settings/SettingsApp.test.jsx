@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, renderDesktop, rightClick, settle, windowsOf } from '../../testing/renderRafeyOS'
-import { buildContent } from '../../vfs/content'
-import { age } from '../../../../lib/descriptions'
-import { ABOUT_TEXT, aboutRows } from './aboutData'
-import { PAGE_TITLES, isSettingsPage, sidebarPageOf } from './settingsPages'
+import { chooseMenuItem, clickDock, renderDesktop, rightClick, settle, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
+import { buildContent } from '@/components/rafeyos/vfs/content'
+import { age } from '@/lib/descriptions'
+import { ABOUT_TEXT, aboutRows } from '@/components/rafeyos/apps/settings/aboutData'
+import { PAGE_TITLES, isSettingsPage, sidebarPageOf } from '@/components/rafeyos/apps/settings/settingsPages'
 
 afterEach(cleanup)
 

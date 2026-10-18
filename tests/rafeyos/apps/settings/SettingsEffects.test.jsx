@@ -12,8 +12,8 @@ import {
   openPowerMenu,
   renderDesktop,
   windowsOf,
-} from '../../testing/renderRafeyOS'
-import { BOOT_MS } from '../../session/useSession'
+} from '@/components/rafeyos/testing/renderRafeyOS'
+import { BOOT_MS } from '@/components/rafeyos/session/useSession'
 
 afterEach(() => {
   cleanup()
