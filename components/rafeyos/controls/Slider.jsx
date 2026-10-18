@@ -1,4 +1,4 @@
-// The GNOME controls shared by Quick Settings, the calendar, Music and Settings
+// GNOME's range slider, shared by Quick Settings, Music and Settings
 
 const PERCENT = 100
 
@@ -21,17 +21,5 @@ export const Slider = ({ value, onChange, label, range = { min: 0, max: PERCENT 
     aria-label={label}
     style={{ ...style, '--p': sliderFill(value, range.min, range.max) }}
     onChange={(event) => onChange(Number(event.target.value))}
-  />
-)
-
-/** @param {{ on: boolean, label: string, onToggle?: () => void }} props */
-export const Switch = ({ on, label, onToggle }) => (
-  <button
-    type="button"
-    className={on ? 'sw on' : 'sw'}
-    role="switch"
-    aria-checked={on}
-    aria-label={label}
-    onClick={onToggle}
   />
 )
