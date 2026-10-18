@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useServices, useVfs, useWindowManager } from '../../state/contexts'
+import { useServices, useVfs, useWindowManager } from '../../state/logic/contexts'
 import { HeaderBar } from '../../wm/HeaderBar'
-import { useWindowChrome } from '../../wm/WindowChromeContext'
+import { useWindowChrome } from '../../wm/logic/WindowChromeContext'
 import { SidebarToggle, splitClassName, useSidebarToggle } from '../../wm/SidebarToggle'
 import { Sym } from '../../icons/symbols'
-import { shapeSegments } from './wireframe'
-import { useWireframeCanvas } from './useWireframeCanvas'
+import { shapeSegments } from './logic/wireframe'
+import { useWireframeCanvas } from './logic/useWireframeCanvas'
 import { PROJECTS_FOLDER, projectIndexFor } from '../../vfs/projectPaths'
 
 const ProjectsSidebar = ({ projects, index, onPick, onShowInFiles }) => (
