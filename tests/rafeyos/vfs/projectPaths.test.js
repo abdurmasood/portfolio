@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { projectForPath, projectIndexFor } from '@/components/rafeyos/apps/projects3d/projectPaths'
+import { projectForPath, projectIndexFor } from '@/components/rafeyos/vfs/projectPaths'
 import { buildContent } from '@/components/rafeyos/vfs/content'
 import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
 import { fixtureContent } from '@/components/rafeyos/vfs/testVfs'

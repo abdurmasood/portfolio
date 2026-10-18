@@ -6,7 +6,7 @@ import { SidebarToggle, splitClassName, useSidebarToggle } from '../../wm/Sideba
 import { Sym } from '../../icons/symbols'
 import { shapeSegments } from './wireframe'
 import { useWireframeCanvas } from './useWireframeCanvas'
-import { PROJECTS_FOLDER, projectIndexFor } from './projectPaths'
+import { PROJECTS_FOLDER, projectIndexFor } from '../../vfs/projectPaths'
 
 const ProjectsSidebar = ({ projects, index, onPick, onShowInFiles }) => (
   <div className="side">

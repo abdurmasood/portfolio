@@ -1,5 +1,5 @@
 // Links between the Projects app and the ~/projects/*.txt files that describe each project
-import { realPath } from '../../vfs/paths'
+import { realPath } from './paths'
 
 export const PROJECTS_FOLDER = '~/projects'
 

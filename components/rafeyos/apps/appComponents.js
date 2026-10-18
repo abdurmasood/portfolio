@@ -6,7 +6,7 @@ import { MailApp } from './mail/MailApp'
 import { PropertiesApp } from './properties/PropertiesApp'
 import { MusicApp } from './music/MusicApp'
 import { SettingsApp } from './settings/SettingsApp'
-import { ProjectsApp } from './projects3d/ProjectsApp'
+import { ProjectsApp } from './projects/ProjectsApp'
 
 export const APP_COMPONENTS = Object.freeze({
   files: FilesApp,

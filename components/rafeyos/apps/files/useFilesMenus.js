@@ -7,7 +7,7 @@ import { useEmptyTrash, useTrashActions } from '../../shell/menus/js/useTrashAct
 import { TRASH } from '../../vfs/buildVfs'
 import { isDir } from '../../vfs/queries'
 import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
-import { projectForPath } from '../projects3d/projectPaths'
+import { projectForPath } from '../../vfs/projectPaths'
 
 // View options sits near the window's right edge, so it opens inwards (mockup offset)
 const VIEW_OPTIONS_SHIFT = 120
