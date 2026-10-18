@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { WIFI_ARCS } from '../icons/symbols'
-import { WifiLinkContext, useServices } from './contexts'
+import { WifiLinkContext, useServices } from './logic/contexts'
 
 // The arc changes at a fixed pace. A reconnect lasts longer or shorter by repeating that sweep.
 export const WIFI_STEP_MS = 200
