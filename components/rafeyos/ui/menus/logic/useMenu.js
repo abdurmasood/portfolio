@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { useShellDispatch } from '../../../state/logic/contexts'
-import { rectOfElement } from '../../../wm/logic/windowAnimations'
+import { useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
+import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
 
 // Popovers from header buttons open just below the button, as in the mockup
 const BELOW_GAP = 4

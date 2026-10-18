@@ -1,11 +1,11 @@
 import { useCallback } from 'react'
-import { useVfs, useWindowManager, useWindowsState } from '../../../state/logic/contexts'
-import { WINDOW_PHASES } from '../../../state/logic/windowsReducer'
-import { TRASH } from '../../../vfs/buildVfs'
-import { children } from '../../../vfs/queries'
-import { parentOf } from '../../../vfs/paths'
-import { placeLabel } from '../../../vfs/documents'
-import { useNotify } from '../../popups/logic/useNotify'
+import { useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
+import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
+import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { children } from '@/components/rafeyos/core/vfs/queries'
+import { parentOf } from '@/components/rafeyos/core/vfs/paths'
+import { placeLabel } from '@/components/rafeyos/core/vfs/documents'
+import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 
 /** Clears Trash for good. Null while the bin is empty, so the menu item stays disabled. */
 export const useEmptyTrash = () => {
