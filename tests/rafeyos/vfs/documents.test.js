@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
-import { fixtureContent } from '@/components/rafeyos/vfs/testVfs'
+import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 import { children } from '@/components/rafeyos/vfs/queries'
 import {
   DOCUMENTS,

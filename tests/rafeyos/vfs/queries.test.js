@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from '@/components/rafeyos/vfs/queries'
 import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
 import { mergeDocuments, trashItemPath } from '@/components/rafeyos/vfs/documents'
-import { fixtureContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { fixtureContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 const vfs = buildVfs(fixtureContent)
 

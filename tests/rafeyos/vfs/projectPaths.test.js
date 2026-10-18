@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { projectForPath, projectIndexFor } from '@/components/rafeyos/vfs/projectPaths'
 import { buildContent } from '@/components/rafeyos/vfs/content'
 import { buildVfs } from '@/components/rafeyos/vfs/buildVfs'
-import { fixtureContent } from '@/components/rafeyos/vfs/testVfs'
+import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('project paths', () => {
   it('finds a project by slug, or falls back to the first', () => {
