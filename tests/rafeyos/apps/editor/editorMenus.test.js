@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { documentLabel, editorMenuItems, folderLabel, recentDocumentItems } from './editorMenus'
-import { editorTitle } from './EditorApp'
-import { realVfs } from '../../vfs/testVfs'
+import { documentLabel, editorMenuItems, folderLabel, recentDocumentItems } from '@/components/rafeyos/apps/editor/editorMenus'
+import { editorTitle } from '@/components/rafeyos/apps/editor/EditorApp'
+import { realVfs } from '@/components/rafeyos/vfs/testVfs'
 
 describe('editor menus', () => {
   it('labels documents by name and folder', () => {

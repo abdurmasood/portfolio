@@ -12,11 +12,11 @@ import {
   menuLabels,
   renderDesktop,
   windowsOf,
-} from '../../testing/renderRafeyOS'
-import { realContent, realVfs } from '../../vfs/testVfs'
-import { textDocuments } from '../../vfs/queries'
-import { createDocumentsStore, trashItemPath } from '../../vfs/documents'
-import { documentLabel } from './editorMenus'
+} from '@/components/rafeyos/testing/renderRafeyOS'
+import { realContent, realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { textDocuments } from '@/components/rafeyos/vfs/queries'
+import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
+import { documentLabel } from '@/components/rafeyos/apps/editor/editorMenus'
 
 afterEach(cleanup)
 

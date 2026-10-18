@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { APPS, APP_IDS, DOCK_FAVORITES, getApp } from './registry'
+import { APPS, APP_IDS, DOCK_FAVORITES, getApp } from '@/components/rafeyos/apps/registry'
 
 describe('app registry', () => {
   it('lists every app id', () => {
