@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatClock, formatLongDate, formatTime } from '@/components/rafeyos/shell/chrome/js/clockFormat'
+import { formatClock, formatLongDate, formatTime } from '@/components/rafeyos/shell/chrome/logic/clockFormat'
 
 describe('clockFormat', () => {
   it('formats the clock like GNOME', () => {

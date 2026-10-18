@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, dock, flushTimers, renderDesktop, windowsOf } from '@/components/rafeyos/testing/renderRafeyOS'
-import { RESIZE_DEBOUNCE_MS } from '@/components/rafeyos/shell/chrome/js/useViewport'
+import { RESIZE_DEBOUNCE_MS } from '@/components/rafeyos/shell/chrome/logic/useViewport'
 
 const WIDE = { w: window.innerWidth, h: window.innerHeight }
 
