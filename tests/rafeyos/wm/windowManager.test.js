@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createWindowManager } from './windowManager'
-import { initialWindows, windowsReducer } from '../state/windowsReducer'
-import { SNAP_MODES } from './geometry'
-import { realVfs } from '../vfs/testVfs'
-import { mergeDocuments } from '../vfs/documents'
+import { createWindowManager } from '@/components/rafeyos/wm/windowManager'
+import { initialWindows, windowsReducer } from '@/components/rafeyos/state/windowsReducer'
+import { SNAP_MODES } from '@/components/rafeyos/wm/geometry'
+import { realVfs } from '@/components/rafeyos/vfs/testVfs'
+import { mergeDocuments } from '@/components/rafeyos/vfs/documents'
 
 const layout = { area: { x: 54, y: 28, w: 970, h: 740 }, compact: false }
 

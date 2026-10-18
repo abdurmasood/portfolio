@@ -7,7 +7,7 @@ import {
   fallbackTarget,
   minimizeTransform,
   rectOfElement,
-} from './windowAnimations'
+} from '@/components/rafeyos/wm/windowAnimations'
 
 const fakeElement = () => {
   const animation = { onfinish: null, cancel: vi.fn() }
