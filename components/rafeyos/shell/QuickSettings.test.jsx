@@ -4,6 +4,8 @@ import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, flushTimers, renderDesktop, windowsOf } from '../testing/renderRafeyOS'
 import { WIFI_STEP_MS, WIFI_SWEEPS_MAX, WIFI_SWEEPS_MIN } from '../state/WifiLink'
 import { sliderFill } from './controls'
+// Inner, then middle, then outer: the reconnect sweep, one band at a time
+import { WIFI_ARCS } from '../icons/symbols'
 
 afterEach(() => {
   cleanup()
@@ -22,12 +24,6 @@ const topBarIcons = (container) => container.querySelector('.topbar .sti')
 /** The symbol's last path, enough to tell wifi from wifioff and vol from vol0. */
 const symbolOf = (element) => element.querySelector('path:last-of-type').getAttribute('d')
 
-// Inner, then middle, then outer: the reconnect sweep, one arc at a time
-const WIFI_ARCS = Object.freeze([
-  'M6.1 11a2.9 2.9 0 0 1 3.8 0',
-  'M3.8 8.6a6.2 6.2 0 0 1 8.4 0',
-  'M1.5 6.2a9.5 9.5 0 0 1 13 0',
-])
 const WIFI_OFF = 'M2 2l12 12'
 const wifiPaths = (element) => [...element.querySelector('svg').querySelectorAll('path')].map((path) => path.getAttribute('d'))
 const visibleArcs = (element) =>
