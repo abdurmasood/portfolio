@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useMusicControls, useServices, useSessionDispatch, useVfs, useWindowManager } from '../../../state/logic/contexts'
-import { exec } from '../../../terminal/exec'
-import { prompt } from '../../../terminal/lines'
-import { SESSION_EVENTS } from '../../../session/logic/sessionMachine'
-import { isDir } from '../../../vfs/queries'
-import { HOME } from '../../../vfs/buildVfs'
+import { useMusicControls, useServices, useSessionDispatch, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { exec } from '@/components/rafeyos/core/commands/exec'
+import { prompt } from '@/components/rafeyos/core/commands/lines'
+import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
+import { isDir } from '@/components/rafeyos/core/vfs/queries'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { applyTerminalEffects } from './terminalEffects'
-import { useOpenLinkDialog } from '../../../shell/popups/OpenLinkDialog'
+import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 
 // Lets "Returning to the rafey.ai terminal…" show before the session ends (as in the mockup)
 export const LOGOUT_DELAY_MS = 300

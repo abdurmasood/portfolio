@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { LINE_TYPES, ENTRY_KINDS } from '../../terminal/lines'
-import { tilde } from '../../vfs/paths'
+import { LINE_TYPES, ENTRY_KINDS } from '@/components/rafeyos/core/commands/lines'
+import { tilde } from '@/components/rafeyos/core/vfs/paths'
 
 /** Ubuntu's bash prompt: green user@host, blue path. */
 export const TerminalPrompt = ({ cwd }) => (
