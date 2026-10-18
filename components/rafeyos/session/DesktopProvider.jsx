@@ -2,12 +2,13 @@
 // dispatch contexts, plus layout, the window manager and the music player built on top of them.
 // Settings live above (SettingsProvider), so they survive a restart.
 import { useReducer } from 'react'
-import { ShellDispatchContext, ShellStateContext, WindowsDispatchContext, WindowsStateContext } from './logic/contexts'
-import { initialWindows, windowsReducer } from './logic/windowsReducer'
-import { initialShell, shellReducer } from './logic/shellReducer'
-import { LayoutProvider } from './LayoutProvider'
-import { WindowManagerProvider } from '../wm/WindowManagerProvider'
-import { MusicProvider } from './MusicProvider'
+import { AppComponentsContext, ShellDispatchContext, ShellStateContext, WindowsDispatchContext, WindowsStateContext } from '@/components/rafeyos/state/logic/contexts'
+import { initialWindows, windowsReducer } from '@/components/rafeyos/state/logic/windowsReducer'
+import { initialShell, shellReducer } from '@/components/rafeyos/state/logic/shellReducer'
+import { LayoutProvider } from '@/components/rafeyos/state/LayoutProvider'
+import { WindowManagerProvider } from '@/components/rafeyos/wm/WindowManagerProvider'
+import { MusicProvider } from '@/components/rafeyos/state/MusicProvider'
+import { APP_COMPONENTS } from '@/components/rafeyos/apps/appComponents'
 
 export const DesktopProvider = ({ children }) => {
   const [windows, windowsDispatch] = useReducer(windowsReducer, initialWindows)
@@ -19,7 +20,9 @@ export const DesktopProvider = ({ children }) => {
           <ShellStateContext.Provider value={shell}>
             <LayoutProvider>
               <WindowManagerProvider>
-                <MusicProvider>{children}</MusicProvider>
+                <AppComponentsContext.Provider value={APP_COMPONENTS}>
+                  <MusicProvider>{children}</MusicProvider>
+                </AppComponentsContext.Provider>
               </WindowManagerProvider>
             </LayoutProvider>
           </ShellStateContext.Provider>

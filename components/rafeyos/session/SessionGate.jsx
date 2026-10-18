@@ -1,12 +1,12 @@
 import { useCallback } from 'react'
-import { SessionDispatchContext, useServices, useSettings } from '../state/logic/contexts'
-import { SESSION_EVENTS, SESSION_STATES } from './logic/sessionMachine'
+import { SessionDispatchContext, useServices, useSettings } from '@/components/rafeyos/state/logic/contexts'
+import { SESSION_EVENTS, SESSION_STATES } from '@/components/rafeyos/state/logic/sessionMachine'
 import { useSession } from './logic/useSession'
 import { BootSplash } from './BootSplash'
 import { LockScreen, SuspendScreen } from './SessionScreens'
-import { DesktopProvider } from '../state/DesktopProvider'
-import { SettingsProvider } from '../state/SettingsProvider'
-import { Desktop } from '../shell/Desktop'
+import { DesktopProvider } from '@/components/rafeyos/session/DesktopProvider'
+import { SettingsProvider } from '@/components/rafeyos/state/SettingsProvider'
+import { Desktop } from '@/components/rafeyos/shell/Desktop'
 
 const GoneScreen = () => <div className="rafeyos-boot" aria-hidden="true" />
 
