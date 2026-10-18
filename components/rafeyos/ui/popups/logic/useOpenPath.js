@@ -1,10 +1,10 @@
 import { useCallback } from 'react'
-import { useMusicControls, useVfs, useWindowManager } from '../../../state/logic/contexts'
-import { handlerFor, isAudio, isWebLink, unavailableNote } from '../../../apps/registry'
-import { realPath } from '../../../vfs/paths'
-import { displayName } from '../../../vfs/queries'
-import { useOpenLinkDialog } from '../OpenLinkDialog'
-import { useNotify } from './useNotify'
+import { useMusicControls, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { handlerFor, isAudio, isWebLink, unavailableNote } from '@/components/rafeyos/core/catalog/apps'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
+import { displayName } from '@/components/rafeyos/core/vfs/queries'
+import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
+import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 
 /** The banner shown when a file needs an app that isn't built yet. */
 export const unavailableBanner = (vfs, path) => {
