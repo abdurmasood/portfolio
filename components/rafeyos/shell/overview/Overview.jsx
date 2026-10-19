@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
 import { APP, getApp } from '@/components/rafeyos/core/catalog/apps'
-import { useOpenSettings } from '@/components/rafeyos/shell/popups/logic/useOpenSettings'
+import { useOpenSettings } from '@/components/rafeyos/shell/logic/useOpenSettings'
 import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
 import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
