@@ -1,3 +1,4 @@
+// @ts-check
 // Runs exec()'s effect descriptors. Pure apart from the injected handlers, so it's testable alone.
 import { EFFECTS } from '@/components/rafeyos/core/commands/exec'
 import { dim } from '@/components/rafeyos/core/commands/lines'
@@ -5,13 +6,35 @@ import { handlerFor, isAudio, isWebLink, unavailableNote } from '@/components/ra
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
 
 /**
- * @param {object[]} effects - from exec()
- * @param {{ vfs, windowManager, openExternal, openLink, play, closeSelf, logout }} handlers - openLink shows the
- *   Open Link dialog; play starts the track without opening a window
- * @returns {{ notes: object[], clear: boolean }} dim lines to print after the output, and whether to clear first
+ * @import { Effect } from '@/components/rafeyos/core/commands/builtins/result'
+ * @import { Line } from '@/components/rafeyos/core/commands/lines'
+ * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
+ * @import { WindowManager } from '@/components/rafeyos/state/logic/contexts'
+ */
+
+/**
+ * openLink shows the Open Link dialog; play starts the track without opening a window.
+ * @typedef {{
+ *   vfs: Vfs,
+ *   windowManager: Pick<WindowManager, 'openApp' | 'openPath'>,
+ *   openExternal: (href: string) => void,
+ *   openLink: () => void,
+ *   play: () => void,
+ *   closeSelf: () => void,
+ *   logout: () => void,
+ * }} EffectHandlers
+ */
+
+/** @typedef {{ notes: Line[], clear: boolean }} EffectOutcome */
+
+/**
+ * @param {readonly Effect[]} effects - from exec()
+ * @param {EffectHandlers} handlers
+ * @returns {EffectOutcome} dim lines to print after the output, and whether to clear first
  */
 export const applyTerminalEffects = (effects, handlers) =>
   effects.reduce(
+    /** @type {(outcome: EffectOutcome, effect: Effect) => EffectOutcome} */
     (outcome, effect) => {
       if (effect.type === EFFECTS.CLEAR) return { ...outcome, clear: true }
       const note = runEffect(effect, handlers)
@@ -20,6 +43,11 @@ export const applyTerminalEffects = (effects, handlers) =>
     { notes: [], clear: false },
   )
 
+/**
+ * @param {string} path
+ * @param {EffectHandlers} handlers
+ * @returns {Line | null}
+ */
 const openPathNote = (path, handlers) => {
   const { vfs, windowManager, openLink } = handlers
   if (isWebLink(vfs, path)) {
@@ -30,7 +58,11 @@ const openPathNote = (path, handlers) => {
   return windowManager.openPath(path) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
 }
 
-/** @returns {object|null} a dim note line when the effect can't run yet */
+/**
+ * @param {Effect} effect
+ * @param {EffectHandlers} handlers
+ * @returns {Line | null} a dim note line when the effect can't run yet
+ */
 const runEffect = (effect, handlers) => {
   switch (effect.type) {
     case EFFECTS.OPEN_APP:
