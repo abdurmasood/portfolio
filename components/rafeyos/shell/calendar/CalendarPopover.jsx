@@ -6,6 +6,9 @@ import { calendarGrid } from './logic/calendarGrid'
 import { Switch } from '@/components/rafeyos/ui/controls/Switch'
 import { useEscapeKey } from '@/components/rafeyos/shell/popups/logic/useEscapeKey'
 import { useNow } from '@/components/rafeyos/shell/chrome/logic/useNow'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 export const CALENDAR_POPUP = 'cal'
 
@@ -31,7 +34,7 @@ const MediaCard = () => {
   const { track } = useVfs().content.music
   return (
     <div className="media">
-      <AppIcon name="music" className="ai" />
+      <AppIcon name={APP.MUSIC} className="ai" />
       <b>{track.title}</b>
       <small>{track.artist}</small>
       <div className="mc">
@@ -62,7 +65,7 @@ const Notifications = () => {
       </div>
       <div className="cal-foot">
         <span>Do Not Disturb</span>
-        <Switch on={dnd} label="Do Not Disturb" onToggle={() => settingsDispatch({ type: 'toggle', key: 'dnd' })} />
+        <Switch on={dnd} label="Do Not Disturb" onToggle={() => settingsDispatch({ type: SETTINGS_ACTIONS.TOGGLE, key: 'dnd' })} />
         <span className="sp" />
         <button type="button" className="btn pill" disabled style={CLEAR_STYLE}>
           Clear
@@ -106,7 +109,7 @@ const MonthGrid = ({ today }) => {
 export const CalendarPopover = () => {
   const today = useNow()
   const shellDispatch = useShellDispatch()
-  useEscapeKey(useCallback(() => shellDispatch({ type: 'closePopup' }), [shellDispatch]))
+  useEscapeKey(useCallback(() => shellDispatch({ type: SHELL_ACTIONS.CLOSE_POPUP }), [shellDispatch]))
   return (
     <div className="cal" role="dialog" aria-label="Calendar and notifications">
       <Notifications />

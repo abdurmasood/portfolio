@@ -5,7 +5,8 @@ import { useEffect, useMemo, useReducer, useRef } from 'react'
 import { useServices, useSettings } from './contexts'
 import { useLatest } from './useLatest'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
-import { initialMusic, musicReducer } from './musicReducer'
+import { initialMusic, musicReducer, MUSIC_ACTIONS } from './musicReducer'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 // Refusals the visitor caused or expects (autoplay policy, a pause during play()): no error to show
 const QUIET_REJECTIONS = new Set(['NotAllowedError', 'AbortError'])
@@ -20,12 +21,12 @@ const followElement = (audio, { refs, dispatch }) => {
     // Also cancels a play() still pending
     refs.token.current += 1
     refs.intent.current = false
-    dispatch({ type: 'pause' })
+    dispatch({ type: MUSIC_ACTIONS.PAUSE })
   })
   audio.onPlay(() => {
     if (refs.intent.current) return
     refs.intent.current = true
-    dispatch({ type: 'started' })
+    dispatch({ type: MUSIC_ACTIONS.STARTED })
   })
 }
 
@@ -34,7 +35,7 @@ const onTrackEnded = (audio, { refs, dispatch, replay }) => () => {
   refs.token.current += 1
   refs.intent.current = false
   audio.seek(0)
-  dispatch({ type: 'stop' })
+  dispatch({ type: MUSIC_ACTIONS.STOP })
   if (refs.state.current.repeat) replay()
 }
 
@@ -44,7 +45,7 @@ const ensureAudio = (deps) => {
   const audio = createAudio(track.src)
   audio.setVolume(refs.volume.current)
   if (refs.state.current.position) audio.seek(refs.state.current.position)
-  audio.onTime((seconds) => dispatch({ type: 'time', position: seconds }))
+  audio.onTime((seconds) => dispatch({ type: MUSIC_ACTIONS.TIME, position: seconds }))
   audio.onEnded(onTrackEnded(audio, deps))
   followElement(audio, deps)
   refs.audio.current = audio
@@ -64,18 +65,18 @@ const startPlayback = (deps, announce) => {
   refs.intent.current = true
   const token = ++refs.token.current
   const isCurrent = () => token === refs.token.current
-  dispatch({ type: 'request' })
+  dispatch({ type: MUSIC_ACTIONS.REQUEST })
   return audio.play().then(
     () => {
       if (!isCurrent()) return false
-      dispatch({ type: 'started' })
-      if (announce) notify({ appId: 'music', title: track.title, body: track.artist })
+      dispatch({ type: MUSIC_ACTIONS.STARTED })
+      if (announce) notify({ appId: APP.MUSIC, title: track.title, body: track.artist })
       return true
     },
     (error) => {
       if (isCurrent()) {
         refs.intent.current = false
-        dispatch({ type: 'blocked' })
+        dispatch({ type: MUSIC_ACTIONS.BLOCKED })
       }
       if (!QUIET_REJECTIONS.has(error?.name)) throw error
       return false
@@ -95,9 +96,9 @@ const createControls = (deps) => {
   }
   const seek = (seconds) => {
     refs.audio.current?.seek(seconds)
-    dispatch({ type: 'seek', position: seconds })
+    dispatch({ type: MUSIC_ACTIONS.SEEK, position: seconds })
   }
-  const pause = () => halt('pause')
+  const pause = () => halt(MUSIC_ACTIONS.PAUSE)
   return Object.freeze({
     play,
     pause,
@@ -107,9 +108,9 @@ const createControls = (deps) => {
     // GNOME Music with one song: next ends the queue, back at the start
     next: () => {
       refs.audio.current?.seek(0)
-      halt('stop')
+      halt(MUSIC_ACTIONS.STOP)
     },
-    toggleRepeat: () => dispatch({ type: 'toggleRepeat' }),
+    toggleRepeat: () => dispatch({ type: MUSIC_ACTIONS.TOGGLE_REPEAT }),
   })
 }
 

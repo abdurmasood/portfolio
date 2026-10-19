@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
 import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 export const BANNER_MS = 4200
 
@@ -10,7 +12,7 @@ export const Banner = ({ banner }) => {
   const [shown, setShown] = useState(false)
   useEffect(() => {
     const frame = requestAnimationFrame(() => setShown(true))
-    const timer = setTimeout(() => shellDispatch({ type: 'hideBanner' }), BANNER_MS)
+    const timer = setTimeout(() => shellDispatch({ type: SHELL_ACTIONS.HIDE_BANNER }), BANNER_MS)
     return () => {
       cancelAnimationFrame(frame)
       clearTimeout(timer)
@@ -18,7 +20,7 @@ export const Banner = ({ banner }) => {
   }, [banner, shellDispatch])
   return (
     <div className={shown ? 'banner on' : 'banner'} role="status" aria-live="polite">
-      <AppIcon name={banner.appId ?? 'files'} />
+      <AppIcon name={banner.appId ?? APP.FILES} />
       <span>
         <b>{banner.title}</b>
         <small>{banner.body}</small>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
-import { getApp } from '@/components/rafeyos/core/catalog/apps'
+import { APP, getApp } from '@/components/rafeyos/core/catalog/apps'
 import { useOpenSettings } from '@/components/rafeyos/shell/popups/logic/useOpenSettings'
 import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
 import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
@@ -10,6 +10,7 @@ import { OVERVIEW_MODES, overviewTargets, overviewWindows, spreadsWindows, works
 import { RESULT_KINDS, firstResult, hasResults, overviewApps, overviewResults } from './logic/overviewSearch'
 import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { useReturnFocus } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 // The global keys focus this field when the visitor starts typing in the overview
 export const OVERVIEW_SEARCH_ID = 'rafeyos-overview-search'
@@ -27,7 +28,7 @@ const useLaunch = () => {
   const openSettings = useOpenSettings()
   return useCallback(
     (entry) => {
-      shellDispatch({ type: 'closeOverview' })
+      shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
       if (entry.kind === RESULT_KINDS.APP) windowManager.openApp(entry.id)
       else if (entry.kind === RESULT_KINDS.FILE) openPath(entry.path)
       else openSettings(entry.page)
@@ -39,7 +40,7 @@ const useLaunch = () => {
 /** A click on the grid or results' empty space leaves the overview (mockup drawOv). */
 const useCloseOnEmpty = () => {
   const shellDispatch = useShellDispatch()
-  return (event) => event.target === event.currentTarget && shellDispatch({ type: 'closeOverview' })
+  return (event) => event.target === event.currentTarget && shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
 }
 
 const AppTile = ({ appId, on, onLaunch }) => (
@@ -73,13 +74,13 @@ const isFirst = (first, kind, value) => first?.kind === kind && (first.id ?? fir
 const SearchResults = ({ results, onLaunch }) => {
   const { vfs } = useVfs()
   const first = firstResult(results)
-  const { APP, FILE, SETTING } = RESULT_KINDS
+  const { FILE, SETTING } = RESULT_KINDS
   return (
     <div className="results" onClick={useCloseOnEmpty()}>
       {results.apps.length > 0 && (
         <div className="rgroup" role="group" aria-label="Apps">
           <div className="rapps">
-            {results.apps.map((id) => <AppTile key={id} appId={id} on={isFirst(first, APP, id)} onLaunch={onLaunch} />)}
+            {results.apps.map((id) => <AppTile key={id} appId={id} on={isFirst(first, RESULT_KINDS.APP, id)} onLaunch={onLaunch} />)}
           </div>
         </div>
       )}
@@ -96,7 +97,7 @@ const SearchResults = ({ results, onLaunch }) => {
         <div className="rgroup" role="group" aria-label="Settings">
           <div className="mhead">Settings</div>
           {results.settings.map((entry) => (
-            <ResultRow key={entry.page} icon={<AppIcon name="settings" />} title={entry.label} subtitle="Settings"
+            <ResultRow key={entry.page} icon={<AppIcon name={APP.SETTINGS} />} title={entry.label} subtitle="Settings"
               on={isFirst(first, SETTING, entry.page)} onClick={() => onLaunch({ kind: SETTING, page: entry.page })} />
           ))}
         </div>
@@ -171,7 +172,7 @@ const OverviewUi = ({ overview, workspace, hovered }) => {
     <div className="ovui" role="region" aria-label="Activities overview">
       {/* Phones skip the autofocus: it would raise the on-screen keyboard over the overview */}
       <SearchField query={overview.query} autoFocus={!compact} onEnter={onEnter}
-        onQuery={(query) => shellDispatch({ type: 'setOverviewQuery', query })} />
+        onQuery={(query) => shellDispatch({ type: SHELL_ACTIONS.SET_OVERVIEW_QUERY, query })} />
       <div className="ovbody">
         {searching && <SearchResults results={results} onLaunch={launch} />}
         {appGrid && <AppGrid onLaunch={launch} />}
@@ -194,7 +195,7 @@ const useWorkspacePointer = (overview, setHovered) => {
       event.stopPropagation()
       const id = windowIdAt(event.target)
       setHovered(null)
-      shellDispatch({ type: 'closeOverview' })
+      shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
       if (id !== null) pick(id)
     },
     onPointerOver: (event) => overview && setHovered(windowIdAt(event.target)),
