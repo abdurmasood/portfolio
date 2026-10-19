@@ -11,6 +11,8 @@ export const LINE_TYPES = Object.freeze({
 
 export const ENTRY_KINDS = Object.freeze({ DIR: 'dir', LINK: 'link', FILE: 'file' })
 
+/** @typedef {ReturnType<typeof pre | typeof error | typeof dim | typeof link | typeof ls | typeof prompt>} Line */
+
 export const pre = (text) => ({ type: LINE_TYPES.PRE, text })
 export const error = (text) => ({ type: LINE_TYPES.ERROR, text })
 export const dim = (text) => ({ type: LINE_TYPES.DIM, text })

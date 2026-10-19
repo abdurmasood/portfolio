@@ -2,6 +2,11 @@
 
 export const TOP_BAR_HEIGHT = 28
 export const SNAP_MODES = Object.freeze({ NORMAL: 'normal', MAX: 'max', LEFT: 'left', RIGHT: 'right' })
+
+/**
+ * @typedef {{ x: number, y: number, w: number, h: number }} Rect
+ * @typedef {typeof SNAP_MODES[keyof typeof SNAP_MODES]} SnapMode
+ */
 export const DEFAULT_MIN_SIZE = Object.freeze([320, 220])
 
 // Pointer distance from an edge that still counts as "at" it (GNOME's edge tiling)
@@ -62,7 +67,13 @@ export const resizeRect = (startRect, edge, delta, { min = DEFAULT_MIN_SIZE, are
   return rect
 }
 
-/** Where the index-th visible window opens: centred, stepping down-right, cycling every 5. */
+/**
+ * Where the index-th visible window opens: centred, stepping down-right, cycling every 5.
+ * @param {Rect} area
+ * @param {readonly number[]} size - [width, height]
+ * @param {number} index
+ * @returns {Rect}
+ */
 export const cascadeRect = (area, [width, height], index) => {
   const w = Math.min(width, area.w - OPEN_MARGIN)
   const h = Math.min(height, area.h - OPEN_MARGIN)
