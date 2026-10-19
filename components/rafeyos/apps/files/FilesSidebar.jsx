@@ -9,7 +9,7 @@ export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (
       title="Files"
       controls={false}
       end={
-        <button type="button" className="flat nodrag" aria-label="Main Menu" onClick={onMainMenu}>
+        <button type="button" className="flat" aria-label="Main Menu" onClick={onMainMenu}>
           <Sym name="menu" />
         </button>
       }

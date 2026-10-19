@@ -4,12 +4,13 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { FILE_VIEWS, FILES_ACTIONS } from './logic/filesReducer'
 import { PLACES, locationLabel, pathSegments } from './logic/filesView'
+import { NO_DRAG_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 const Pathbar = ({ vfs, path, onGo }) => {
   const place = PLACES[path]
   if (place) {
     return (
-      <div className="pathbar nodrag">
+      <div className="pathbar" {...NO_DRAG_PROPS}>
         <button type="button" className="cur">
           <Sym name={place.icon} />
           <span>{place.label}</span>
@@ -19,7 +20,7 @@ const Pathbar = ({ vfs, path, onGo }) => {
   }
   const segments = pathSegments(path)
   return (
-    <div className="pathbar nodrag" aria-label="Location">
+    <div className="pathbar" {...NO_DRAG_PROPS} aria-label="Location">
       {segments.map((segment, i) => (
         <Fragment key={segment}>
           {i > 0 && <span className="sl">/</span>}
@@ -37,7 +38,7 @@ const SearchBar = ({ query, onSearch }) => {
   const inputRef = useRef(null)
   useEffect(() => inputRef.current?.focus({ preventScroll: true }), [])
   return (
-    <div className="searchbar nodrag">
+    <div className="searchbar" {...NO_DRAG_PROPS}>
       <Sym name="search" />
       <input
         ref={inputRef}

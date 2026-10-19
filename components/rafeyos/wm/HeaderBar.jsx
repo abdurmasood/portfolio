@@ -1,7 +1,6 @@
 import { useWindowChrome } from './logic/WindowChromeContext'
 import { WindowControls } from './WindowControls'
-
-const IGNORE_DOUBLE_CLICK = 'button, input, a, .nodrag'
+import { NO_DRAG } from '@/components/rafeyos/ui/logic/domHooks'
 
 /**
  * A draggable GNOME header bar: start items, optional centre, end items, window controls
@@ -14,7 +13,7 @@ const IGNORE_DOUBLE_CLICK = 'button, input, a, .nodrag'
 export const HeaderBar = ({ start, center, end, title, subtitle, controls = true, className = '', children }) => {
   const { startDrag, toggleMax } = useWindowChrome()
   const onDoubleClick = (event) => {
-    if (!event.target.closest(IGNORE_DOUBLE_CLICK)) toggleMax()
+    if (!event.target.closest(NO_DRAG)) toggleMax()
   }
   const controlsNode = controls && <WindowControls />
   return (

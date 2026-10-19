@@ -17,7 +17,7 @@ export const splitClassName = (sidebar) => (sidebar.open ? 'split side-open' : '
 export const SidebarToggle = ({ sidebar }) => (
   <button
     type="button"
-    className={sidebar.open ? 'flat sbtoggle nodrag on' : 'flat sbtoggle nodrag'}
+    className={sidebar.open ? 'flat sbtoggle on' : 'flat sbtoggle'}
     aria-label={sidebar.open ? 'Hide sidebar' : 'Show sidebar'}
     aria-expanded={sidebar.open}
     onClick={sidebar.toggle}

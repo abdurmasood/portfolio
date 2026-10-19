@@ -20,7 +20,7 @@ const MailHeader = ({ subject, href, onSend }) => (
   <HeaderBar
     title={mailTitle(subject)}
     start={
-      <a className="btn sugg nodrag" href={href} target="_blank" rel="noopener" onClick={onSend}>
+      <a className="btn sugg" href={href} target="_blank" rel="noopener" onClick={onSend}>
         <Sym name="send" />
         Send
       </a>
