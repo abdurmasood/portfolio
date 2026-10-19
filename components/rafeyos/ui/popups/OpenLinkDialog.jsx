@@ -3,6 +3,7 @@ import { useShellDispatch, useVfs } from '@/components/rafeyos/state/logic/conte
 import { displayLink } from '@/components/rafeyos/core/vfs/content'
 import { useFocusTrap } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 export const OPEN_LINK_DIALOG = 'openLink'
 
@@ -23,7 +24,7 @@ export const OpenLinkDialog = () => {
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef)
   return (
-    <div className="modal" onClick={(event) => event.target === event.currentTarget && close()}>
+    <div className="modal" {...KEEPS_POPUP_PROPS} onClick={(event) => event.target === event.currentTarget && close()}>
       <div ref={dialogRef} className="dlg app" role="dialog" aria-modal="true" aria-label="Open Link">
         <h3>Open Link</h3>
         <p className="db">{`${linkLabel(linkedinUrl)} will open in your web browser.`}</p>

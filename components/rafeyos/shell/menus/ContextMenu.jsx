@@ -7,6 +7,7 @@ import { useReturnFocus } from '@/components/rafeyos/ui/popups/logic/useFocusTra
 import { menuStep } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 const sizeOf = (element) => ({ w: element.offsetWidth, h: element.offsetHeight })
 
@@ -69,7 +70,7 @@ const Entry = ({ entry, onChoose }) => {
   )
 }
 
-/** The open context menu: app-themed .pop, or the dark .shm for shell menus. Outside presses close it (Desktop). */
+/** The open context menu: app-themed .pop, or the dark .shm for shell menus. Outside presses close it (Desktop's KEEPS_POPUP). */
 export const ContextMenu = ({ menu }) => {
   const ref = useRef(null)
   const shellDispatch = useShellDispatch()
@@ -82,7 +83,7 @@ export const ContextMenu = ({ menu }) => {
     entry.action()
   }
   return (
-    <div ref={ref} className={menu.shell ? 'shm' : 'pop'} role="menu" style={{ left: menu.x, top: menu.y }} onKeyDown={onKeyDown}>
+    <div ref={ref} className={menu.shell ? 'shm' : 'pop'} {...KEEPS_POPUP_PROPS} role="menu" style={{ left: menu.x, top: menu.y }} onKeyDown={onKeyDown}>
       {menu.items.map((entry, i) => (
         <Entry key={`${i}-${entry.label ?? entry.kind}`} entry={entry} onChoose={choose} />
       ))}

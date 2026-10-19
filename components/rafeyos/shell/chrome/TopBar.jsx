@@ -3,6 +3,7 @@ import { StatusIcons } from '@/components/rafeyos/ui/icons/StatusIcons'
 import { Clock } from './Clock'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 import { CALENDAR_POPUP, QUICK_SETTINGS_POPUP } from '@/components/rafeyos/shell/logic/shellIds'
 
 /** Activities (workspace dots), the clock (calendar), and the status area that opens Quick Settings. */
@@ -33,7 +34,7 @@ export const TopBar = () => {
         <button
           type="button"
           className={calendarOpen ? 'tbb open' : 'tbb'}
-          data-tb="cal"
+          {...KEEPS_POPUP_PROPS}
           aria-label="Date and time"
           aria-expanded={calendarOpen}
           onClick={() => shellDispatch({ type: SHELL_ACTIONS.TOGGLE_POPUP, kind: CALENDAR_POPUP })}
@@ -45,7 +46,7 @@ export const TopBar = () => {
         <button
           type="button"
           className={quickSettingsOpen ? 'tbb open' : 'tbb'}
-          data-tb="qs"
+          {...KEEPS_POPUP_PROPS}
           aria-label="System menu"
           aria-expanded={quickSettingsOpen}
           onClick={() => shellDispatch({ type: SHELL_ACTIONS.TOGGLE_POPUP, kind: QUICK_SETTINGS_POPUP })}

@@ -7,6 +7,7 @@ import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
 import { QuickToggles, QuickVolume } from './QuickToggles'
 import { useEscapeKey } from '@/components/rafeyos/shell/logic/useEscapeKey'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 // Screenshot isn't built: shown as in the mockup, but inert
 const DISABLED = { opacity: 0.5 }
@@ -42,7 +43,7 @@ export const QuickSettings = () => {
     sessionDispatch(event)
   }
   return (
-    <div className="qs" role="dialog" aria-label="Quick settings">
+    <div className="qs" {...KEEPS_POPUP_PROPS} role="dialog" aria-label="Quick settings">
       <div className="qs-top">
         <button type="button" className="qs-ic" aria-label="Take Screenshot" disabled style={DISABLED}>
           <Sym name="camera" />

@@ -12,6 +12,7 @@ import { DOCUMENTS, placeLabel, saveChoice } from '@/components/rafeyos/core/vfs
 import { FolderDropdown } from './FolderDropdown'
 import { parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 // The main menu sits at the end of the header, so it opens inwards (mockup offset)
 const MAIN_MENU_SHIFT = 160
@@ -94,7 +95,7 @@ const NameField = ({ value, onChange, onEnter }) => {
 }
 
 const Prompt = ({ label, title, body, children }) => (
-  <div className="modal">
+  <div className="modal" {...KEEPS_POPUP_PROPS}>
     <div className="dlg app" role="dialog" aria-modal="true" aria-label={label}>
       <h3>{title}</h3>
       {body && <p>{body}</p>}

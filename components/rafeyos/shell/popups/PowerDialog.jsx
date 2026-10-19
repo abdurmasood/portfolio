@@ -4,6 +4,7 @@ import { POWER_DIALOGS, POWER_DIALOG_SECONDS } from './logic/powerDialogs'
 import { useCountdown } from './logic/useCountdown'
 import { useFocusTrap } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 const ActionButton = ({ action, onRun }) => (
   <button type="button" className={`btn ${action.className}`.trim()} onClick={() => onRun(action.event)}>
@@ -29,7 +30,7 @@ export const PowerDialog = ({ kind }) => {
   const confirm = useCallback(() => run(dialog.confirm.event), [run, dialog])
   const seconds = useCountdown(POWER_DIALOG_SECONDS, confirm)
   return (
-    <div className="modal" onClick={(event) => event.target === event.currentTarget && cancel()}>
+    <div className="modal" {...KEEPS_POPUP_PROPS} onClick={(event) => event.target === event.currentTarget && cancel()}>
       <div ref={dialogRef} className="dlg shell" role="dialog" aria-modal="true" aria-label={dialog.title}>
         <h3>{dialog.title}</h3>
         <p className="db">{dialog.body(seconds)}</p>

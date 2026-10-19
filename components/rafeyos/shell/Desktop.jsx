@@ -8,9 +8,7 @@ import { OverviewStage } from './overview/Overview'
 import { spreadsWindows } from '@/components/rafeyos/wm/logic/overviewModel'
 import { useGlobalKeys } from './chrome/logic/useGlobalKeys'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
-
-// Presses inside these keep the open popup; anywhere else closes it
-const KEEPS_POPUP = '.pop, .shm, .qs, .cal, [data-tb], .modal'
+import { KEEPS_POPUP } from '@/components/rafeyos/ui/logic/domHooks'
 
 const preventContextMenu = (event) => event.preventDefault()
 

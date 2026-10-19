@@ -7,6 +7,7 @@ import { Switch } from '@/components/rafeyos/ui/controls/Switch'
 import { useEscapeKey } from '@/components/rafeyos/shell/logic/useEscapeKey'
 import { useNow } from '@/components/rafeyos/shell/logic/useNow'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 import { SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 
@@ -109,7 +110,7 @@ export const CalendarPopover = () => {
   const shellDispatch = useShellDispatch()
   useEscapeKey(useCallback(() => shellDispatch({ type: SHELL_ACTIONS.CLOSE_POPUP }), [shellDispatch]))
   return (
-    <div className="cal" role="dialog" aria-label="Calendar and notifications">
+    <div className="cal" {...KEEPS_POPUP_PROPS} role="dialog" aria-label="Calendar and notifications">
       <Notifications />
       <div className="cal-r">
         <div>
