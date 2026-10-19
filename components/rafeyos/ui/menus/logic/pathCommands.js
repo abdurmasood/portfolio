@@ -1,3 +1,4 @@
+// @ts-check
 // What the file menus, Properties and the editor can do with a path. Pure apart from the
 // injected window manager and opener, so the menus built from it are testable alone.
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
@@ -6,7 +7,12 @@ import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 /**
- * @param {{ vfs: object, windowManager: object, openPath: Function }} deps
+ * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
+ * @import { OpenApp } from '@/components/rafeyos/core/catalog/apps'
+ */
+
+/**
+ * @param {{ vfs: Vfs, windowManager: { openApp: OpenApp }, openPath: (path: string) => unknown }} deps
  * @param {string} path - as shown (a symlink stays a symlink, so Properties can show its target)
  */
 export const pathCommands = ({ vfs, windowManager, openPath }, path) => {
