@@ -9,6 +9,16 @@ import { NO_DRAG } from '@/components/rafeyos/ui/logic/domHooks'
  *
  * With a centre, the bar is a three-column grid so the centre sits on the window's middle
  * like GTK's, however wide each side is. Flat siblings and spacers can't do that.
+ * @param {{
+ *   start?: import('react').ReactNode,
+ *   center?: import('react').ReactNode,
+ *   end?: import('react').ReactNode,
+ *   title?: import('react').ReactNode,
+ *   subtitle?: import('react').ReactNode,
+ *   controls?: boolean,
+ *   className?: string,
+ *   children?: import('react').ReactNode,
+ * }} props
  */
 export const HeaderBar = ({ start, center, end, title, subtitle, controls = true, className = '', children }) => {
   const { startDrag, toggleMax } = useWindowChrome()
