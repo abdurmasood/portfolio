@@ -11,9 +11,7 @@ import { RESULT_KINDS, firstResult, hasResults, overviewApps, overviewResults } 
 import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { useReturnFocus } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
-
-// The global keys focus this field when the visitor starts typing in the overview
-export const OVERVIEW_SEARCH_ID = 'rafeyos-overview-search'
+import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/logic/shellIds'
 
 const windowIdAt = (target) => {
   const element = target.closest?.('.win')

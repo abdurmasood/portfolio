@@ -10,8 +10,6 @@ import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 import { SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 
-export const CALENDAR_POPUP = 'cal'
-
 const WEEKDAY_LETTERS = Object.freeze(['S', 'M', 'T', 'W', 'T', 'F', 'S'])
 // The mockup keeps Clear visible but inert: there are never notifications to clear
 const CLEAR_STYLE = Object.freeze({ opacity: 0.45, background: '#3d3d3d', color: '#fff' })

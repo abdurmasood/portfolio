@@ -3,7 +3,7 @@ import { useShellDispatch, useShellState, useWindowManager } from '@/components/
 import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
-import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/overview/Overview'
+import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/logic/shellIds'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 

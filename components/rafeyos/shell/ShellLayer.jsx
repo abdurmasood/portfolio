@@ -1,12 +1,12 @@
 import { useShellState } from '@/components/rafeyos/state/logic/contexts'
-import { QuickSettings } from './QuickSettings'
-import { PowerDialog } from './PowerDialog'
-import { isPowerDialog } from './logic/powerDialogs'
+import { QuickSettings } from '@/components/rafeyos/shell/popups/QuickSettings'
+import { PowerDialog } from '@/components/rafeyos/shell/popups/PowerDialog'
+import { isPowerDialog } from '@/components/rafeyos/shell/popups/logic/powerDialogs'
 import { OPEN_LINK_DIALOG, OpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 import { ContextMenu } from '@/components/rafeyos/shell/menus/ContextMenu'
-import { Banner } from './Banner'
-import { CALENDAR_POPUP, CalendarPopover } from '@/components/rafeyos/shell/calendar/CalendarPopover'
-import { QUICK_SETTINGS_POPUP } from '@/components/rafeyos/shell/chrome/TopBar'
+import { Banner } from '@/components/rafeyos/shell/popups/Banner'
+import { CalendarPopover } from '@/components/rafeyos/shell/calendar/CalendarPopover'
+import { CALENDAR_POPUP, QUICK_SETTINGS_POPUP } from '@/components/rafeyos/shell/logic/shellIds'
 import { SnapPreview } from '@/components/rafeyos/wm/SnapPreview'
 
 const ShellDialog = ({ kind }) => {

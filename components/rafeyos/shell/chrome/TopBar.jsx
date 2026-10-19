@@ -1,11 +1,9 @@
 import { useSettings, useShellDispatch, useShellState, useWifiLink } from '@/components/rafeyos/state/logic/contexts'
 import { Sym, WifiGlyph } from '@/components/rafeyos/ui/icons/symbols'
 import { Clock } from './Clock'
-import { CALENDAR_POPUP } from '@/components/rafeyos/shell/calendar/CalendarPopover'
+import { CALENDAR_POPUP, QUICK_SETTINGS_POPUP } from '@/components/rafeyos/shell/logic/shellIds'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
-
-export const QUICK_SETTINGS_POPUP = 'qs'
 
 /** Off, one arc while reconnecting, or the full mark. Shared by the tile and every status cluster. */
 export const WifiStatusIcon = () => {
