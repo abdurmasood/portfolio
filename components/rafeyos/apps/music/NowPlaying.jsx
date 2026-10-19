@@ -1,14 +1,15 @@
 import { useMusic, useMusicControls, useSettings, useSettingsDispatch } from '@/components/rafeyos/state/logic/contexts'
-import { VOLUME_RANGE } from '@/components/rafeyos/state/logic/settingsReducer'
+import { VOLUME_RANGE, SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
 import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { Slider } from '@/components/rafeyos/ui/controls/Slider'
 import { WaveScrubber } from './WaveScrubber'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 // There's no cover art yet: the dock's disc stands in, so the window matches the icon clicked
 const Artwork = () => (
   <div className="np-art">
-    <AppIcon name="music" className="np-disc" />
+    <AppIcon name={APP.MUSIC} className="np-disc" />
   </div>
 )
 
@@ -46,7 +47,7 @@ const VolumeRow = () => {
         value={volume}
         range={VOLUME_RANGE}
         label="Player volume"
-        onChange={(value) => dispatch({ type: 'set', key: 'volume', value })}
+        onChange={(value) => dispatch({ type: SETTINGS_ACTIONS.SET, key: 'volume', value })}
       />
       <Sym name="vol" />
     </div>

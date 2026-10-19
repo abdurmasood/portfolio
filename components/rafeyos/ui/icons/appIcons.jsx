@@ -1,5 +1,6 @@
 // Full-colour 48px app icons from the approved mockup
 import { useId } from 'react'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 const FilesIcon = () => (
   <>
@@ -104,14 +105,14 @@ const PropertiesIcon = () => (
 )
 
 const APP_ICON_BODIES = Object.freeze({
-  files: FilesIcon,
-  terminal: TerminalIcon,
-  editor: EditorIcon,
-  music: MusicIcon,
-  mail: MailIcon,
-  projects: ProjectsIcon,
-  settings: SettingsIcon,
-  properties: PropertiesIcon,
+  [APP.FILES]: FilesIcon,
+  [APP.TERMINAL]: TerminalIcon,
+  [APP.EDITOR]: EditorIcon,
+  [APP.MUSIC]: MusicIcon,
+  [APP.MAIL]: MailIcon,
+  [APP.PROJECTS]: ProjectsIcon,
+  [APP.SETTINGS]: SettingsIcon,
+  [APP.PROPERTIES]: PropertiesIcon,
   trash: TrashIcon,
   apps: ShowAppsIcon,
 })

@@ -1,3 +1,4 @@
+// @ts-check
 import { useEffect, useState } from 'react'
 import { useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
@@ -11,6 +12,11 @@ import { NotificationsPage } from './NotificationsPage'
 import { SystemPage } from './SystemPage'
 import { AboutPage } from './AboutPage'
 
+/**
+ * @import { AppInitMap } from '@/components/rafeyos/core/catalog/apps'
+ * @import { SettingsPage } from '@/components/rafeyos/core/catalog/settingsPages'
+ */
+
 const PAGE_COMPONENTS = Object.freeze({
   [SETTINGS_PAGES.APPEARANCE]: AppearancePage,
   [SETTINGS_PAGES.DESKTOP]: DesktopPage,
@@ -20,13 +26,18 @@ const PAGE_COMPONENTS = Object.freeze({
   [SETTINGS_PAGES.ABOUT]: AboutPage,
 })
 
-/** A missing page means Appearance; an unknown one is a bug in the caller. */
+/**
+ * A missing page means Appearance; an unknown one is a bug in the caller.
+ * @param {AppInitMap['settings'] | null | undefined} init
+ * @returns {SettingsPage}
+ */
 const pageFrom = (init) => {
   const page = init?.page ?? SETTINGS_PAGES.APPEARANCE
   if (!isSettingsPage(page)) throw new Error(`Unknown settings page: ${page}`)
   return page
 }
 
+/** @param {{ page: SettingsPage, onGo: (page: SettingsPage) => void }} props */
 const SettingsSidebar = ({ page, onGo }) => (
   <div className="side">
     <HeaderBar
@@ -60,13 +71,17 @@ const SettingsSidebar = ({ page, onGo }) => (
   </div>
 )
 
+/** @param {{ onGo: (page: SettingsPage) => void }} props */
 const BackButton = ({ onGo }) => (
   <button type="button" className="flat" aria-label="Back" onClick={() => onGo(SETTINGS_PAGES.SYSTEM)}>
     <Sym name="back" />
   </button>
 )
 
-/** GNOME Settings: one window, sidebar plus page. Opening it again with a page turns to that page. */
+/**
+ * GNOME Settings: one window, sidebar plus page. Opening it again with a page turns to that page.
+ * @param {{ windowId: number, init?: AppInitMap['settings'] | null }} props
+ */
 export const SettingsApp = ({ windowId, init }) => {
   const windowManager = useWindowManager()
   const [page, setPage] = useState(() => pageFrom(init))

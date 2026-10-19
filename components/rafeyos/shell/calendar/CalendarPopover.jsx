@@ -4,10 +4,12 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { AppIcon } from '@/components/rafeyos/ui/icons/appIcons'
 import { calendarGrid } from './logic/calendarGrid'
 import { Switch } from '@/components/rafeyos/ui/controls/Switch'
-import { useEscapeKey } from '@/components/rafeyos/shell/popups/logic/useEscapeKey'
-import { useNow } from '@/components/rafeyos/shell/chrome/logic/useNow'
-
-export const CALENDAR_POPUP = 'cal'
+import { useEscapeKey } from '@/components/rafeyos/shell/logic/useEscapeKey'
+import { useNow } from '@/components/rafeyos/shell/logic/useNow'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
+import { SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 const WEEKDAY_LETTERS = Object.freeze(['S', 'M', 'T', 'W', 'T', 'F', 'S'])
 // The mockup keeps Clear visible but inert: there are never notifications to clear
@@ -31,7 +33,7 @@ const MediaCard = () => {
   const { track } = useVfs().content.music
   return (
     <div className="media">
-      <AppIcon name="music" className="ai" />
+      <AppIcon name={APP.MUSIC} className="ai" />
       <b>{track.title}</b>
       <small>{track.artist}</small>
       <div className="mc">
@@ -62,7 +64,7 @@ const Notifications = () => {
       </div>
       <div className="cal-foot">
         <span>Do Not Disturb</span>
-        <Switch on={dnd} label="Do Not Disturb" onToggle={() => settingsDispatch({ type: 'toggle', key: 'dnd' })} />
+        <Switch on={dnd} label="Do Not Disturb" onToggle={() => settingsDispatch({ type: SETTINGS_ACTIONS.TOGGLE, key: 'dnd' })} />
         <span className="sp" />
         <button type="button" className="btn pill" disabled style={CLEAR_STYLE}>
           Clear
@@ -106,9 +108,9 @@ const MonthGrid = ({ today }) => {
 export const CalendarPopover = () => {
   const today = useNow()
   const shellDispatch = useShellDispatch()
-  useEscapeKey(useCallback(() => shellDispatch({ type: 'closePopup' }), [shellDispatch]))
+  useEscapeKey(useCallback(() => shellDispatch({ type: SHELL_ACTIONS.CLOSE_POPUP }), [shellDispatch]))
   return (
-    <div className="cal" role="dialog" aria-label="Calendar and notifications">
+    <div className="cal" {...KEEPS_POPUP_PROPS} role="dialog" aria-label="Calendar and notifications">
       <Notifications />
       <div className="cal-r">
         <div>

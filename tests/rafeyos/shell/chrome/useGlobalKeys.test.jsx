@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
 import { openPowerMenu, openTerminal, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { KEY_ACTIONS, isTextField, keyDownAction } from '@/components/rafeyos/shell/chrome/logic/useGlobalKeys'
-import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/overview/Overview'
+import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/logic/shellIds'
 
 afterEach(() => {
   cleanup()

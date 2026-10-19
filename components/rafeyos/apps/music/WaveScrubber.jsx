@@ -2,6 +2,7 @@ import { useMusic, useMusicControls } from '@/components/rafeyos/state/logic/con
 import { formatDuration } from '@/components/rafeyos/core/vfs/content'
 import { Slider } from '@/components/rafeyos/ui/controls/Slider'
 import { useWaveLevels } from './logic/useWaveLevels'
+import { NO_DRAG_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 const BAR_COUNT = 48
 // The shortest bar, so quiet passages and the not-yet-decoded state still read as a waveform
@@ -21,7 +22,7 @@ export const WaveScrubber = ({ track }) => {
   const playedBars = Math.round((position / duration) * BAR_COUNT)
   return (
     <div className="np-scrub">
-      <div className="np-wave nodrag">
+      <div className="np-wave" {...NO_DRAG_PROPS}>
         <div className="np-bars" aria-hidden="true">
           {levels.map((level, bar) => (
             // Bars never reorder, so the index is a stable key

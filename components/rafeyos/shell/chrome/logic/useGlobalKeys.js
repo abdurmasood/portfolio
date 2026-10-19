@@ -3,7 +3,9 @@ import { useShellDispatch, useShellState, useWindowManager } from '@/components/
 import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
-import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/overview/Overview'
+import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/logic/shellIds'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 export const KEY_ACTIONS = Object.freeze({
   ARM_META: 'armMeta',
@@ -41,21 +43,21 @@ export const keyDownAction = (event, { overviewOpen, target }) => {
 
 /** Esc closes the innermost thing open: the overview, then a popup or menu, then a dialog. */
 const escape = (shell, shellDispatch) => {
-  if (shell.overview) shellDispatch({ type: 'closeOverview' })
-  else if (shell.popup || shell.menu) shellDispatch({ type: 'closeTransients' })
-  else if (shell.dialog) shellDispatch({ type: 'closeDialog' })
+  if (shell.overview) shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
+  else if (shell.popup || shell.menu) shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
+  else if (shell.dialog) shellDispatch({ type: SHELL_ACTIONS.CLOSE_DIALOG })
 }
 
 const toggleOverview = (shell, shellDispatch) =>
-  shellDispatch(shell.overview ? { type: 'closeOverview' } : { type: 'openOverview', mode: OVERVIEW_MODES.WINDOWS })
+  shellDispatch(shell.overview ? { type: SHELL_ACTIONS.CLOSE_OVERVIEW } : { type: SHELL_ACTIONS.OPEN_OVERVIEW, mode: OVERVIEW_MODES.WINDOWS })
 
 const runKeyAction = (action, { event, shell, shellDispatch, windowManager }) => {
   if (action === KEY_ACTIONS.ESCAPE) escape(shell, shellDispatch)
   if (action === KEY_ACTIONS.FOCUS_SEARCH) document.getElementById(OVERVIEW_SEARCH_ID)?.focus({ preventScroll: true })
   if (action === KEY_ACTIONS.OPEN_TERMINAL) {
     event.preventDefault()
-    if (shell.overview) shellDispatch({ type: 'closeOverview' })
-    windowManager.openApp('terminal', { path: HOME })
+    if (shell.overview) shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
+    windowManager.openApp(APP.TERMINAL, { path: HOME })
   }
 }
 

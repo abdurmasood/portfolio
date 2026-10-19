@@ -2,7 +2,10 @@
 import { SEPARATOR, disabledItem, menuItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
 import { FILE_VIEWS } from './filesReducer'
 
-/** Right-click on empty space in a folder. Trash has no terminal. */
+/**
+ * Right-click on empty space in a folder. Trash has no terminal.
+ * @param {{ inTrash: boolean, selectAll: () => void, openTerminal: () => void, properties: () => void, emptyTrash?: (() => void) | null }} options
+ */
 export const backgroundMenuItems = ({ inTrash, selectAll, openTerminal, properties, emptyTrash = null }) => [
   disabledItem('New Folder…'),
   disabledItem('Paste'),

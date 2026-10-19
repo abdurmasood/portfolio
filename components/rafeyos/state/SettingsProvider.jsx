@@ -3,12 +3,13 @@ import { useEffect, useReducer } from 'react'
 import { SettingsDispatchContext, SettingsStateContext, useServices } from './logic/contexts'
 import { initialSettings, settingsReducer } from './logic/settingsReducer'
 import { WifiLinkProvider } from './WifiLink'
+import { SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
 
 /** Light or dark follows the visitor's system once, when rafeyOS starts. */
 const useInitialStyle = (dispatch) => {
   const { prefersDark } = useServices()
   useEffect(() => {
-    dispatch({ type: 'set', key: 'style', value: prefersDark() ? 'dark' : 'light' })
+    dispatch({ type: SETTINGS_ACTIONS.SET, key: 'style', value: prefersDark() ? 'dark' : 'light' })
   }, [dispatch, prefersDark])
 }
 

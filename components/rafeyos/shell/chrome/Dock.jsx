@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react'
 import { useDockRegistry, useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
-import { DOCK_FAVORITES, getApp, isImplemented } from '@/components/rafeyos/core/catalog/apps'
+import { APP, DOCK_FAVORITES, getApp, isImplemented } from '@/components/rafeyos/core/catalog/apps'
 import { runningApps, windowsForApp } from '@/components/rafeyos/state/logic/selectors'
 import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
 import { children } from '@/components/rafeyos/core/vfs/queries'
@@ -11,6 +11,7 @@ import { dockMenuItems, dockMenuPlacement } from '@/components/rafeyos/ui/menus/
 import { menuItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
 import { useEmptyTrash } from '@/components/rafeyos/ui/menus/logic/useTrashActions'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 const MAX_DOTS = 4
 
@@ -82,7 +83,7 @@ const ShowAppsButton = () => {
       data-name="Show Apps"
       aria-label="Show Apps"
       aria-pressed={showing}
-      onClick={() => shellDispatch(showing ? { type: 'closeOverview' } : { type: 'openOverview', mode: OVERVIEW_MODES.APPS })}
+      onClick={() => shellDispatch(showing ? { type: SHELL_ACTIONS.CLOSE_OVERVIEW } : { type: SHELL_ACTIONS.OPEN_OVERVIEW, mode: OVERVIEW_MODES.APPS })}
     >
       <AppIcon name="apps" />
     </button>
@@ -101,8 +102,8 @@ export const Dock = () => {
   const focusedApp = windows.byId[windows.focusedId]?.appId ?? null
   // Dock clicks leave the overview first, then act as usual
   const leaveShell = useCallback(() => {
-    shellDispatch({ type: 'closeTransients' })
-    shellDispatch({ type: 'closeOverview' })
+    shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
+    shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
   }, [shellDispatch])
   const activate = useCallback(
     (appId, from) => {
@@ -113,7 +114,7 @@ export const Dock = () => {
   )
   const openTrash = (event) => {
     leaveShell()
-    windowManager.openApp('files', { path: TRASH, from: rectOfElement(event.currentTarget) })
+    windowManager.openApp(APP.FILES, { path: TRASH, from: rectOfElement(event.currentTarget) })
   }
   return (
     <div className={`dock ${dockPos}`} role="toolbar" aria-label="Dock">

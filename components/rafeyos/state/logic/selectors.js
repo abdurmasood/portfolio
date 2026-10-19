@@ -13,7 +13,12 @@ export const topWindow = (state) => {
   return null
 }
 
-/** Windows of one app that aren't closing, in stacking order (bottom first). */
+/**
+ * Windows of one app that aren't closing, in stacking order (bottom first).
+ * @param {import('./windowsReducer').WindowsState} state
+ * @param {string} appId
+ * @returns {import('./windowsReducer').Win[]}
+ */
 export const windowsForApp = (state, appId) =>
   state.order
     .map((id) => state.byId[id])

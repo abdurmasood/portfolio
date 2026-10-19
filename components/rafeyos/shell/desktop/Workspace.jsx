@@ -6,8 +6,10 @@ import { DESKTOP, useDesktopIconModel } from './logic/useDesktopIconModel'
 import { useRubberBand } from './logic/useRubberBand'
 import { pointOfEvent, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { wallMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
-import { useOpenSettings } from '@/components/rafeyos/shell/popups/logic/useOpenSettings'
+import { useOpenSettings } from '@/components/rafeyos/shell/logic/useOpenSettings'
 import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 /** Right-click on the wallpaper. */
 const useWallMenu = (selectAll) => {
@@ -19,8 +21,8 @@ const useWallMenu = (selectAll) => {
       event.preventDefault()
       const items = wallMenuItems({
         selectAll,
-        showDesktop: () => windowManager.openApp('files', { path: DESKTOP }),
-        openTerminal: () => windowManager.openApp('terminal', { path: DESKTOP }),
+        showDesktop: () => windowManager.openApp(APP.FILES, { path: DESKTOP }),
+        openTerminal: () => windowManager.openApp(APP.TERMINAL, { path: DESKTOP }),
         changeBackground: () => openSettings(SETTINGS_PAGES.APPEARANCE),
         iconSettings: () => openSettings(SETTINGS_PAGES.DESKTOP),
       })
@@ -45,7 +47,7 @@ export const Workspace = () => {
   const openWallMenu = useWallMenu(selectAll)
   const pressWall = (event) => {
     if (event.button !== 0) return
-    shellDispatch({ type: 'closeTransients' })
+    shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
     windowManager.focus(null)
     setSelection([])
     startBand(event)

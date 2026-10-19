@@ -53,6 +53,14 @@ describe('window chrome', () => {
     expect(win.className).toContain('max')
   })
 
+  it('does not maximize on a double click of the Files path bar', () => {
+    const { win } = openFiles()
+
+    fireEvent.doubleClick(win.querySelector('.pathbar'))
+
+    expect(win.className).not.toContain('max')
+  })
+
   it('minimizes from the minimize button', () => {
     const { win } = openFiles()
 
@@ -83,6 +91,17 @@ describe('window gestures', () => {
 
     expect(px(win.style.left)).toBe(left + 60)
     expect(px(win.style.top)).toBe(top + 40)
+  })
+
+  it('does not move when dragged by the Files path bar', () => {
+    const { win } = openFiles()
+    const left = win.style.left
+    const top = win.style.top
+
+    drag(win.querySelector('.pathbar'), { x: 300, y: 200 }, { x: 360, y: 240 })
+
+    expect(win.style.left).toBe(left)
+    expect(win.style.top).toBe(top)
   })
 
   it('ignores presses that never travel past the drag threshold', () => {

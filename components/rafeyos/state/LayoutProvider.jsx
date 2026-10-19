@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { LayoutContext, useSettings, useWindowsDispatch } from './logic/contexts'
 import { computeLayout } from '@/components/rafeyos/state/logic/layout'
 import { useViewport } from '@/components/rafeyos/state/logic/useViewport'
+import { WINDOW_ACTIONS } from '@/components/rafeyos/state/logic/windowsReducer'
 
 /** Re-fits every window whenever the work area or compact mode changes (not on first render). */
 const useRelayout = (layout) => {
@@ -10,7 +11,7 @@ const useRelayout = (layout) => {
   useEffect(() => {
     if (previous.current.area === layout.area) return
     previous.current = layout
-    dispatch({ type: 'relayout', area: layout.area, compact: layout.compact })
+    dispatch({ type: WINDOW_ACTIONS.RELAYOUT, area: layout.area, compact: layout.compact })
   }, [layout, dispatch])
 }
 

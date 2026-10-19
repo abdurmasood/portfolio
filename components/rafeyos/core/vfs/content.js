@@ -89,7 +89,34 @@ const buildContact = () => ({
   mailtoFor: ({ subject, body }) => mailtoHref({ subject, body }),
 })
 
-/** @returns {object} deep-frozen plain data: bio, skills, readme, projects, posts, music, contact, help, profile */
+/**
+ * @typedef {{ index: number, id: number, title: string, slug: string, description: string, link: string | null, linkLabel: string | null, shape: string }} Project
+ * @typedef {{ slug: string, title: string, date: string, excerpt: string, content: string, minutes: number }} Post
+ * @typedef {{ id: string, title: string, artist: string, src: string, sizeBytes: number, durationSeconds: number }} Track
+ * @typedef {{ year: number, event: string, upcoming: boolean }} Milestone
+ * @typedef {{ subject: string, body: string }} Mail
+ * @typedef {{
+ *   email: string,
+ *   linkedinUrl: string,
+ *   linkedinName: string,
+ *   defaultMail: Mail,
+ *   mailtoHref: string,
+ *   mailtoFor: (mail: Mail) => string,
+ * }} Contact
+ * @typedef {Readonly<{
+ *   bio: string,
+ *   skills: string,
+ *   readme: string,
+ *   projects: readonly Project[],
+ *   posts: readonly Post[],
+ *   music: { track: Track, blurb: string, milestones: readonly Milestone[] },
+ *   contact: Contact,
+ *   help: { lines: readonly string[], hint: string },
+ *   profile: { age: number },
+ * }>} Content
+ */
+
+/** @returns {Content} deep-frozen plain data */
 export const buildContent = () =>
   deepFreeze({
     bio: withTrailingNewline(htmlToText(bioDescription())),

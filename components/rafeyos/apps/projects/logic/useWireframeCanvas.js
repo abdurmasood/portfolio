@@ -58,7 +58,7 @@ const useSpin = ({ draw, animate, segments, angles, dragging }) => {
  * The Projects wireframe: a requestAnimationFrame loop with DPR-aware sizing and drag to rotate.
  * @param {{ canvasRef: object, segments: Array, animate: boolean }} options - animate is false while
  *   the window is minimized or motion is reduced; unmounting stops the loop too
- * @returns {(event: PointerEvent) => void} the canvas's pointerdown handler
+ * @returns {(event: import('react').PointerEvent<HTMLCanvasElement>) => void} the canvas's pointerdown handler
  */
 export const useWireframeCanvas = ({ canvasRef, segments, animate }) => {
   const angles = useRef(INITIAL_ANGLES)

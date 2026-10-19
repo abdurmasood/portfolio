@@ -1,8 +1,8 @@
 import { useSettings, useSettingsDispatch, useWifiLink } from '@/components/rafeyos/state/logic/contexts'
-import { STYLES, VOLUME_RANGE } from '@/components/rafeyos/state/logic/settingsReducer'
+import { STYLES, VOLUME_RANGE, SETTINGS_ACTIONS } from '@/components/rafeyos/state/logic/settingsReducer'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { Slider } from '@/components/rafeyos/ui/controls/Slider'
-import { WifiStatusIcon } from '@/components/rafeyos/shell/chrome/TopBar'
+import { WifiStatusIcon } from '@/components/rafeyos/ui/icons/StatusIcons'
 
 // Quick Settings' toggle tiles, in the mockup's order. `key` is the setting each one toggles.
 const TOGGLES = Object.freeze([
@@ -46,7 +46,7 @@ export const QuickVolume = () => {
         value={volume}
         range={VOLUME_RANGE}
         label="Volume"
-        onChange={(value) => dispatch({ type: 'set', key: 'volume', value })}
+        onChange={(value) => dispatch({ type: SETTINGS_ACTIONS.SET, key: 'volume', value })}
       />
     </div>
   )
@@ -56,7 +56,7 @@ export const QuickToggles = () => {
   const settings = useSettings()
   const link = useWifiLink()
   const dispatch = useSettingsDispatch()
-  const onToggle = (key) => dispatch({ type: 'toggle', key })
+  const onToggle = (key) => dispatch({ type: SETTINGS_ACTIONS.TOGGLE, key })
   return (
     <div className="qs-grid">
       {TOGGLES.map((toggle) => (

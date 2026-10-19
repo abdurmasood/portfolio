@@ -11,6 +11,8 @@ import { editorMenuItems, folderLabel, recentDocumentItems } from './logic/edito
 import { DOCUMENTS, placeLabel, saveChoice } from '@/components/rafeyos/core/vfs/documents'
 import { FolderDropdown } from './FolderDropdown'
 import { parentOf } from '@/components/rafeyos/core/vfs/paths'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 // The main menu sits at the end of the header, so it opens inwards (mockup offset)
 const MAIN_MENU_SHIFT = 160
@@ -29,7 +31,7 @@ const useEditorMenus = (path, save) => {
   const openMenu = useMenu()
   return useMemo(() => {
     const commands = path ? pathCommands({ vfs, windowManager, openPath }, path) : null
-    const openDocument = (doc) => windowManager.openApp('editor', { path: doc })
+    const openDocument = (doc) => windowManager.openApp(APP.EDITOR, { path: doc })
     return {
       openRecent: (event) => openMenu(recentDocumentItems(vfs, openDocument), belowElement(event.currentTarget)),
       openMain: (event) => openMenu(
@@ -93,7 +95,7 @@ const NameField = ({ value, onChange, onEnter }) => {
 }
 
 const Prompt = ({ label, title, body, children }) => (
-  <div className="modal">
+  <div className="modal" {...KEEPS_POPUP_PROPS}>
     <div className="dlg app" role="dialog" aria-modal="true" aria-label={label}>
       <h3>{title}</h3>
       {body && <p>{body}</p>}
@@ -108,7 +110,7 @@ const blockedPathsOf = (vfs) => Object.keys(vfs).filter((path) => !vfs[path].use
 
 const openPathsOf = (windows, windowId) =>
   Object.values(windows.byId)
-    .filter((win) => win.id !== windowId && win.phase !== WINDOW_PHASES.CLOSING && win.appId === 'editor' && win.arg)
+    .filter((win) => win.id !== windowId && win.phase !== WINDOW_PHASES.CLOSING && win.appId === APP.EDITOR && win.arg)
     .map((win) => win.arg)
 
 /** A notepad for files the visitor creates. Shipped files open here, locked. */
@@ -173,7 +175,7 @@ export const EditorApp = ({ windowId, arg }) => {
     }
     const saved = saveDocument(choice.folder, choice.name, text)
     if (!saved.ok) {
-      notify({ appId: 'editor', title: "Couldn't save", body: 'This browser blocked saving the file.' })
+      notify({ appId: APP.EDITOR, title: "Couldn't save", body: 'This browser blocked saving the file.' })
       setPrompt({ type: 'name', draft: raw, folder, error: saved.reason === 'taken' ? `Can't replace ${choice.name}.` : SAVE_ERROR, thenClose })
       return
     }
@@ -206,7 +208,7 @@ export const EditorApp = ({ windowId, arg }) => {
         title={editorTitle(label, dirty)}
         subtitle={node ? (node.trashedFrom ? 'Trash' : node.user ? folderLabel(arg) : 'Read Only') : missing ? folderLabel(arg) : null}
         menus={menus}
-        onNew={() => windowManager.openApp('editor')}
+        onNew={() => windowManager.openApp(APP.EDITOR)}
       />
       <div className="editor">
         <textarea

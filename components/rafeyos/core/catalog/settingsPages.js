@@ -9,6 +9,8 @@ export const SETTINGS_PAGES = Object.freeze({
   ABOUT: 'about',
 })
 
+/** @typedef {typeof SETTINGS_PAGES[keyof typeof SETTINGS_PAGES]} SettingsPage */
+
 const { APPEARANCE, DESKTOP, SOUND, NOTIFICATIONS, SYSTEM, ABOUT } = SETTINGS_PAGES
 
 export const SIDEBAR_PAGES = Object.freeze([
@@ -19,6 +21,7 @@ export const SIDEBAR_PAGES = Object.freeze([
   Object.freeze({ id: SYSTEM, title: 'System', icon: 'info' }),
 ])
 
+/** @type {Readonly<Record<SettingsPage, string>>} */
 export const PAGE_TITLES = Object.freeze({
   ...Object.fromEntries(SIDEBAR_PAGES.map((page) => [page.id, page.title])),
   [ABOUT]: 'About',

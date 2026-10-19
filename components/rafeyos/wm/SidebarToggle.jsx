@@ -11,13 +11,19 @@ export const useSidebarToggle = () => {
   return useMemo(() => ({ open, toggle: () => setOpen((current) => !current), close: () => setOpen(false) }), [open])
 }
 
+/** @typedef {ReturnType<typeof useSidebarToggle>} Sidebar */
+
+/** @param {Sidebar} sidebar */
 export const splitClassName = (sidebar) => (sidebar.open ? 'split side-open' : 'split')
 
-/** Only visible while the window is narrow (see .sbtoggle in window.css). */
+/**
+ * Only visible while the window is narrow (see .sbtoggle in window.css).
+ * @param {{ sidebar: Sidebar }} props
+ */
 export const SidebarToggle = ({ sidebar }) => (
   <button
     type="button"
-    className={sidebar.open ? 'flat sbtoggle nodrag on' : 'flat sbtoggle nodrag'}
+    className={sidebar.open ? 'flat sbtoggle on' : 'flat sbtoggle'}
     aria-label={sidebar.open ? 'Hide sidebar' : 'Show sidebar'}
     aria-expanded={sidebar.open}
     onClick={sidebar.toggle}

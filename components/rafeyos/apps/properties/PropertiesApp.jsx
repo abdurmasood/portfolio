@@ -5,6 +5,7 @@ import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { displayName, isDir } from '@/components/rafeyos/core/vfs/queries'
 import { propertiesRows } from './logic/propertiesRows'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 export const propertiesTitle = (name) => `${name} Properties`
 
@@ -15,7 +16,7 @@ export const PropertiesApp = ({ windowId, arg }) => {
   const name = displayName(vfs, arg)
   const rows = useMemo(() => propertiesRows(vfs, arg), [vfs, arg])
   useEffect(() => windowManager.setTitle(windowId, propertiesTitle(name)), [windowManager, windowId, name])
-  const openTerminal = () => windowManager.openApp('terminal', { path: realPath(vfs, arg) })
+  const openTerminal = () => windowManager.openApp(APP.TERMINAL, { path: realPath(vfs, arg) })
   return (
     <>
       <HeaderBar title="Properties" />

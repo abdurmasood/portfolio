@@ -1,10 +1,11 @@
+// @ts-check
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 import { useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
-import { FILE_VIEWS, filesReducer, initialFilesState } from './logic/filesReducer'
+import { FILE_VIEWS, FILES_ACTIONS, filesReducer, initialFilesState } from './logic/filesReducer'
 import { floatbarText, listItems, windowTitle } from './logic/filesView'
 import { FilesSidebar } from './FilesSidebar'
 import { FilesHeader } from './FilesHeader'
@@ -13,34 +14,64 @@ import { useFilesMenus } from './logic/useFilesMenus'
 import { gridColumns, gridStep } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
 import { SidebarToggle, splitClassName, useSidebarToggle } from '@/components/rafeyos/wm/SidebarToggle'
 
-/** Folders navigate in place; other files go through useOpenPath (a banner until their apps exist). */
+/**
+ * @import { Dispatch, KeyboardEvent, RefObject } from 'react'
+ * @import { AppInitMap } from '@/components/rafeyos/core/catalog/apps'
+ * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
+ * @import { FilesAction, FilesState } from './logic/filesReducer'
+ */
+
+/**
+ * One window's reducer and listing, shared by its keyboard handling and body.
+ * @typedef {{ vfs: Vfs, state: FilesState, dispatch: Dispatch<FilesAction>, items: string[] }} FilesWindow
+ * @typedef {FilesWindow & { bodyRef: RefObject<HTMLDivElement>, openItem: (path: string) => unknown }} FilesKeyContext
+ */
+
+/**
+ * Folders navigate in place; other files go through useOpenPath (a banner until their apps exist).
+ * @param {Vfs} vfs
+ * @param {Dispatch<FilesAction>} dispatch
+ * @returns {(path: string) => unknown}
+ */
 const useOpenItem = (vfs, dispatch) => {
   const openPath = useOpenPath()
-  return (path) => (isDir(vfs, path) ? dispatch({ type: 'go', path: realPath(vfs, path) }) : openPath(path))
+  return (path) => (isDir(vfs, path) ? dispatch({ type: FILES_ACTIONS.GO, path: realPath(vfs, path) }) : openPath(path))
 }
 
-/** Arrows move the selection through the items (by rows in the grid), Home and End jump. */
+/**
+ * Arrows move the selection through the items (by rows in the grid), Home and End jump.
+ * @param {Omit<FilesKeyContext, 'vfs' | 'openItem'>} files
+ * @param {KeyboardEvent} event
+ */
 const moveSelection = ({ state, dispatch, items, bodyRef }, event) => {
   const grid = bodyRef.current?.querySelector('.fgrid')
   const current = items.indexOf(state.selection[state.selection.length - 1])
   const next = gridStep(current, event.key, { count: items.length, columns: gridColumns(grid) })
   if (next === null) return
   event.preventDefault()
-  dispatch({ type: 'select', path: items[next], mode: 'single' })
+  dispatch({ type: FILES_ACTIONS.SELECT, path: items[next], mode: 'single' })
 }
 
+/**
+ * @param {Omit<FilesKeyContext, 'vfs'>} files
+ * @returns {(event: KeyboardEvent) => void}
+ */
 const keyHandler = (files) => (event) => {
   const { state, dispatch, openItem } = files
-  if (event.target.matches('input')) return
+  if (event.target instanceof Element && event.target.matches('input')) return
   if (event.key === 'Enter' && state.selection.length) openItem(state.selection[0])
   if ((event.key === 'Backspace' || (event.altKey && event.key === 'ArrowLeft')) && state.back.length) {
-    dispatch({ type: 'back' })
+    dispatch({ type: FILES_ACTIONS.BACK })
     return
   }
   if (!event.altKey) moveSelection(files, event)
 }
 
-/** Keyboard selection keeps the selected item in view. */
+/**
+ * Keyboard selection keeps the selected item in view.
+ * @param {RefObject<HTMLDivElement>} bodyRef
+ * @param {string[]} selection
+ */
 const useSelectionInView = (bodyRef, selection) => {
   useLayoutEffect(() => {
     const body = bodyRef.current
@@ -49,9 +80,13 @@ const useSelectionInView = (bodyRef, selection) => {
   }, [bodyRef, selection])
 }
 
-/** The folder's items: Tab focuses it, arrows select, Enter opens, a click on empty space deselects. */
+/**
+ * The folder's items: Tab focuses it, arrows select, Enter opens, a click on empty space deselects.
+ * @param {{ files: FilesWindow, menus: ReturnType<typeof useFilesMenus> }} props
+ */
 const FilesBody = ({ files, menus }) => {
   const { vfs, state, dispatch, items } = files
+  /** @type {RefObject<HTMLDivElement>} */
   const bodyRef = useRef(null)
   const openItem = useOpenItem(vfs, dispatch)
   useSelectionInView(bodyRef, state.selection)
@@ -62,7 +97,7 @@ const FilesBody = ({ files, menus }) => {
       className="scroll fbody"
       tabIndex={0}
       aria-label="Files"
-      onClick={() => dispatch({ type: 'select', mode: 'clear' })}
+      onClick={() => dispatch({ type: FILES_ACTIONS.SELECT, mode: 'clear' })}
       onKeyDown={keyHandler({ state, dispatch, openItem, items, bodyRef })}
       onContextMenu={menus.backgroundMenu}
     >
@@ -71,7 +106,7 @@ const FilesBody = ({ files, menus }) => {
           vfs={vfs}
           items={items}
           selection={state.selection}
-          onSelect={(path, mode) => dispatch({ type: 'select', path, mode })}
+          onSelect={(path, mode) => dispatch({ type: FILES_ACTIONS.SELECT, path, mode })}
           onOpen={openItem}
           onMenu={menus.itemMenu}
         />
@@ -82,10 +117,16 @@ const FilesBody = ({ files, menus }) => {
   )
 }
 
-/** "Show in Files" opens the folder with the file already selected. */
+/**
+ * "Show in Files" opens the folder with the file already selected.
+ * @param {{ path: string, select?: string }} launch
+ */
 const initialState = ({ path, select }) => initialFilesState(path, select ? [select] : [])
 
-/** GNOME Files: places sidebar, header bar, grid or list view, selection float bar, context menus. */
+/**
+ * GNOME Files: places sidebar, header bar, grid or list view, selection float bar, context menus.
+ * @param {{ windowId: number, arg: string, init?: AppInitMap['files'] | null }} props
+ */
 export const FilesApp = ({ windowId, arg, init }) => {
   const { vfs } = useVfs()
   const windowManager = useWindowManager()
@@ -103,7 +144,7 @@ export const FilesApp = ({ windowId, arg, init }) => {
         searching={state.search !== null}
         onGo={(path) => {
           sidebar.close()
-          dispatch({ type: 'go', path })
+          dispatch({ type: FILES_ACTIONS.GO, path })
         }}
         onMainMenu={menus.mainMenu}
       />

@@ -85,8 +85,11 @@ describe('shellReducer', () => {
     expect(shellReducer(initialShell, { type: 'closeTransients' })).toBe(initialShell)
   })
 
-  it('reset returns to the initial state; unknown actions are ignored', () => {
+  it('reset returns to the initial state', () => {
     expect(reduce(initialShell, menu, { type: 'reset' })).toBe(initialShell)
-    expect(shellReducer(initialShell, { type: 'nope' })).toBe(initialShell)
+  })
+
+  it('throws on unknown actions', () => {
+    expect(() => shellReducer(initialShell, { type: 'nope' })).toThrow('Unknown shell action: nope')
   })
 })

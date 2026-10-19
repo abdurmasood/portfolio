@@ -1,3 +1,4 @@
+// @ts-check
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useServices, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
@@ -7,7 +8,16 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { shapeSegments } from './logic/wireframe'
 import { useWireframeCanvas } from './logic/useWireframeCanvas'
 import { PROJECTS_FOLDER, projectIndexFor } from '@/components/rafeyos/core/vfs/projectPaths'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
+/**
+ * @import { AppInitMap } from '@/components/rafeyos/core/catalog/apps'
+ * @import { Project } from '@/components/rafeyos/core/vfs/content'
+ */
+
+/**
+ * @param {{ projects: readonly Project[], index: number, onPick: (index: number) => void, onShowInFiles: () => void }} props
+ */
 const ProjectsSidebar = ({ projects, index, onPick, onShowInFiles }) => (
   <div className="side">
     <HeaderBar title="Projects" controls={false} />
@@ -33,6 +43,7 @@ const ProjectsSidebar = ({ projects, index, onPick, onShowInFiles }) => (
   </div>
 )
 
+/** @param {{ project: Project }} props */
 const ProjectCard = ({ project }) => (
   <div className="p3card">
     <b>{project.title}</b>
@@ -45,7 +56,10 @@ const ProjectCard = ({ project }) => (
   </div>
 )
 
-/** The black stage: the wireframe, the drag hint and the project card. */
+/**
+ * The black stage: the wireframe, the drag hint and the project card.
+ * @param {{ project: Project }} props
+ */
 const ProjectStage = ({ project }) => {
   const canvasRef = useRef(null)
   const { minimized } = useWindowChrome()
@@ -61,7 +75,10 @@ const ProjectStage = ({ project }) => {
   )
 }
 
-/** Projects: one window; opening it again with a project (Files' "Open in Projects") turns to it. */
+/**
+ * Projects: one window; opening it again with a project (Files' "Open in Projects") turns to it.
+ * @param {{ windowId: number, init?: AppInitMap['projects'] | null }} props
+ */
 export const ProjectsApp = ({ windowId, init }) => {
   const { content } = useVfs()
   const { projects } = content
@@ -74,6 +91,7 @@ export const ProjectsApp = ({ windowId, init }) => {
   const project = projects[index]
   const title = project?.title ?? 'Projects'
   useEffect(() => windowManager.setTitle(windowId, title), [windowManager, windowId, title])
+  /** @param {number} i */
   const pick = (i) => {
     setIndex(i)
     sidebar.close()
@@ -84,7 +102,7 @@ export const ProjectsApp = ({ windowId, init }) => {
         projects={projects}
         index={index}
         onPick={pick}
-        onShowInFiles={() => windowManager.openApp('files', { path: PROJECTS_FOLDER })}
+        onShowInFiles={() => windowManager.openApp(APP.FILES, { path: PROJECTS_FOLDER })}
       />
       <div className="main">
         <HeaderBar

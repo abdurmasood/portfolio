@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
 import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 // Popovers from header buttons open just below the button, as in the mockup
 const BELOW_GAP = 4
@@ -20,7 +21,7 @@ export const belowElement = (element, shiftLeft = 0) => {
 export const useMenu = () => {
   const shellDispatch = useShellDispatch()
   return useCallback(
-    (items, point, options = {}) => shellDispatch({ type: 'openMenu', items, x: point.x, y: point.y, ...options }),
+    (items, point, options = {}) => shellDispatch({ ...options, type: SHELL_ACTIONS.OPEN_MENU, items, x: point.x, y: point.y }),
     [shellDispatch],
   )
 }

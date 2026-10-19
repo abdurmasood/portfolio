@@ -3,9 +3,7 @@ import { useLayout, useWindowManager } from '@/components/rafeyos/state/logic/co
 import { usePointerTrack } from './usePointerTrack'
 import { startDrag, stepDrag } from './gestures'
 import { applyPosition } from './applyRect'
-
-// Presses on these never start a drag
-const NO_DRAG = 'button, input, textarea, a, select, .nodrag'
+import { NO_DRAG } from '@/components/rafeyos/ui/logic/domHooks'
 
 /**
  * Header drag: style writes per frame, one commit (snap or rect) on release.

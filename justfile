@@ -27,6 +27,10 @@ lint:
 test:
     pnpm test
 
+# Type-check the // @ts-check files
+typecheck:
+    pnpm typecheck
+
 # Delete the Next.js build output
 clean:
     rm -rf .next

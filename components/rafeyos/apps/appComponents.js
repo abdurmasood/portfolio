@@ -1,4 +1,5 @@
-// App id -> UI component. Only the apps listed in core/catalog/apps.js IMPLEMENTED_APPS appear here.
+// App id -> UI component, for exactly core/catalog/apps.js IMPLEMENTED_APPS (checked by tests/rafeyos/apps/appRegistry.test.jsx).
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 import { FilesApp } from './files/FilesApp'
 import { TerminalApp } from './terminal/TerminalApp'
 import { EditorApp } from './editor/EditorApp'
@@ -9,12 +10,12 @@ import { SettingsApp } from './settings/SettingsApp'
 import { ProjectsApp } from './projects/ProjectsApp'
 
 export const APP_COMPONENTS = Object.freeze({
-  files: FilesApp,
-  terminal: TerminalApp,
-  editor: EditorApp,
-  music: MusicApp,
-  mail: MailApp,
-  projects: ProjectsApp,
-  settings: SettingsApp,
-  properties: PropertiesApp,
+  [APP.FILES]: FilesApp,
+  [APP.TERMINAL]: TerminalApp,
+  [APP.EDITOR]: EditorApp,
+  [APP.MUSIC]: MusicApp,
+  [APP.MAIL]: MailApp,
+  [APP.PROJECTS]: ProjectsApp,
+  [APP.SETTINGS]: SettingsApp,
+  [APP.PROPERTIES]: PropertiesApp,
 })

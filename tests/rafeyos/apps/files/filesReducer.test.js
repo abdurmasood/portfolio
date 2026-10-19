@@ -72,9 +72,7 @@ describe('filesReducer', () => {
     expect(reduce(open, { type: 'setSearch', query: null }).search).toBeNull()
   })
 
-  it('ignores unknown actions', () => {
-    const start = initialFilesState()
-
-    expect(filesReducer(start, { type: 'nope' })).toBe(start)
+  it('throws on unknown actions', () => {
+    expect(() => filesReducer(initialFilesState(), { type: 'nope' })).toThrow('Unknown files action: nope')
   })
 })
