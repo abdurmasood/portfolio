@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useSettings, useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
 import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 /**
  * Shows a notification banner unless Do Not Disturb is on. Stable across DND changes,
@@ -12,7 +13,7 @@ export const useNotify = () => {
   const dndRef = useLatest(useSettings().dnd)
   return useCallback(
     (banner) => {
-      if (!dndRef.current) shellDispatch({ type: 'showBanner', banner })
+      if (!dndRef.current) shellDispatch({ type: SHELL_ACTIONS.SHOW_BANNER, banner })
     },
     [shellDispatch, dndRef],
   )

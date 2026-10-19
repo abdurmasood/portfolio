@@ -6,6 +6,7 @@ import { useOpenSettings } from './logic/useOpenSettings'
 import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
 import { QuickToggles, QuickVolume } from './QuickToggles'
 import { useEscapeKey } from './logic/useEscapeKey'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 // Screenshot isn't built: shown as in the mockup, but inert
 const DISABLED = { opacity: 0.5 }
@@ -34,10 +35,10 @@ export const QuickSettings = () => {
   const sessionDispatch = useSessionDispatch()
   const openSettings = useOpenSettings()
   const [powerOpen, setPowerOpen] = useState(false)
-  useEscapeKey(useCallback(() => shellDispatch({ type: 'closePopup' }), [shellDispatch]))
-  const openDialog = (kind) => shellDispatch({ type: 'openDialog', kind })
+  useEscapeKey(useCallback(() => shellDispatch({ type: SHELL_ACTIONS.CLOSE_POPUP }), [shellDispatch]))
+  const openDialog = (kind) => shellDispatch({ type: SHELL_ACTIONS.OPEN_DIALOG, kind })
   const sendSession = (event) => {
-    shellDispatch({ type: 'closeTransients' })
+    shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
     sessionDispatch(event)
   }
   return (

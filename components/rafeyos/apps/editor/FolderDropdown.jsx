@@ -4,6 +4,7 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { belowElement, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { choiceItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
 import { SAVE_FOLDERS } from '@/components/rafeyos/core/vfs/documents'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 /**
  * The save dialog's folder picker, as a GTK dropdown: a button showing the folder, opening the
@@ -19,7 +20,7 @@ export const FolderDropdown = ({ folder, onChoose }) => {
   const current = SAVE_FOLDERS.find((place) => place.path === folder) ?? SAVE_FOLDERS[0]
   const toggle = (event) => {
     if (menu) {
-      shellDispatch({ type: 'closeMenu' })
+      shellDispatch({ type: SHELL_ACTIONS.CLOSE_MENU })
       return
     }
     const items = SAVE_FOLDERS.map((place) =>

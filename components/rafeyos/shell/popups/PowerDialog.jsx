@@ -3,6 +3,7 @@ import { useSessionDispatch, useShellDispatch } from '@/components/rafeyos/state
 import { POWER_DIALOGS, POWER_DIALOG_SECONDS } from './logic/powerDialogs'
 import { useCountdown } from './logic/useCountdown'
 import { useFocusTrap } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 const ActionButton = ({ action, onRun }) => (
   <button type="button" className={`btn ${action.className}`.trim()} onClick={() => onRun(action.event)}>
@@ -17,10 +18,10 @@ export const PowerDialog = ({ kind }) => {
   useFocusTrap(dialogRef)
   const shellDispatch = useShellDispatch()
   const sessionDispatch = useSessionDispatch()
-  const cancel = () => shellDispatch({ type: 'closeDialog' })
+  const cancel = () => shellDispatch({ type: SHELL_ACTIONS.CLOSE_DIALOG })
   const run = useCallback(
     (event) => {
-      shellDispatch({ type: 'closeDialog' })
+      shellDispatch({ type: SHELL_ACTIONS.CLOSE_DIALOG })
       sessionDispatch(event)
     },
     [shellDispatch, sessionDispatch],
