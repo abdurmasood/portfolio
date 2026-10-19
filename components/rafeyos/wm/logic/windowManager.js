@@ -3,7 +3,7 @@
 import { getApp, handlerFor, isImplemented } from '@/components/rafeyos/core/catalog/apps'
 import { SNAP_MODES } from '@/components/rafeyos/core/geometry'
 import { windowsForApp } from '@/components/rafeyos/state/logic/selectors'
-import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
+import { WINDOW_PHASES, WINDOW_ACTIONS } from '@/components/rafeyos/state/logic/windowsReducer'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { createSnapPreviewStore } from './snapPreviewStore'
@@ -15,12 +15,12 @@ const existingWindow = (state, appId, arg) =>
   Object.values(state.byId).find((win) => win.key === `${appId}:${arg}` && win.phase !== WINDOW_PHASES.CLOSING)
 
 const windowCommands = (dispatch) => ({
-  focus: (id) => dispatch({ type: 'focus', id }),
-  minimize: (id) => dispatch({ type: 'minimize', id }),
-  restore: (id) => dispatch({ type: 'restore', id }),
-  close: (id) => dispatch({ type: 'requestClose', id }),
-  unsnap: (id, rect) => dispatch({ type: 'unsnap', id, rect }),
-  commitRect: (id, rect) => dispatch({ type: 'commitRect', id, rect }),
+  focus: (id) => dispatch({ type: WINDOW_ACTIONS.FOCUS, id }),
+  minimize: (id) => dispatch({ type: WINDOW_ACTIONS.MINIMIZE, id }),
+  restore: (id) => dispatch({ type: WINDOW_ACTIONS.RESTORE, id }),
+  close: (id) => dispatch({ type: WINDOW_ACTIONS.REQUEST_CLOSE, id }),
+  unsnap: (id, rect) => dispatch({ type: WINDOW_ACTIONS.UNSNAP, id, rect }),
+  commitRect: (id, rect) => dispatch({ type: WINDOW_ACTIONS.COMMIT_RECT, id, rect }),
 })
 
 /**
@@ -42,7 +42,7 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
     const state = getState()
     if (from && (app.multi || !existingWindow(state, appId, arg))) openOrigins.set(state.nextId, from)
     const { area, compact } = getLayout()
-    dispatch({ type: 'open', appId, multi: app.multi, arg, init, size: app.size, area, compact, title: app.name })
+    dispatch({ type: WINDOW_ACTIONS.OPEN, appId, multi: app.multi, arg, init, size: app.size, area, compact, title: app.name })
     return true
   }
 
@@ -57,7 +57,7 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
     return openApp(appId, { path: PATHLESS_TYPES.has(node.type) ? '' : target, from })
   }
 
-  const snap = (id, mode) => dispatch({ type: 'snap', id, mode, area: getLayout().area })
+  const snap = (id, mode) => dispatch({ type: WINDOW_ACTIONS.SNAP, id, mode, area: getLayout().area })
 
   const toggleMax = (id) => {
     const win = getState().byId[id]
@@ -81,13 +81,13 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
   const remove = (id) => {
     openOrigins.delete(id)
     closeGuards.delete(id)
-    dispatch({ type: 'remove', id })
+    dispatch({ type: WINDOW_ACTIONS.REMOVE, id })
   }
 
-  const setArg = (id, arg) => dispatch({ type: 'setArg', id, arg })
+  const setArg = (id, arg) => dispatch({ type: WINDOW_ACTIONS.SET_ARG, id, arg })
 
   const setTitle = (id, title) => {
-    if (getState().byId[id]?.title !== title) dispatch({ type: 'setTitle', id, title })
+    if (getState().byId[id]?.title !== title) dispatch({ type: WINDOW_ACTIONS.SET_TITLE, id, title })
   }
 
   return Object.freeze({
