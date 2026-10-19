@@ -10,6 +10,7 @@ import { fileMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
 import { useTrashActions } from '@/components/rafeyos/ui/menus/logic/useTrashActions'
 import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
 import { nearestInDirection } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 export const nextSelection = (selection, path, adding) => {
   if (adding) {
@@ -70,7 +71,7 @@ const usePress = ({ selection, onSelect, drag }) => {
     (path, event) => {
       if (event.button !== 0) return
       event.preventDefault()
-      shellDispatch({ type: 'closeTransients' })
+      shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
       windowManager.focus(null)
       const next = nextSelection(selection, path, event.ctrlKey || event.metaKey || event.shiftKey)
       onSelect(next)

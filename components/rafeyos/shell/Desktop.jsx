@@ -7,6 +7,7 @@ import { ShellLayer } from './popups/ShellLayer'
 import { OverviewStage } from './overview/Overview'
 import { spreadsWindows } from '@/components/rafeyos/wm/logic/overviewModel'
 import { useGlobalKeys } from './chrome/logic/useGlobalKeys'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 // Presses inside these keep the open popup; anywhere else closes it
 const KEEPS_POPUP = '.pop, .shm, .qs, .cal, [data-tb], .modal'
@@ -39,7 +40,7 @@ const DesktopFrame = ({ children }) => {
   const shellDispatch = useShellDispatch()
   const closeOutside = (event) => {
     if (!shell.popup && !shell.menu) return
-    if (!event.target.closest(KEEPS_POPUP)) shellDispatch({ type: 'closeTransients' })
+    if (!event.target.closest(KEEPS_POPUP)) shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
   }
   return (
     <div

@@ -3,6 +3,7 @@ import { Sym, WifiGlyph } from '@/components/rafeyos/ui/icons/symbols'
 import { Clock } from './Clock'
 import { CALENDAR_POPUP } from '@/components/rafeyos/shell/calendar/CalendarPopover'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 export const QUICK_SETTINGS_POPUP = 'qs'
 
@@ -41,7 +42,7 @@ export const TopBar = () => {
           aria-label="Activities"
           aria-pressed={shell.overview !== null}
           onClick={() =>
-            shellDispatch(shell.overview ? { type: 'closeOverview' } : { type: 'openOverview', mode: OVERVIEW_MODES.WINDOWS })
+            shellDispatch(shell.overview ? { type: SHELL_ACTIONS.CLOSE_OVERVIEW } : { type: SHELL_ACTIONS.OPEN_OVERVIEW, mode: OVERVIEW_MODES.WINDOWS })
           }
         >
           <span className="wsi">
@@ -57,7 +58,7 @@ export const TopBar = () => {
           data-tb="cal"
           aria-label="Date and time"
           aria-expanded={calendarOpen}
-          onClick={() => shellDispatch({ type: 'togglePopup', kind: CALENDAR_POPUP })}
+          onClick={() => shellDispatch({ type: SHELL_ACTIONS.TOGGLE_POPUP, kind: CALENDAR_POPUP })}
         >
           <Clock />
         </button>
@@ -69,7 +70,7 @@ export const TopBar = () => {
           data-tb="qs"
           aria-label="System menu"
           aria-expanded={quickSettingsOpen}
-          onClick={() => shellDispatch({ type: 'togglePopup', kind: QUICK_SETTINGS_POPUP })}
+          onClick={() => shellDispatch({ type: SHELL_ACTIONS.TOGGLE_POPUP, kind: QUICK_SETTINGS_POPUP })}
         >
           <StatusIcons />
         </button>

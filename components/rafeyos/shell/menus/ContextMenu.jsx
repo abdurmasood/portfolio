@@ -6,6 +6,7 @@ import { useEscapeKey } from '@/components/rafeyos/shell/popups/logic/useEscapeK
 import { useReturnFocus } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
 import { menuStep } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 const sizeOf = (element) => ({ w: element.offsetWidth, h: element.offsetHeight })
 
@@ -72,7 +73,7 @@ const Entry = ({ entry, onChoose }) => {
 export const ContextMenu = ({ menu }) => {
   const ref = useRef(null)
   const shellDispatch = useShellDispatch()
-  const close = useCallback(() => shellDispatch({ type: 'closeMenu' }), [shellDispatch])
+  const close = useCallback(() => shellDispatch({ type: SHELL_ACTIONS.CLOSE_MENU }), [shellDispatch])
   usePlacement(ref, menu)
   useEscapeKey(close)
   const onKeyDown = useMenuKeys(ref, close)
