@@ -1,6 +1,13 @@
+// @ts-check
 // App list and what each app opens. Screens live in appComponents.js so this file stays free of React.
 import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
+
+/**
+ * @import { Vfs, VfsNode } from '@/components/rafeyos/core/vfs/buildVfs'
+ * @import { Rect } from '@/components/rafeyos/core/geometry'
+ * @import { SettingsPage } from '@/components/rafeyos/core/catalog/settingsPages'
+ */
 
 export const APP = Object.freeze({
   FILES: 'files',
@@ -13,7 +20,49 @@ export const APP = Object.freeze({
   PROPERTIES: 'properties',
 })
 
-// defaultPath: what a single-instance file app opens when launched without one (e.g. from the dock)
+/** @typedef {typeof APP[keyof typeof APP]} AppId */
+
+/**
+ * One-off launch options for the apps that take them (windowsReducer keeps them on the window as `init`).
+ * @typedef {{
+ *   [APP.SETTINGS]: { page: SettingsPage },
+ *   [APP.PROJECTS]: { slug: string },
+ *   [APP.FILES]: { select: string },
+ * }} AppInits
+ */
+
+/**
+ * Every app's launch options; `never` for the apps that take none, so passing one fails the typecheck.
+ * @typedef {{ [K in AppId]: K extends keyof AppInits ? AppInits[K] : never }} AppInitMap
+ */
+
+/**
+ * @template {AppId} K
+ * @typedef {{ path?: string, from?: Rect | null, init?: AppInitMap[K] | null }} OpenAppOptions
+ */
+
+/**
+ * The window manager's openApp, as the layers below it see it.
+ * @typedef {<K extends AppId>(appId: K, options?: OpenAppOptions<K>) => boolean} OpenApp
+ */
+
+/**
+ * @typedef {{
+ *   id: AppId,
+ *   name: string,
+ *   size: readonly number[],
+ *   minSize: readonly number[],
+ *   multi: boolean,
+ *   inDock: boolean,
+ *   defaultPath: string,
+ * }} App
+ */
+
+/**
+ * defaultPath: what a single-instance file app opens when launched without one (e.g. from the dock)
+ * @param {{ id: AppId, name: string, size: number[], minSize: number[], multi?: boolean, inDock?: boolean, defaultPath?: string }} options
+ * @returns {Readonly<App>}
+ */
 const app = ({ id, name, size, minSize, multi = false, inDock = true, defaultPath = '' }) =>
   Object.freeze({ id, name, size: Object.freeze(size), minSize: Object.freeze(minSize), multi, inDock, defaultPath })
 
@@ -32,19 +81,22 @@ export const APP_IDS = Object.freeze(Object.keys(APPS))
 
 export const DOCK_FAVORITES = Object.freeze([APP.FILES, APP.TERMINAL, APP.EDITOR, APP.MUSIC, APP.MAIL, APP.PROJECTS, APP.SETTINGS])
 
+/** @param {AppId} id */
 export const getApp = (id) => {
   const entry = APPS[id]
   if (!entry) throw new Error(`Unknown app: ${id}`)
   return entry
 }
 
+/** @type {readonly AppId[]} */
 export const IMPLEMENTED_APPS = Object.freeze([
   APP.FILES, APP.TERMINAL, APP.EDITOR, APP.MUSIC, APP.MAIL, APP.PROJECTS, APP.SETTINGS, APP.PROPERTIES,
 ])
 
+/** @param {AppId} appId */
 export const isImplemented = (appId) => IMPLEMENTED_APPS.includes(appId)
 
-// The app that would open each kind of file (GNOME's default handlers)
+/** @type {Readonly<Partial<Record<VfsNode['type'], AppId>>>} The app that would open each kind of file (GNOME's default handlers) */
 const HANDLERS = Object.freeze({
   [NODE_TYPES.DIR]: APP.FILES,
   [NODE_TYPES.TEXT]: APP.EDITOR,
@@ -52,14 +104,26 @@ const HANDLERS = Object.freeze({
   [NODE_TYPES.MAILTO]: APP.MAIL,
 })
 
-/** @returns {string|null} app id, or null for web links (opened in the browser) */
+/**
+ * @param {VfsNode} node
+ * @returns {AppId | null} null for web links (opened in the browser)
+ */
 export const handlerFor = (node) => HANDLERS[node.type] ?? null
 
-/** Web links open through the "Open Link" dialog rather than an app. Follows a symlink. */
+/**
+ * Web links open through the "Open Link" dialog rather than an app. Follows a symlink.
+ * @param {Vfs} vfs
+ * @param {string} path
+ */
 export const isWebLink = (vfs, path) => vfs[realPath(vfs, path)]?.type === NODE_TYPES.WEBLINK
 
-/** Audio files play as they open (Music starts the track). Follows a symlink. */
+/**
+ * Audio files play as they open (Music starts the track). Follows a symlink.
+ * @param {Vfs} vfs
+ * @param {string} path
+ */
 export const isAudio = (vfs, path) => vfs[realPath(vfs, path)]?.type === NODE_TYPES.AUDIO
 
+/** @param {AppId | null} appId */
 export const unavailableNote = (appId) =>
   appId ? `${APPS[appId]?.name ?? appId} isn't available yet` : "Opening links isn't available yet"
