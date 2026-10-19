@@ -26,6 +26,18 @@ const useItemHandlers = ({ onSelect, onOpen, onMenu }) => {
   })
 }
 
+/**
+ * @typedef {{
+ *   vfs: import('@/components/rafeyos/core/vfs/buildVfs').Vfs,
+ *   items: string[],
+ *   selection: string[],
+ *   onSelect: (path: string, mode: 'single' | 'toggle') => void,
+ *   onOpen: (path: string) => void,
+ *   onMenu: (path: string, event: import('react').MouseEvent) => void,
+ * }} ItemsProps
+ */
+
+/** @param {ItemsProps} props */
 export const FilesGrid = ({ vfs, items, selection, onSelect, onOpen, onMenu }) => {
   const handlersFor = useItemHandlers({ onSelect, onOpen, onMenu })
   return (
@@ -46,6 +58,7 @@ export const FilesGrid = ({ vfs, items, selection, onSelect, onOpen, onMenu }) =
   )
 }
 
+/** @param {ItemsProps} props */
 export const FilesList = ({ vfs, items, selection, onSelect, onOpen, onMenu }) => {
   const handlersFor = useItemHandlers({ onSelect, onOpen, onMenu })
   return (
@@ -75,6 +88,7 @@ export const FilesList = ({ vfs, items, selection, onSelect, onOpen, onMenu }) =
   )
 }
 
+/** @param {{ state: import('./logic/filesReducer').FilesState }} props */
 export const FilesEmpty = ({ state }) => {
   const { icon, title, body } = emptyState(state)
   return (

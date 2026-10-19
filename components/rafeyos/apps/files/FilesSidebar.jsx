@@ -2,7 +2,10 @@ import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { SIDEBAR } from './logic/filesView'
 
-/** Places list; the current location is highlighted unless a search is open. */
+/**
+ * Places list; the current location is highlighted unless a search is open.
+ * @param {{ path: string, searching: boolean, onGo: (path: string) => void, onMainMenu: (event: import('react').MouseEvent) => void }} props
+ */
 export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (
   <div className="side">
     <HeaderBar

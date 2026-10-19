@@ -52,8 +52,17 @@ const SearchBar = ({ query, onSearch }) => {
   )
 }
 
-/** Back/forward, pathbar (or search field), search and view toggles, window controls. */
-/** sidebarToggle: shown first, for narrow windows where the places sidebar is hidden. */
+/**
+ * Back/forward, pathbar (or search field), search and view toggles, window controls.
+ * sidebarToggle: shown first, for narrow windows where the places sidebar is hidden.
+ * @param {{
+ *   vfs: import('@/components/rafeyos/core/vfs/buildVfs').Vfs,
+ *   state: import('./logic/filesReducer').FilesState,
+ *   dispatch: import('react').Dispatch<import('./logic/filesReducer').FilesAction>,
+ *   onViewOptions: (event: import('react').MouseEvent) => void,
+ *   sidebarToggle?: import('react').ReactNode,
+ * }} props
+ */
 export const FilesHeader = ({ vfs, state, dispatch, onViewOptions, sidebarToggle = null }) => {
   const searching = state.search !== null
   const go = (path) => dispatch({ type: FILES_ACTIONS.GO, path })
