@@ -16,19 +16,26 @@ const RAFEYOS_LAYERS = {
   session: [],
 }
 const RELATIVE_PARENT = { group: ['../*', '../**'], message: 'Import across folders with the @/ alias.' }
-const layerRule = (layer, forbidden) => ({
-  files: [`components/rafeyos/${layer}/**/*.{js,jsx}`],
+const layerPattern = (layer, forbidden) => (forbidden.length ? [{
+  group: forbidden.map((folder) => `${RAFEYOS}/${folder}/**`),
+  message: `${layer}/ sits below ${forbidden.join(', ')}; move the shared code down a layer instead.`,
+}] : [])
+// Flat config replaces no-restricted-imports options rather than merging them, so extra patterns repeat the layer ones.
+const layerRule = (layer, forbidden, { files = [`components/rafeyos/${layer}/**/*.{js,jsx}`], extra = [] } = {}) => ({
+  files,
   rules: {
-    'no-restricted-imports': ['error', {
-      patterns: [
-        RELATIVE_PARENT,
-        ...(forbidden.length ? [{
-          group: forbidden.map((folder) => `${RAFEYOS}/${folder}/**`),
-          message: `${layer}/ sits below ${forbidden.join(', ')}; move the shared code down a layer instead.`,
-        }] : []),
-      ],
-    }],
+    'no-restricted-imports': ['error', { patterns: [RELATIVE_PARENT, ...layerPattern(layer, forbidden), ...extra] }],
   },
+})
+
+// shell/ feature folders never import each other; shared helpers live in shell/logic and only the root files compose.
+const SHELL_FEATURES = ['calendar', 'chrome', 'desktop', 'menus', 'overview', 'popups']
+const shellSiblingRule = (folder, siblings) => layerRule('shell', RAFEYOS_LAYERS.shell, {
+  files: [`components/rafeyos/shell/${folder}/**/*.{js,jsx}`],
+  extra: [{
+    group: [`${RAFEYOS}/shell/*`, `!${RAFEYOS}/shell/logic`, ...siblings.map((sibling) => `${RAFEYOS}/shell/${sibling}/**`)],
+    message: `shell/${folder}/ may import only shell/logic; compose features in shell/Desktop.jsx or shell/ShellLayer.jsx.`,
+  }],
 })
 
 export default [
@@ -63,6 +70,8 @@ export default [
     rules: { 'react/prop-types': 'off' },
   },
   ...Object.entries(RAFEYOS_LAYERS).map(([layer, forbidden]) => layerRule(layer, forbidden)),
+  ...SHELL_FEATURES.map((folder) => shellSiblingRule(folder, SHELL_FEATURES.filter((other) => other !== folder))),
+  shellSiblingRule('logic', SHELL_FEATURES),
   {
     files: ['components/rafeyos/*.{js,jsx}'],
     rules: { 'no-restricted-imports': ['error', { patterns: [RELATIVE_PARENT] }] },
