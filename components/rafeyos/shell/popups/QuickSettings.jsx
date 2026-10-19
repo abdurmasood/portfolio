@@ -5,7 +5,7 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { useOpenSettings } from './logic/useOpenSettings'
 import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
 import { QuickToggles, QuickVolume } from './QuickToggles'
-import { useEscapeKey } from './logic/useEscapeKey'
+import { useEscapeKey } from '@/components/rafeyos/shell/logic/useEscapeKey'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 
 // Screenshot isn't built: shown as in the mockup, but inert

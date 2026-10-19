@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useSettings } from '@/components/rafeyos/state/logic/contexts'
 import { WALLS } from '@/components/rafeyos/core/theme/walls'
 import { formatClock, formatLongDate, formatTime } from '@/components/rafeyos/shell/chrome/logic/clockFormat'
-import { useNow } from '@/components/rafeyos/shell/chrome/logic/useNow'
+import { useNow } from '@/components/rafeyos/shell/logic/useNow'
 import { StatusIcons } from '@/components/rafeyos/shell/chrome/TopBar'
 
 // The mockup waits this long before listening for keys, so the key that locked can't unlock
