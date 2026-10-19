@@ -7,6 +7,7 @@ import { useEmptyTrash, useTrashActions } from '@/components/rafeyos/ui/menus/lo
 import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
+import { FILES_ACTIONS } from './filesReducer'
 import { projectForPath } from '@/components/rafeyos/core/vfs/projectPaths'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 
@@ -32,7 +33,7 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
     return project ? () => windowManager.openApp(APP.PROJECTS, { init: { slug: project.slug } }) : null
   }
   const itemMenu = (path, event) => {
-    if (!state.selection.includes(path)) dispatch({ type: 'select', path, mode: 'single' })
+    if (!state.selection.includes(path)) dispatch({ type: FILES_ACTIONS.SELECT, path, mode: 'single' })
     const commands = { ...commandsFor(path), openInProjects: openInProjectsFor(path), ...(inTrash ? { emptyTrash } : {}) }
     const menu = fileMenuItems({ commands, isFolder: isDir(vfs, path), onDesktop: false })
     openMenu(menu, pointOfEvent(event))
@@ -42,11 +43,11 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
     // Recent and Starred aren't folders, so they have no background menu
     if (!vfs[state.path]) return
     const { openTerminal, properties } = commandsFor(state.path)
-    const selectAll = () => dispatch({ type: 'selectAll', paths: items })
+    const selectAll = () => dispatch({ type: FILES_ACTIONS.SELECT_ALL, paths: items })
     openMenu(backgroundMenuItems({ inTrash, selectAll, openTerminal, properties, emptyTrash }), pointOfEvent(event))
   }
   const viewOptions = (event) => {
-    const setView = (view) => dispatch({ type: 'setView', view })
+    const setView = (view) => dispatch({ type: FILES_ACTIONS.SET_VIEW, view })
     openMenu(viewOptionsItems(setView), belowElement(event.currentTarget, VIEW_OPTIONS_SHIFT))
   }
   const mainMenu = (event) => {

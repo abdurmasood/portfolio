@@ -4,7 +4,7 @@ import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
-import { FILE_VIEWS, filesReducer, initialFilesState } from './logic/filesReducer'
+import { FILE_VIEWS, FILES_ACTIONS, filesReducer, initialFilesState } from './logic/filesReducer'
 import { floatbarText, listItems, windowTitle } from './logic/filesView'
 import { FilesSidebar } from './FilesSidebar'
 import { FilesHeader } from './FilesHeader'
@@ -16,7 +16,7 @@ import { SidebarToggle, splitClassName, useSidebarToggle } from '@/components/ra
 /** Folders navigate in place; other files go through useOpenPath (a banner until their apps exist). */
 const useOpenItem = (vfs, dispatch) => {
   const openPath = useOpenPath()
-  return (path) => (isDir(vfs, path) ? dispatch({ type: 'go', path: realPath(vfs, path) }) : openPath(path))
+  return (path) => (isDir(vfs, path) ? dispatch({ type: FILES_ACTIONS.GO, path: realPath(vfs, path) }) : openPath(path))
 }
 
 /** Arrows move the selection through the items (by rows in the grid), Home and End jump. */
@@ -26,7 +26,7 @@ const moveSelection = ({ state, dispatch, items, bodyRef }, event) => {
   const next = gridStep(current, event.key, { count: items.length, columns: gridColumns(grid) })
   if (next === null) return
   event.preventDefault()
-  dispatch({ type: 'select', path: items[next], mode: 'single' })
+  dispatch({ type: FILES_ACTIONS.SELECT, path: items[next], mode: 'single' })
 }
 
 const keyHandler = (files) => (event) => {
@@ -34,7 +34,7 @@ const keyHandler = (files) => (event) => {
   if (event.target.matches('input')) return
   if (event.key === 'Enter' && state.selection.length) openItem(state.selection[0])
   if ((event.key === 'Backspace' || (event.altKey && event.key === 'ArrowLeft')) && state.back.length) {
-    dispatch({ type: 'back' })
+    dispatch({ type: FILES_ACTIONS.BACK })
     return
   }
   if (!event.altKey) moveSelection(files, event)
@@ -62,7 +62,7 @@ const FilesBody = ({ files, menus }) => {
       className="scroll fbody"
       tabIndex={0}
       aria-label="Files"
-      onClick={() => dispatch({ type: 'select', mode: 'clear' })}
+      onClick={() => dispatch({ type: FILES_ACTIONS.SELECT, mode: 'clear' })}
       onKeyDown={keyHandler({ state, dispatch, openItem, items, bodyRef })}
       onContextMenu={menus.backgroundMenu}
     >
@@ -71,7 +71,7 @@ const FilesBody = ({ files, menus }) => {
           vfs={vfs}
           items={items}
           selection={state.selection}
-          onSelect={(path, mode) => dispatch({ type: 'select', path, mode })}
+          onSelect={(path, mode) => dispatch({ type: FILES_ACTIONS.SELECT, path, mode })}
           onOpen={openItem}
           onMenu={menus.itemMenu}
         />
@@ -103,7 +103,7 @@ export const FilesApp = ({ windowId, arg, init }) => {
         searching={state.search !== null}
         onGo={(path) => {
           sidebar.close()
-          dispatch({ type: 'go', path })
+          dispatch({ type: FILES_ACTIONS.GO, path })
         }}
         onMainMenu={menus.mainMenu}
       />

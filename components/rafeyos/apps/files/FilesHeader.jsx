@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef } from 'react'
 import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
-import { FILE_VIEWS } from './logic/filesReducer'
+import { FILE_VIEWS, FILES_ACTIONS } from './logic/filesReducer'
 import { PLACES, locationLabel, pathSegments } from './logic/filesView'
 
 const Pathbar = ({ vfs, path, onGo }) => {
@@ -55,8 +55,8 @@ const SearchBar = ({ query, onSearch }) => {
 /** sidebarToggle: shown first, for narrow windows where the places sidebar is hidden. */
 export const FilesHeader = ({ vfs, state, dispatch, onViewOptions, sidebarToggle = null }) => {
   const searching = state.search !== null
-  const go = (path) => dispatch({ type: 'go', path })
-  const onSearch = (query) => dispatch({ type: 'setSearch', query })
+  const go = (path) => dispatch({ type: FILES_ACTIONS.GO, path })
+  const onSearch = (query) => dispatch({ type: FILES_ACTIONS.SET_SEARCH, query })
   const isGrid = state.view === FILE_VIEWS.GRID
   return (
     <HeaderBar
@@ -64,10 +64,10 @@ export const FilesHeader = ({ vfs, state, dispatch, onViewOptions, sidebarToggle
       start={
         <>
           {sidebarToggle}
-          <button type="button" className="flat" aria-label="Back" disabled={!state.back.length} onClick={() => dispatch({ type: 'back' })}>
+          <button type="button" className="flat" aria-label="Back" disabled={!state.back.length} onClick={() => dispatch({ type: FILES_ACTIONS.BACK })}>
             <Sym name="back" />
           </button>
-          <button type="button" className="flat" aria-label="Forward" disabled={!state.fwd.length} onClick={() => dispatch({ type: 'forward' })}>
+          <button type="button" className="flat" aria-label="Forward" disabled={!state.fwd.length} onClick={() => dispatch({ type: FILES_ACTIONS.FORWARD })}>
             <Sym name="fwd" />
           </button>
         </>
@@ -82,7 +82,7 @@ export const FilesHeader = ({ vfs, state, dispatch, onViewOptions, sidebarToggle
             type="button"
             className="flat"
             aria-label={isGrid ? 'List view' : 'Grid view'}
-            onClick={() => dispatch({ type: 'setView', view: isGrid ? FILE_VIEWS.LIST : FILE_VIEWS.GRID })}
+            onClick={() => dispatch({ type: FILES_ACTIONS.SET_VIEW, view: isGrid ? FILE_VIEWS.LIST : FILE_VIEWS.GRID })}
           >
             <Sym name={isGrid ? 'list' : 'grid'} />
           </button>

@@ -1,4 +1,16 @@
+import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
+
 export const FILE_VIEWS = Object.freeze({ GRID: 'grid', LIST: 'list' })
+
+export const FILES_ACTIONS = Object.freeze({
+  GO: 'go',
+  BACK: 'back',
+  FORWARD: 'forward',
+  SET_VIEW: 'setView',
+  SELECT: 'select',
+  SET_SEARCH: 'setSearch',
+  SELECT_ALL: 'selectAll',
+})
 
 /** search is null when the search bar is closed, a string (possibly empty) while open. */
 export const initialFilesState = (path = '~', selection = []) =>
@@ -48,9 +60,14 @@ const setSearch = (state, { query }) => ({ ...state, search: query, selection: [
 /** Select All: every item the window currently lists. */
 const selectAll = (state, { paths }) => ({ ...state, selection: [...paths] })
 
-const HANDLERS = Object.freeze({ go, back, forward, setView, select, setSearch, selectAll })
+const HANDLERS = Object.freeze({
+  [FILES_ACTIONS.GO]: go,
+  [FILES_ACTIONS.BACK]: back,
+  [FILES_ACTIONS.FORWARD]: forward,
+  [FILES_ACTIONS.SET_VIEW]: setView,
+  [FILES_ACTIONS.SELECT]: select,
+  [FILES_ACTIONS.SET_SEARCH]: setSearch,
+  [FILES_ACTIONS.SELECT_ALL]: selectAll,
+})
 
-export const filesReducer = (state, action) => {
-  const handler = HANDLERS[action.type]
-  return handler ? handler(state, action) : state
-}
+export const filesReducer = createReducer('files', HANDLERS)
