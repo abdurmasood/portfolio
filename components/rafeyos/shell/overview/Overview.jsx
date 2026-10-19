@@ -12,9 +12,10 @@ import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { useReturnFocus } from '@/components/rafeyos/ui/popups/logic/useFocusTrap'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/logic/shellIds'
+import { WINDOW_ROOT } from '@/components/rafeyos/ui/logic/domHooks'
 
 const windowIdAt = (target) => {
-  const element = target.closest?.('.win')
+  const element = target.closest?.(WINDOW_ROOT)
   return element ? Number(element.dataset.windowId) : null
 }
 
