@@ -60,7 +60,7 @@ describe('settingsReducer', () => {
     expect(() => settingsReducer(initialSettings, { type: 'toggle', key: 'volume' })).toThrow(TypeError)
   })
 
-  it('ignores unknown actions', () => {
-    expect(settingsReducer(initialSettings, { type: 'nope' })).toBe(initialSettings)
+  it('throws on unknown actions', () => {
+    expect(() => settingsReducer(initialSettings, { type: 'nope' })).toThrow('Unknown settings action: nope')
   })
 })

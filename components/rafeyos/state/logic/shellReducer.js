@@ -1,4 +1,22 @@
 // Transient shell UI: at most one popup or menu at a time, plus dialog, banner and overview.
+import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
+
+export const SHELL_ACTIONS = Object.freeze({
+  OPEN_POPUP: 'openPopup',
+  TOGGLE_POPUP: 'togglePopup',
+  CLOSE_POPUP: 'closePopup',
+  OPEN_MENU: 'openMenu',
+  CLOSE_MENU: 'closeMenu',
+  CLOSE_TRANSIENTS: 'closeTransients',
+  OPEN_DIALOG: 'openDialog',
+  CLOSE_DIALOG: 'closeDialog',
+  SHOW_BANNER: 'showBanner',
+  HIDE_BANNER: 'hideBanner',
+  OPEN_OVERVIEW: 'openOverview',
+  SET_OVERVIEW_QUERY: 'setOverviewQuery',
+  CLOSE_OVERVIEW: 'closeOverview',
+  RESET: 'reset',
+})
 
 export const initialShell = Object.freeze({ popup: null, menu: null, dialog: null, banner: null, overview: null })
 
@@ -29,23 +47,20 @@ const setOverviewQuery = (state, { query }) =>
 const close = (field) => (state) => (state[field] === null ? state : { ...state, [field]: null })
 
 const HANDLERS = Object.freeze({
-  openPopup,
-  togglePopup,
-  closePopup: close('popup'),
-  openMenu,
-  closeMenu: close('menu'),
-  closeTransients: (state) => (state.popup || state.menu ? withoutTransients(state) : state),
-  openDialog,
-  closeDialog: close('dialog'),
-  showBanner,
-  hideBanner: close('banner'),
-  openOverview,
-  setOverviewQuery,
-  closeOverview: close('overview'),
-  reset: () => initialShell,
+  [SHELL_ACTIONS.OPEN_POPUP]: openPopup,
+  [SHELL_ACTIONS.TOGGLE_POPUP]: togglePopup,
+  [SHELL_ACTIONS.CLOSE_POPUP]: close('popup'),
+  [SHELL_ACTIONS.OPEN_MENU]: openMenu,
+  [SHELL_ACTIONS.CLOSE_MENU]: close('menu'),
+  [SHELL_ACTIONS.CLOSE_TRANSIENTS]: (state) => (state.popup || state.menu ? withoutTransients(state) : state),
+  [SHELL_ACTIONS.OPEN_DIALOG]: openDialog,
+  [SHELL_ACTIONS.CLOSE_DIALOG]: close('dialog'),
+  [SHELL_ACTIONS.SHOW_BANNER]: showBanner,
+  [SHELL_ACTIONS.HIDE_BANNER]: close('banner'),
+  [SHELL_ACTIONS.OPEN_OVERVIEW]: openOverview,
+  [SHELL_ACTIONS.SET_OVERVIEW_QUERY]: setOverviewQuery,
+  [SHELL_ACTIONS.CLOSE_OVERVIEW]: close('overview'),
+  [SHELL_ACTIONS.RESET]: () => initialShell,
 })
 
-export const shellReducer = (state, action) => {
-  const handler = HANDLERS[action.type]
-  return handler ? handler(state, action) : state
-}
+export const shellReducer = createReducer('shell', HANDLERS)

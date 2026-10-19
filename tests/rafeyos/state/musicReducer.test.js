@@ -42,8 +42,11 @@ describe('musicReducer', () => {
     expect(reduce(at, { type: 'seek', position: -3 }).position).toBe(0)
   })
 
-  it('returns the same state for no-op and unknown actions', () => {
+  it('returns the same state for a no-op action', () => {
     expect(musicReducer(initialMusic, { type: 'pause' })).toBe(initialMusic)
-    expect(musicReducer(initialMusic, { type: 'nope' })).toBe(initialMusic)
+  })
+
+  it('throws on unknown actions', () => {
+    expect(() => musicReducer(initialMusic, { type: 'nope' })).toThrow('Unknown music action: nope')
   })
 })

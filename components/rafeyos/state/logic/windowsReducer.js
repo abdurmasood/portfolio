@@ -1,6 +1,22 @@
 import { cascadeRect, clampRect, snapRect, SNAP_MODES } from '@/components/rafeyos/core/geometry'
+import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
 
 export const WINDOW_PHASES = Object.freeze({ OPEN: 'open', CLOSING: 'closing' })
+
+export const WINDOW_ACTIONS = Object.freeze({
+  OPEN: 'open',
+  FOCUS: 'focus',
+  MINIMIZE: 'minimize',
+  RESTORE: 'restore',
+  REQUEST_CLOSE: 'requestClose',
+  REMOVE: 'remove',
+  SNAP: 'snap',
+  UNSNAP: 'unsnap',
+  COMMIT_RECT: 'commitRect',
+  SET_TITLE: 'setTitle',
+  SET_ARG: 'setArg',
+  RELAYOUT: 'relayout',
+})
 
 /** order is the stacking order, bottom first; the last entry is on top. */
 export const initialWindows = Object.freeze({ byId: {}, order: [], focusedId: null, nextId: 1 })
@@ -138,21 +154,18 @@ const relayout = (state, { area, compact }) => {
 }
 
 const HANDLERS = Object.freeze({
-  open,
-  focus,
-  minimize,
-  restore,
-  requestClose,
-  remove,
-  snap,
-  unsnap,
-  commitRect,
-  setTitle,
-  setArg,
-  relayout,
+  [WINDOW_ACTIONS.OPEN]: open,
+  [WINDOW_ACTIONS.FOCUS]: focus,
+  [WINDOW_ACTIONS.MINIMIZE]: minimize,
+  [WINDOW_ACTIONS.RESTORE]: restore,
+  [WINDOW_ACTIONS.REQUEST_CLOSE]: requestClose,
+  [WINDOW_ACTIONS.REMOVE]: remove,
+  [WINDOW_ACTIONS.SNAP]: snap,
+  [WINDOW_ACTIONS.UNSNAP]: unsnap,
+  [WINDOW_ACTIONS.COMMIT_RECT]: commitRect,
+  [WINDOW_ACTIONS.SET_TITLE]: setTitle,
+  [WINDOW_ACTIONS.SET_ARG]: setArg,
+  [WINDOW_ACTIONS.RELAYOUT]: relayout,
 })
 
-export const windowsReducer = (state, action) => {
-  const handler = HANDLERS[action.type]
-  return handler ? handler(state, action) : state
-}
+export const windowsReducer = createReducer('windows', HANDLERS)

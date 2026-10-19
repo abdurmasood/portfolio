@@ -1,4 +1,7 @@
 import { WALLS } from '@/components/rafeyos/core/theme/walls'
+import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
+
+export const SETTINGS_ACTIONS = Object.freeze({ SET: 'set', TOGGLE: 'toggle' })
 
 export const STYLES = Object.freeze({ DARK: 'dark', LIGHT: 'light' })
 export const DOCK_POSITIONS = Object.freeze(['left', 'bottom', 'right'])
@@ -59,9 +62,6 @@ const toggle = (state, { key }) => {
   return { ...state, [key]: !state[key] }
 }
 
-const HANDLERS = Object.freeze({ set, toggle })
+const HANDLERS = Object.freeze({ [SETTINGS_ACTIONS.SET]: set, [SETTINGS_ACTIONS.TOGGLE]: toggle })
 
-export const settingsReducer = (state, action) => {
-  const handler = HANDLERS[action.type]
-  return handler ? handler(state, action) : state
-}
+export const settingsReducer = createReducer('settings', HANDLERS)

@@ -106,13 +106,16 @@ describe('focus and z-order', () => {
     expect(state.order).toEqual([1])
   })
 
-  it('ignores unknown ids and unknown actions', () => {
+  it('ignores unknown ids', () => {
     const state = reduce(initialWindows, openTerminal)
 
     ;['focus', 'minimize', 'restore', 'requestClose', 'remove', 'snap', 'unsnap', 'commitRect', 'setTitle', 'setArg'].forEach((type) => {
       expect(windowsReducer(state, { type, id: 99, area, mode: 'max', rect: area, title: 'x' })).toBe(state)
     })
-    expect(windowsReducer(state, { type: 'nope' })).toBe(state)
+  })
+
+  it('throws on unknown actions', () => {
+    expect(() => windowsReducer(initialWindows, { type: 'nope' })).toThrow('Unknown windows action: nope')
   })
 })
 
