@@ -4,7 +4,7 @@ import { useSettings } from '@/components/rafeyos/state/logic/contexts'
 import { WALLS } from '@/components/rafeyos/core/theme/walls'
 import { formatClock, formatLongDate, formatTime } from '@/components/rafeyos/shell/chrome/logic/clockFormat'
 import { useNow } from '@/components/rafeyos/shell/logic/useNow'
-import { StatusIcons } from '@/components/rafeyos/shell/chrome/TopBar'
+import { StatusIcons } from '@/components/rafeyos/ui/icons/StatusIcons'
 
 // The mockup waits this long before listening for keys, so the key that locked can't unlock
 export const UNLOCK_KEY_DELAY_MS = 50
