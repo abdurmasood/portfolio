@@ -304,6 +304,16 @@ describe('Text Editor', () => {
     expect(ui.getByRole('dialog', { name: 'Save' })).toBeTruthy()
   })
 
+  it('keeps the folder menu open while the dialog is pressed', () => {
+    const { ui } = openUntitled()
+    const dialog = openSaveDialog(ui)
+    fireEvent.click(folderButton(dialog))
+
+    fireEvent.pointerDown(ui.getByRole('dialog', { name: 'Save' }), { button: 0 })
+
+    expect(screen.getByRole('menu')).toBeTruthy()
+  })
+
   it('puts focus back on the dropdown after a folder is picked', () => {
     const { ui } = openUntitled()
     const dialog = openSaveDialog(ui)

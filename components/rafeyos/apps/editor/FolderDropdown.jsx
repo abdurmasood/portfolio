@@ -9,7 +9,7 @@ import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 /**
  * The save dialog's folder picker, as a GTK dropdown: a button showing the folder, opening the
  * shell's popover with a check on the current one. Clicks inside a dialog don't close menus
- * (Desktop's KEEPS_POPUP), so a second click on the button closes it here.
+ * (the dialog carries KEEPS_POPUP_PROPS), so a second click on the button closes it here.
  */
 export const FolderDropdown = ({ folder, onChoose }) => {
   const labelId = useId()

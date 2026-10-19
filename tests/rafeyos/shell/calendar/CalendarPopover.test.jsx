@@ -67,6 +67,26 @@ describe('calendar popover', () => {
     expect(calendar()).toBeNull()
   })
 
+  it('stays open while pressed inside', () => {
+    renderDesktop()
+    const cal = openCalendar()
+
+    fireEvent.pointerDown(cal.getByRole('button', { name: 'Next month' }), { button: 0 })
+    fireEvent.pointerDown(calendar(), { button: 0 })
+
+    expect(calendar()).toBeTruthy()
+  })
+
+  it('closes on a full press of the clock, which does not count as outside', () => {
+    renderDesktop()
+    openCalendar()
+
+    fireEvent.pointerDown(clock(), { button: 0 })
+    fireEvent.click(clock())
+
+    expect(calendar()).toBeNull()
+  })
+
   it('shares Do Not Disturb with the Notifications page', () => {
     const { container } = renderDesktop()
     const cal = openCalendar()

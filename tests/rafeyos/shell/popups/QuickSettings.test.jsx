@@ -220,6 +220,29 @@ describe('quick settings', () => {
 
     expect(screen.queryByRole('dialog', { name: 'Quick settings' })).toBeNull()
   })
+
+  it('stays open while pressed inside, and closes on a press on the desktop', () => {
+    renderDesktop()
+    const qs = openQuickSettings()
+
+    fireEvent.pointerDown(qs.getByRole('slider', { name: 'Volume' }), { button: 0 })
+    fireEvent.pointerDown(screen.getByRole('dialog', { name: 'Quick settings' }), { button: 0 })
+    expect(screen.getByRole('dialog', { name: 'Quick settings' })).toBeTruthy()
+
+    fireEvent.pointerDown(screen.getByTestId('wallpaper'), { button: 0 })
+    expect(screen.queryByRole('dialog', { name: 'Quick settings' })).toBeNull()
+  })
+
+  it('closes on a full press of the system menu button, which does not count as outside', () => {
+    renderDesktop()
+    openQuickSettings()
+    const button = screen.getByRole('button', { name: 'System menu' })
+
+    fireEvent.pointerDown(button, { button: 0 })
+    fireEvent.click(button)
+
+    expect(screen.queryByRole('dialog', { name: 'Quick settings' })).toBeNull()
+  })
 })
 
 describe('slider fill', () => {
