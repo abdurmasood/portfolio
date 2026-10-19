@@ -4,12 +4,13 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { result, EFFECTS } from './result'
 import { target } from './target'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 const UNINSTALLED_EDITORS = new Set(['nano', 'vim', 'vi'])
 
 const openContact = (what, content) => {
   if (what === 'email') {
-    return result([pre('Opening email application...')], [{ type: EFFECTS.OPEN_APP, app: 'mail' }])
+    return result([pre('Opening email application...')], [{ type: EFFECTS.OPEN_APP, app: APP.MAIL }])
   }
   return result(
     [pre('Opening LinkedIn profile in a new tab...')],
@@ -31,7 +32,7 @@ const nautilus = ({ parsed, vfs, cwd }) => {
   const arg = parsed.args.join(' ')
   const path = arg ? target(vfs, arg, cwd) : cwd
   if (!path || !isDir(vfs, path)) return result([error(`nautilus: ${arg}: not a folder`)])
-  return result([], [{ type: EFFECTS.OPEN_APP, app: 'files', path: realPath(vfs, path) }])
+  return result([], [{ type: EFFECTS.OPEN_APP, app: APP.FILES, path: realPath(vfs, path) }])
 }
 
 const editor = ({ parsed, name, vfs, cwd }) => {
@@ -39,7 +40,7 @@ const editor = ({ parsed, name, vfs, cwd }) => {
   const path = arg ? target(vfs, arg, cwd) : null
   if (!path || isDir(vfs, path)) return result([error(`${name}: ${arg || 'missing file'}: No such file`)])
   const lines = UNINSTALLED_EDITORS.has(name) ? [dim(`${name} isn't installed here, opened Text Editor instead`)] : []
-  return result(lines, [{ type: EFFECTS.OPEN_APP, app: 'editor', path: realPath(vfs, path) }])
+  return result(lines, [{ type: EFFECTS.OPEN_APP, app: APP.EDITOR, path: realPath(vfs, path) }])
 }
 
 export const launchCommands = Object.freeze({

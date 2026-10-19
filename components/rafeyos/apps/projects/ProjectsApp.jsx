@@ -7,6 +7,7 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { shapeSegments } from './logic/wireframe'
 import { useWireframeCanvas } from './logic/useWireframeCanvas'
 import { PROJECTS_FOLDER, projectIndexFor } from '@/components/rafeyos/core/vfs/projectPaths'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 const ProjectsSidebar = ({ projects, index, onPick, onShowInFiles }) => (
   <div className="side">
@@ -84,7 +85,7 @@ export const ProjectsApp = ({ windowId, init }) => {
         projects={projects}
         index={index}
         onPick={pick}
-        onShowInFiles={() => windowManager.openApp('files', { path: PROJECTS_FOLDER })}
+        onShowInFiles={() => windowManager.openApp(APP.FILES, { path: PROJECTS_FOLDER })}
       />
       <div className="main">
         <HeaderBar

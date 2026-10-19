@@ -1,6 +1,7 @@
 // Commands that print Rafey's content: help, bio, projects, blog, skills, music, contact
 import { pre, dim } from '@/components/rafeyos/core/commands/lines'
 import { result, EFFECTS } from './result'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 const PROJECT_NAME_WIDTH = 22
 const SUMMARY_WORDS = 7
@@ -17,7 +18,7 @@ const projectRow = (project) =>
 
 const projects = ({ parsed, content }) => {
   if (parsed.flags.includes('--3d')) {
-    return result([pre('Opening Projects…')], [{ type: EFFECTS.OPEN_APP, app: 'projects' }])
+    return result([pre('Opening Projects…')], [{ type: EFFECTS.OPEN_APP, app: APP.PROJECTS }])
   }
   const list = content.projects
   const example = (list.find((p) => p.slug === EXAMPLE_PROJECT) ?? list[0])?.slug

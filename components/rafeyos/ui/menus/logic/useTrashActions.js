@@ -6,6 +6,7 @@ import { children } from '@/components/rafeyos/core/vfs/queries'
 import { parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { placeLabel } from '@/components/rafeyos/core/vfs/documents'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 /** Clears Trash for good. Null while the bin is empty, so the menu item stays disabled. */
 export const useEmptyTrash = () => {
@@ -15,7 +16,7 @@ export const useEmptyTrash = () => {
   const full = children(vfs, TRASH).length > 0
   const run = useCallback(() => {
     Object.values(windows.byId).forEach((win) => {
-      if (win.appId === 'editor' && win.phase !== WINDOW_PHASES.CLOSING && vfs[win.arg]?.trashedFrom) windowManager.close(win.id)
+      if (win.appId === APP.EDITOR && win.phase !== WINDOW_PHASES.CLOSING && vfs[win.arg]?.trashedFrom) windowManager.close(win.id)
     })
     emptyTrashDocument()
   }, [vfs, windows, windowManager, emptyTrashDocument])
@@ -24,7 +25,7 @@ export const useEmptyTrash = () => {
 
 const openEditor = (windows, path) =>
   Object.values(windows.byId).find(
-    (win) => win.appId === 'editor' && win.arg === path && win.phase !== WINDOW_PHASES.CLOSING,
+    (win) => win.appId === APP.EDITOR && win.arg === path && win.phase !== WINDOW_PHASES.CLOSING,
   )
 
 /** Trash and Restore for one path, or neither when the file shipped with rafeyOS. */
@@ -43,7 +44,7 @@ export const useTrashActions = () => {
           const blocked = result.reason === 'taken'
           const folder = placeLabel(parentOf(node.trashedFrom))
           notify({
-            appId: 'files',
+            appId: APP.FILES,
             title: blocked ? `Can't restore ${node.name}` : "Couldn't restore",
             body: blocked
               ? `A file named ${node.name} is already in ${folder}.`

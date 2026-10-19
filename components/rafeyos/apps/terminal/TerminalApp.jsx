@@ -6,6 +6,7 @@ import { tilde } from '@/components/rafeyos/core/vfs/paths'
 import { useTerminalSession } from './logic/useTerminalSession'
 import { STARTER_COMMAND, useTerminalKeys } from './logic/useTerminalKeys'
 import { TerminalLine, TerminalPrompt } from './TerminalLine'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 // The mockup focuses the prompt just after the open animation starts
 const FOCUS_DELAY_MS = 60
@@ -84,7 +85,7 @@ export const TerminalApp = ({ windowId, arg }) => {
   }
   return (
     <>
-      <TerminalHeader title={title} onNewWindow={() => windowManager.openApp('terminal', { path: session.cwd })} />
+      <TerminalHeader title={title} onNewWindow={() => windowManager.openApp(APP.TERMINAL, { path: session.cwd })} />
       <div className="term" ref={scrollRef} onClick={focusInput}>
         <div className="tlog">
           {session.entries.map((entry) => (

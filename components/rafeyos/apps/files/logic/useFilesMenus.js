@@ -8,6 +8,7 @@ import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
 import { projectForPath } from '@/components/rafeyos/core/vfs/projectPaths'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 // View options sits near the window's right edge, so it opens inwards (mockup offset)
 const VIEW_OPTIONS_SHIFT = 120
@@ -28,7 +29,7 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
   // A project's .txt opens in the Text Editor; the menu also offers its 3D view
   const openInProjectsFor = (path) => {
     const project = projectForPath({ vfs, content }, path)
-    return project ? () => windowManager.openApp('projects', { init: { slug: project.slug } }) : null
+    return project ? () => windowManager.openApp(APP.PROJECTS, { init: { slug: project.slug } }) : null
   }
   const itemMenu = (path, event) => {
     if (!state.selection.includes(path)) dispatch({ type: 'select', path, mode: 'single' })
@@ -49,7 +50,7 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
     openMenu(viewOptionsItems(setView), belowElement(event.currentTarget, VIEW_OPTIONS_SHIFT))
   }
   const mainMenu = (event) => {
-    const newWindow = () => windowManager.openApp('files', { path: state.path })
+    const newWindow = () => windowManager.openApp(APP.FILES, { path: state.path })
     openMenu(mainMenuItems(newWindow), belowElement(event.currentTarget))
   }
   return { itemMenu, backgroundMenu, viewOptions, mainMenu }

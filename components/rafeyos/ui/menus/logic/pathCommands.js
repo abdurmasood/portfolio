@@ -3,6 +3,7 @@
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { parentOf, realPath } from '@/components/rafeyos/core/vfs/paths'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
+import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 /**
  * @param {{ vfs: object, windowManager: object, openPath: Function }} deps
@@ -15,8 +16,8 @@ export const pathCommands = ({ vfs, windowManager, openPath }, path) => {
   return Object.freeze({
     open: () => openPath(path),
     // A file's terminal opens in the folder that holds it
-    openTerminal: () => windowManager.openApp('terminal', { path: folder ? target : parent }),
-    showInFiles: () => windowManager.openApp('files', { path: parent, init: { select: target } }),
-    properties: () => windowManager.openApp('properties', { path }),
+    openTerminal: () => windowManager.openApp(APP.TERMINAL, { path: folder ? target : parent }),
+    showInFiles: () => windowManager.openApp(APP.FILES, { path: parent, init: { select: target } }),
+    properties: () => windowManager.openApp(APP.PROPERTIES, { path }),
   })
 }
