@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { windowsReducer, initialWindows } from '@/components/rafeyos/state/logic/windowsReducer'
-import { cascadeRect, snapRect } from '@/components/rafeyos/wm/logic/geometry'
-import { deepFreeze } from '@/components/rafeyos/vfs/content'
+import { cascadeRect, snapRect } from '@/components/rafeyos/core/geometry'
+import { deepFreeze } from '@/components/rafeyos/core/vfs/content'
 
 const area = { x: 54, y: 28, w: 1226, h: 772 }
 const size = [640, 400]

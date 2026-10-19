@@ -3,19 +3,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './Terminal.css';
-import {readMeDescription, catDescription, bioDescription, skillsDescription } from '../../lib/descriptions.js';
+import {readMeDescription, catDescription, bioDescription, skillsDescription } from '@/lib/descriptions.js';
 import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
-import { loadProjects } from '../../lib/loadProjects';
-import { loadRafeyOS } from '../../lib/loadRafeyOS';
-import { forgetDesktop } from '../rafeyos/session/logic/sessionStore';
-import { sessionStorageOrNull } from '../../lib/browserStorage';
+import { loadProjects } from '@/lib/loadProjects';
+import { loadRafeyOS } from '@/lib/loadRafeyOS';
+import { forgetDesktop } from '@/components/rafeyos/session/logic/sessionStore';
+import { sessionStorageOrNull } from '@/lib/browserStorage';
 import { BlogArticle, BlogPicker } from './BlogOutput';
-import { getPostBySlug, getPublishedPosts } from '../../lib/posts';
+import { getPostBySlug, getPublishedPosts } from '@/lib/posts';
 import { MusicPlayer, MusicStory } from './MusicOutput';
-import { getFeaturedTrack, ARTIST_BLURB } from '../../lib/music';
-import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '../../lib/contact';
-import { HOME_HELP_LINES, HELP_HINT } from '../../lib/help';
+import { getFeaturedTrack, ARTIST_BLURB } from '@/lib/music';
+import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '@/lib/contact';
+import { HOME_HELP_LINES, HELP_HINT } from '@/lib/help';
 import { ProjectPicker } from './ProjectsOutput';
 
 const COMMAND_PROMPT = "<span class='brown'>visitor</span><span class='base-color'>@</span><span class='green'>rafey.ai</span><span class='base-color'>:~$</span>";

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { SESSION_EVENTS, SESSION_STATES, initialSessionState, next } from './sessionMachine'
+import { SESSION_EVENTS, SESSION_STATES, initialSessionState, next } from '@/components/rafeyos/state/logic/sessionMachine'
 import { forgetDesktop, isDesktopRemembered, rememberDesktop } from './sessionStore'
 
 export const BOOT_MS = 1500

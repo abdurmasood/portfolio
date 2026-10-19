@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { usePointerTrack } from '../../../wm/logic/usePointerTrack'
-import { useLatest } from '../../../state/logic/useLatest'
+import { usePointerTrack } from '@/components/rafeyos/wm/logic/usePointerTrack'
+import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
 import { INITIAL_ANGLES, SPIN_PER_FRAME, dragAngles, drawWireframe } from './wireframe'
 
 // Sharper than 2x costs fill rate for no visible gain on hairlines

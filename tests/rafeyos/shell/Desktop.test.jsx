@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
+import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
 

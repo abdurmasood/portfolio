@@ -14,8 +14,8 @@ import {
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { textDocuments } from '@/components/rafeyos/vfs/queries'
-import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/vfs/documents'
+import { textDocuments } from '@/components/rafeyos/core/vfs/queries'
+import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 import { documentLabel } from '@/components/rafeyos/apps/editor/logic/editorMenus'
 
 afterEach(cleanup)

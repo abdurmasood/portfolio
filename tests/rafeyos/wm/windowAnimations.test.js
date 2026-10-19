@@ -6,7 +6,6 @@ import {
   animateRestore,
   fallbackTarget,
   minimizeTransform,
-  rectOfElement,
 } from '@/components/rafeyos/wm/logic/windowAnimations'
 
 const fakeElement = () => {
@@ -80,11 +79,5 @@ describe('window animations', () => {
     animateRestore(element, { transform: 't', reduced: false })
 
     expect(element.animate.mock.calls[0][0][0]).toEqual({ transform: 't', opacity: 0 })
-  })
-
-  it('reads element rects as x/y/w/h', () => {
-    const element = { getBoundingClientRect: () => ({ left: 1, top: 2, width: 3, height: 4 }) }
-
-    expect(rectOfElement(element)).toEqual({ x: 1, y: 2, w: 3, h: 4 })
   })
 })

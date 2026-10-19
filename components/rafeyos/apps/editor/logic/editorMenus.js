@@ -1,8 +1,8 @@
 // The Text Editor's "Open" popover and main menu (mockup wording).
-import { SEPARATOR, disabledItem, menuHeading, menuItem } from '../../../shell/menus/logic/menuItems'
-import { HOME } from '../../../vfs/buildVfs'
-import { parentOf, tilde } from '../../../vfs/paths'
-import { textDocuments } from '../../../vfs/queries'
+import { SEPARATOR, disabledItem, menuHeading, menuItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { parentOf, tilde } from '@/components/rafeyos/core/vfs/paths'
+import { textDocuments } from '@/components/rafeyos/core/vfs/queries'
 
 /** "~/blog/" for a file in ~/blog: the editor's subtitle. */
 export const folderLabel = (path) => `${tilde(parentOf(path) ?? HOME)}/`

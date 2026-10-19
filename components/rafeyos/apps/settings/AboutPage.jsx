@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useVfs } from '../../state/logic/contexts'
+import { useVfs } from '@/components/rafeyos/state/logic/contexts'
 import { BoxedGroup, Page, ValueRow } from './SettingsRows'
 import { ABOUT_TEXT, aboutRows } from './logic/aboutData'
 

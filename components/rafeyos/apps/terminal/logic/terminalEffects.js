@@ -1,8 +1,8 @@
 // Runs exec()'s effect descriptors. Pure apart from the injected handlers, so it's testable alone.
-import { EFFECTS } from '../../../terminal/exec'
-import { dim } from '../../../terminal/lines'
-import { handlerFor, isAudio, isWebLink, unavailableNote } from '../../registry'
-import { realPath } from '../../../vfs/paths'
+import { EFFECTS } from '@/components/rafeyos/core/commands/exec'
+import { dim } from '@/components/rafeyos/core/commands/lines'
+import { handlerFor, isAudio, isWebLink, unavailableNote } from '@/components/rafeyos/core/catalog/apps'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
 
 /**
  * @param {object[]} effects - from exec()

@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from 'react'
-import { useVfs, useWindowManager } from '../../state/logic/contexts'
-import { HeaderBar } from '../../wm/HeaderBar'
-import { FileIcon } from '../../icons/FileIcon'
-import { realPath } from '../../vfs/paths'
-import { displayName, isDir } from '../../vfs/queries'
+import { useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
+import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
+import { displayName, isDir } from '@/components/rafeyos/core/vfs/queries'
 import { propertiesRows } from './logic/propertiesRows'
 
 export const propertiesTitle = (name) => `${name} Properties`

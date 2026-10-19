@@ -1,7 +1,7 @@
 // The rows GNOME Files' Properties dialog shows for a path (mockup subset).
-import { NODE_TYPES } from '../../../vfs/buildVfs'
-import { absPath, parentOf } from '../../../vfs/paths'
-import { isDir, kindOf, sizeLabel } from '../../../vfs/queries'
+import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { absPath, parentOf } from '@/components/rafeyos/core/vfs/paths'
+import { isDir, kindOf, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 
 // ~ has no parent in the vfs; on disk it lives in /home
 const HOME_PARENT = '/home'

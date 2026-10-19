@@ -1,6 +1,6 @@
-import { useMusic, useMusicControls } from '../../state/logic/contexts'
-import { formatDuration } from '../../vfs/content'
-import { Slider } from '../../controls/Slider'
+import { useMusic, useMusicControls } from '@/components/rafeyos/state/logic/contexts'
+import { formatDuration } from '@/components/rafeyos/core/vfs/content'
+import { Slider } from '@/components/rafeyos/ui/controls/Slider'
 import { useWaveLevels } from './logic/useWaveLevels'
 
 const BAR_COUNT = 48

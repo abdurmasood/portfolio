@@ -1,8 +1,8 @@
 // What the Activities overview's search finds: apps, files and Settings pages (mockup drawOv). Pure.
-import { APP_IDS, getApp, isImplemented } from '../../../apps/registry'
-import { SETTINGS_PAGES } from '../../../apps/settings/logic/settingsPages'
-import { displayName, search } from '../../../vfs/queries'
-import { parentOf, tilde } from '../../../vfs/paths'
+import { APP_IDS, getApp, isImplemented } from '@/components/rafeyos/core/catalog/apps'
+import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
+import { displayName, search } from '@/components/rafeyos/core/vfs/queries'
+import { parentOf, tilde } from '@/components/rafeyos/core/vfs/paths'
 
 export const MAX_FILE_RESULTS = 6
 

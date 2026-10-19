@@ -5,7 +5,7 @@ import { clickDock, fakeServices, openTerminal, renderDesktop, settle, typeComma
 import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
 import { ServicesContext, ShellDispatchContext, VfsContext, useMusic, useMusicControls } from '@/components/rafeyos/state/logic/contexts'
 import { SettingsProvider } from '@/components/rafeyos/state/SettingsProvider'
-import { buildContent } from '@/components/rafeyos/vfs/content'
+import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { MusicProvider } from '@/components/rafeyos/state/MusicProvider'
 
 afterEach(cleanup)

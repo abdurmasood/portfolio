@@ -1,4 +1,4 @@
-// App id -> UI component. Only the apps listed in registry.js IMPLEMENTED_APPS appear here.
+// App id -> UI component. Only the apps listed in core/catalog/apps.js IMPLEMENTED_APPS appear here.
 import { FilesApp } from './files/FilesApp'
 import { TerminalApp } from './terminal/TerminalApp'
 import { EditorApp } from './editor/EditorApp'

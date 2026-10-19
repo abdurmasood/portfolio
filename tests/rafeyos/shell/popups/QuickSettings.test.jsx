@@ -2,10 +2,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, flushTimers, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { WIFI_STEP_MS, WIFI_SWEEPS_MAX, WIFI_SWEEPS_MIN } from '@/components/rafeyos/state/WifiLink'
-import { sliderFill } from '@/components/rafeyos/controls/Slider'
+import { WIFI_ARC_COUNT, WIFI_STEP_MS, WIFI_SWEEPS_MAX, WIFI_SWEEPS_MIN } from '@/components/rafeyos/state/WifiLink'
+import { sliderFill } from '@/components/rafeyos/ui/controls/Slider'
 // Inner, then middle, then outer: the reconnect sweep, one band at a time
-import { WIFI_ARCS } from '@/components/rafeyos/icons/symbols'
+import { WIFI_ARCS } from '@/components/rafeyos/ui/icons/symbols'
 
 afterEach(() => {
   cleanup()
@@ -108,6 +108,10 @@ describe('quick settings', () => {
     flushTimers(WIFI_STEP_MS * WIFI_ARCS.length * WIFI_SWEEPS_MAX)
     expect(wifiPaths(topBarIcons(container))).toContain(WIFI_OFF)
     expect(wifi().querySelector('small')).toBeNull()
+  })
+
+  it('sweeps over exactly the arcs the wifi icon draws', () => {
+    expect(WIFI_ARC_COUNT).toBe(WIFI_ARCS.length)
   })
 
   it('keeps the same arc pace and varies how long the search lasts', () => {

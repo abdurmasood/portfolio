@@ -2,10 +2,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { chooseMenuItem, clickDock, renderDesktop, rightClick, settle, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { buildContent } from '@/components/rafeyos/vfs/content'
+import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { age } from '@/lib/descriptions'
 import { ABOUT_TEXT, aboutRows } from '@/components/rafeyos/apps/settings/logic/aboutData'
-import { PAGE_TITLES, isSettingsPage, sidebarPageOf } from '@/components/rafeyos/apps/settings/logic/settingsPages'
+import { PAGE_TITLES, isSettingsPage, sidebarPageOf } from '@/components/rafeyos/core/catalog/settingsPages'
 
 afterEach(cleanup)
 

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { useLatest } from '../../state/logic/useLatest'
-import { windowOverviewTransform } from '../../shell/overview/logic/overviewModel'
+import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
+import { windowOverviewTransform } from '@/components/rafeyos/wm/logic/overviewModel'
 
 // Matches the mockup's overview spread (transform .3s)
 export const OVERVIEW_TRANSITION_MS = 300

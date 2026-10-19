@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
-import { usePointerTrack } from '../../../wm/logic/usePointerTrack'
-import { rectOfElement } from '../../../wm/logic/windowAnimations'
-import { pointOfEvent } from '../../menus/logic/useMenu'
+import { usePointerTrack } from '@/components/rafeyos/wm/logic/usePointerTrack'
+import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
+import { pointOfEvent } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { bandRect, pathsInBand, sameSelection } from './rubberBand'
 
 const measureIcons = (layer) =>

@@ -68,8 +68,3 @@ export const animateClose = (element, { reduced }, onDone) => {
     fill: 'forwards',
   }, onDone)
 }
-
-export const rectOfElement = (element) => {
-  const box = element.getBoundingClientRect()
-  return { x: box.left, y: box.top, w: box.width, h: box.height }
-}

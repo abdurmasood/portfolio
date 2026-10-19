@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { filesReducer, initialFilesState } from '@/components/rafeyos/apps/files/logic/filesReducer'
-import { deepFreeze } from '@/components/rafeyos/vfs/content'
+import { deepFreeze } from '@/components/rafeyos/core/vfs/content'
 
 const reduce = (state, ...actions) => actions.reduce((s, a) => filesReducer(deepFreeze(s), a), state)
 

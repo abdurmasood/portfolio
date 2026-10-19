@@ -1,8 +1,8 @@
 import { useEffect, useId, useState } from 'react'
-import { useServices, useVfs, useWindowManager } from '../../state/logic/contexts'
-import { HeaderBar } from '../../wm/HeaderBar'
-import { Sym } from '../../icons/symbols'
-import { copyQuietly } from '../../services/clipboard'
+import { useServices, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { copyQuietly } from '@/components/rafeyos/core/services/clipboard'
 
 export const mailTitle = (subject) => `Write: ${subject}`
 

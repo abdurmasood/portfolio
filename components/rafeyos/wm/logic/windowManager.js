@@ -1,11 +1,11 @@
 // Window-manager commands on top of windowsReducer. Built once per desktop; it reads the latest
 // state and layout through getters, so the object (and every callback on it) stays stable.
-import { getApp, handlerFor, isImplemented } from '../../apps/registry'
-import { SNAP_MODES } from './geometry'
-import { windowsForApp } from '../../state/logic/selectors'
-import { WINDOW_PHASES } from '../../state/logic/windowsReducer'
-import { realPath } from '../../vfs/paths'
-import { NODE_TYPES } from '../../vfs/buildVfs'
+import { getApp, handlerFor, isImplemented } from '@/components/rafeyos/core/catalog/apps'
+import { SNAP_MODES } from '@/components/rafeyos/core/geometry'
+import { windowsForApp } from '@/components/rafeyos/state/logic/selectors'
+import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
+import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { createSnapPreviewStore } from './snapPreviewStore'
 
 // File types whose app opens the same window whatever the file

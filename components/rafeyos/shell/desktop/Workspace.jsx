@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { useSettings, useShellDispatch, useWindowManager } from '../../state/logic/contexts'
-import { WALLS } from '../../theme/walls'
+import { useSettings, useShellDispatch, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { WALLS } from '@/components/rafeyos/core/theme/walls'
 import { DesktopIcons } from './DesktopIcons'
 import { DESKTOP, useDesktopIconModel } from './logic/useDesktopIconModel'
 import { useRubberBand } from './logic/useRubberBand'
-import { pointOfEvent, useMenu } from '../menus/logic/useMenu'
-import { wallMenuItems } from '../menus/logic/menus'
-import { useOpenSettings } from '../popups/logic/useOpenSettings'
-import { SETTINGS_PAGES } from '../../apps/settings/logic/settingsPages'
+import { pointOfEvent, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
+import { wallMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
+import { useOpenSettings } from '@/components/rafeyos/shell/popups/logic/useOpenSettings'
+import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
 
 /** Right-click on the wallpaper. */
 const useWallMenu = (selectAll) => {

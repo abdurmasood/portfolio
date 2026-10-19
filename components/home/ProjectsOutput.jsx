@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { getProjectById, getVisibleProjects } from '../../lib/projects'
+import { getProjectById, getVisibleProjects } from '@/lib/projects'
 
 const VISIBLE_PROJECTS = getVisibleProjects()
 

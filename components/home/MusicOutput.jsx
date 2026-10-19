@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MILESTONES, computePeaks, formatTime, getTrack, layoutRuler, milestoneLabel } from '../../lib/music'
-import { loadSamples } from '../../lib/audioSamples'
+import { MILESTONES, computePeaks, formatTime, getTrack, layoutRuler, milestoneLabel } from '@/lib/music'
+import { loadSamples } from '@/lib/audioSamples'
 
 const MAX_RULER_COLUMNS = 72
 const MIN_WAVE_BARS = 32

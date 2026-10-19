@@ -1,7 +1,7 @@
-import { useSettings } from '../../state/logic/contexts'
-import { STYLES } from '../../state/logic/settingsReducer'
-import { WALLS } from '../../theme/walls'
-import { ACCENTS } from '../../theme/accents'
+import { useSettings } from '@/components/rafeyos/state/logic/contexts'
+import { STYLES } from '@/components/rafeyos/state/logic/settingsReducer'
+import { WALLS } from '@/components/rafeyos/core/theme/walls'
+import { ACCENTS } from '@/components/rafeyos/core/theme/accents'
 import { Group, Page } from './SettingsRows'
 import { useSettingActions } from './logic/useSettingActions'
 

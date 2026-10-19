@@ -1,5 +1,5 @@
 // Pure drag and resize gesture state. The hooks feed pointer points in and write rects out.
-import { SNAP_MODES, resizeRect, snapModeAt, unsnapForDragRect } from './geometry'
+import { SNAP_MODES, resizeRect, snapModeAt, unsnapForDragRect } from '@/components/rafeyos/core/geometry'
 
 // Pointer travel before a press on the header becomes a drag (lets double-click through)
 export const DRAG_THRESHOLD = 5

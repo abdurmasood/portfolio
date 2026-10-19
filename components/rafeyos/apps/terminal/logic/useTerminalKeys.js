@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
-import { complete } from '../../../terminal/complete'
-import { COMPLETION_COMMANDS } from '../../../terminal/exec'
-import { pre, prompt } from '../../../terminal/lines'
+import { complete } from '@/components/rafeyos/core/commands/complete'
+import { COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
+import { pre, prompt } from '@/components/rafeyos/core/commands/lines'
 
 // Runs as the first command; Tab, → or Enter on an empty prompt accepts it
 export const STARTER_COMMAND = 'help'

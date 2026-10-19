@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useServices, useVfs, useWindowManager } from '../../state/logic/contexts'
-import { HeaderBar } from '../../wm/HeaderBar'
-import { useWindowChrome } from '../../wm/logic/WindowChromeContext'
-import { SidebarToggle, splitClassName, useSidebarToggle } from '../../wm/SidebarToggle'
-import { Sym } from '../../icons/symbols'
+import { useServices, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
+import { useWindowChrome } from '@/components/rafeyos/wm/logic/WindowChromeContext'
+import { SidebarToggle, splitClassName, useSidebarToggle } from '@/components/rafeyos/wm/SidebarToggle'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { shapeSegments } from './logic/wireframe'
 import { useWireframeCanvas } from './logic/useWireframeCanvas'
-import { PROJECTS_FOLDER, projectIndexFor } from '../../vfs/projectPaths'
+import { PROJECTS_FOLDER, projectIndexFor } from '@/components/rafeyos/core/vfs/projectPaths'
 
 const ProjectsSidebar = ({ projects, index, onPick, onShowInFiles }) => (
   <div className="side">

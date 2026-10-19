@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useLayout, useWindowManager } from '../../state/logic/contexts'
+import { useLayout, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { usePointerTrack } from './usePointerTrack'
 import { startDrag, stepDrag } from './gestures'
 import { applyPosition } from './applyRect'

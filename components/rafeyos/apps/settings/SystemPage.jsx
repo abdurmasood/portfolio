@@ -1,6 +1,6 @@
-import { Sym } from '../../icons/symbols'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { BoxedGroup, Page, Row } from './SettingsRows'
-import { SETTINGS_PAGES } from './logic/settingsPages'
+import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
 
 const UNBUILT_BEFORE_ABOUT = Object.freeze(['Region & Language', 'Date & Time', 'Users', 'Remote Desktop', 'Secure Shell'])
 const UNBUILT_AFTER_ABOUT = Object.freeze(['Software Updates'])

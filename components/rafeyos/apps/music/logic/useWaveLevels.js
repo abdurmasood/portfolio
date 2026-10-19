@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useServices } from '../../../state/logic/contexts'
-import { computeLevels } from '../../../vfs/content'
+import { useServices } from '@/components/rafeyos/state/logic/contexts'
+import { computeLevels } from '@/components/rafeyos/core/vfs/content'
 
 /**
  * The track's loudness as `barCount` levels from 0 to 1, or null until the audio has decoded.

@@ -1,7 +1,7 @@
 import { useRef } from 'react'
-import { FileIcon } from '../../icons/FileIcon'
-import { Sym } from '../../icons/symbols'
-import { displayName, sizeLabel } from '../../vfs/queries'
+import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
+import { Sym } from '@/components/rafeyos/ui/icons/symbols'
+import { displayName, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 import { emptyState, typeLabel } from './logic/filesView'
 
 /** Click selects (Ctrl/⌘ toggles), double click opens, a tap opens on touch, right-click opens its menu. */
