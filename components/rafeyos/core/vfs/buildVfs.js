@@ -48,8 +48,9 @@ const nameOf = (path) => (path === HOME ? 'visitor' : path.slice(path.lastIndexO
 
 /** @param {Content['projects'][number]} project */
 const projectText = (project) => {
-  const caseStudy = project.link ? `\nCase study: ${project.link}\n` : ''
-  return `${project.title}\n${'='.repeat(project.title.length)}\n\n${project.description}\n${caseStudy}`
+  const label = project.linkName === 'source' ? 'source' : 'Case study'
+  const linkLine = project.link ? `\n${label}: ${project.link}\n` : ''
+  return `${project.title}\n${'='.repeat(project.title.length)}\n\n${project.description}\n${linkLine}`
 }
 
 /** @param {Content['posts'][number]} post */

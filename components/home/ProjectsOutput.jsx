@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { getProjectById, getVisibleProjects } from '@/lib/projects'
+import { getProjectById, getVisibleProjects, linkName } from '@/lib/projects'
 
 const VISIBLE_PROJECTS = getVisibleProjects()
 
@@ -13,7 +13,7 @@ function ProjectCard({ project }) {
       <p className="project-description">{project.description}</p>
       {project.link && (
         <p className="project-link">
-          <span className="dim">case study</span>
+          <span className="dim">{linkName(project.link)}</span>
           <a href={project.link} target="_blank" rel="noopener noreferrer">{displayLink(project.link)}</a>
         </p>
       )}
