@@ -47,9 +47,9 @@ describe('buildContent', () => {
     expect(titles).not.toContain('Home-Work')
     expect(titles).not.toContain('Hotel Price Tracker')
     content.projects.forEach((p) => expect(projects[p.index].title).toBe(p.title))
-    expect(content.projects.find((p) => p.slug === 'rafey-shell')).toMatchObject({ index: 6, shape: 'knot' })
-    expect(content.projects.find((p) => p.slug === 'leaf-line').linkLabel).toBe('leaf.space/leaf-line')
-    expect(content.projects.find((p) => p.slug === 'rafey-shell').link).toBe('https://github.com/abdurmasood/rafey-shell')
+    expect(content.projects.find((p) => p.slug === 'rafey-shell')).toMatchObject({ index: 6, shape: 'knot', link: 'https://github.com/abdurmasood/rafey-shell', linkName: 'source' })
+    expect(content.projects.find((p) => p.slug === 'leaf-line')).toMatchObject({ linkLabel: 'leaf.space/leaf-line', linkName: 'case study' })
+    expect(content.projects.find((p) => p.slug === 'arrhythmia-detector').linkName).toBe('source')
   })
 
   it('includes only published posts with reading minutes', () => {

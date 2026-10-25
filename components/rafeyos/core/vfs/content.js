@@ -1,7 +1,7 @@
 // The only adapter between the site's content sources and rafeyOS. Everything downstream
 // (vfs, terminal commands, apps) reads the plain object built here, never lib/* directly.
 import { age, bioDescription, skillsDescription, compactReadme } from '@/lib/descriptions'
-import { projects, getVisibleProjects } from '@/lib/projects'
+import { projects, getVisibleProjects, linkName } from '@/lib/projects'
 import { MILESTONES, ARTIST_BLURB, getFeaturedTrack } from '@/lib/music'
 import { getPublishedPosts, readingMinutes } from '@/lib/posts'
 import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '@/lib/contact'
@@ -56,6 +56,7 @@ const buildProjects = () =>
       description: project.description,
       link: project.link ?? null,
       linkLabel: project.link ? displayLink(project.link) : null,
+      linkName: project.link ? linkName(project.link) : null,
       shape: shapeForIndex(index),
     }
   })
@@ -90,7 +91,7 @@ const buildContact = () => ({
 })
 
 /**
- * @typedef {{ index: number, id: number, title: string, slug: string, description: string, link: string | null, linkLabel: string | null, shape: string }} Project
+ * @typedef {{ index: number, id: number, title: string, slug: string, description: string, link: string | null, linkLabel: string | null, linkName: string | null, shape: string }} Project
  * @typedef {{ slug: string, title: string, date: string, excerpt: string, content: string, minutes: number }} Post
  * @typedef {{ id: string, title: string, artist: string, src: string, sizeBytes: number, durationSeconds: number }} Track
  * @typedef {{ year: number, event: string, upcoming: boolean }} Milestone
