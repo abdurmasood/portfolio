@@ -39,10 +39,12 @@ describe('help text', () => {
     expect(HOME_HELP_LINES.at(-1)).toBe('')
   })
 
-  it('leaves every other home help row exactly as it was', () => {
+  it('leaves every other home help row exactly as it was, without music', () => {
     const withoutRafeyos = HOME_HELP_LINES.filter((line) => line !== RAFEYOS_HELP_LINE)
+    const withoutMusic = ORIGINAL_HELP.split('\n').filter((line) => !line.includes('music'))
 
-    expect([...withoutRafeyos, HELP_HINT].join('\n')).toBe(ORIGINAL_HELP)
+    expect([...withoutRafeyos, HELP_HINT]).toEqual(withoutMusic)
+    expect(HOME_HELP_LINES.join('\n')).not.toContain('music')
   })
 
   it('never lists the hidden startx alias', () => {
