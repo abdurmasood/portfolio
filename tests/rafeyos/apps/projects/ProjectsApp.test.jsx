@@ -69,7 +69,7 @@ describe('Projects app', () => {
     fireEvent.click(ui.getByRole('button', { name: linked.title }))
 
     const link = within(win.querySelector('.p3card')).getByRole('link')
-    expect(link.textContent).toBe(`case study · ${linked.linkLabel}`)
+    expect(link.textContent).toBe(`${linked.linkName} · ${linked.linkLabel}`)
     expect(link.getAttribute('href')).toBe(linked.link)
     expect(link.getAttribute('target')).toBe('_blank')
     expect(link.getAttribute('rel')).toBe('noopener')

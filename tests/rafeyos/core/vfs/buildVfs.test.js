@@ -58,6 +58,8 @@ describe('buildVfs', () => {
 
     expect(projectFiles).toHaveLength(realContent.projects.length)
     expect(projectFiles).not.toContain('~/projects/home-work.txt')
+    expect(realVfs['~/projects/arrhythmia-detector.txt'].text).toContain('source: https://github.com/abdurmasood/arrhythmia-classification')
+    expect(realVfs['~/projects/leaf-line.txt'].text).toContain('Case study: https://leaf.space/leaf-line/')
     expect(realVfs['~/Music/storms-ahead.mp3'].durationSeconds).toBe(158)
     const post = realContent.posts[0]
     expect(realVfs[`~/blog/${post.slug}.md`].text).toContain(post.content.trim().slice(-40))

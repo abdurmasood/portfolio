@@ -50,7 +50,7 @@ const ProjectCard = ({ project }) => (
     <p>{project.description}</p>
     {project.link && (
       <a href={project.link} target="_blank" rel="noopener">
-        {`case study · ${project.linkLabel}`}
+        {`${project.linkName} · ${project.linkLabel}`}
       </a>
     )}
   </div>

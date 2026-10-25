@@ -7,7 +7,7 @@ import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import TerminalIcon from '../../components/projects/TerminalIcon'
-import { projects } from '../../lib/projects'
+import { linkName, projects } from '../../lib/projects'
 
 const geometries = [
   new THREE.OctahedronGeometry(0.9),
@@ -79,7 +79,7 @@ const ProjectDetails = ({ project, variant, onClose }) => {
           onPointerDown={stopPropagation}
           className="font-normal text-[#D0D0D0] underline decoration-[#4A4A4A] underline-offset-[3px] hover:text-[#56D364] hover:decoration-[#56D364] transition-colors focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#8E8E8E]"
         >
-          case study ↗
+          {`${linkName(project.link)} ↗`}
         </a>
       )}
     </motion.section>
