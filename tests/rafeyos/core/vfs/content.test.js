@@ -47,9 +47,9 @@ describe('buildContent', () => {
     expect(titles).not.toContain('Home-Work')
     expect(titles).not.toContain('Hotel Price Tracker')
     content.projects.forEach((p) => expect(projects[p.index].title).toBe(p.title))
-    expect(content.projects.find((p) => p.slug === 'assisty')).toMatchObject({ index: 6, shape: 'knot' })
+    expect(content.projects.find((p) => p.slug === 'rafey-shell')).toMatchObject({ index: 6, shape: 'knot' })
     expect(content.projects.find((p) => p.slug === 'leaf-line').linkLabel).toBe('leaf.space/leaf-line')
-    expect(content.projects.find((p) => p.slug === 'assisty').link).toBeNull()
+    expect(content.projects.find((p) => p.slug === 'rafey-shell').link).toBe('https://github.com/abdurmasood/rafey-shell')
   })
 
   it('includes only published posts with reading minutes', () => {
