@@ -33,6 +33,7 @@ const openSettings = () => {
 
 const root = (container) => container.querySelector('.rafeyos')
 const left = (element) => parseFloat(element.style.left)
+const height = (element) => parseFloat(element.style.height)
 
 /** A maximized Files window shows the work area as its rect. */
 const maximizedFiles = (container) => {
@@ -123,13 +124,13 @@ describe('Ubuntu Desktop', () => {
   it('resizes dock icons, which narrows the work area', () => {
     const { container, ui, go } = openSettings()
     const files = maximizedFiles(container)
-    expect(left(files)).toBe(54)
+    expect(height(files)).toBe(window.innerHeight - 28 - 66)
     go('Ubuntu Desktop')
 
     fireEvent.change(ui.getByRole('slider', { name: 'Icon size' }), { target: { value: '56' } })
 
     expect(root(container).style.getPropertyValue('--icon')).toBe('56px')
-    expect(left(files)).toBe(70)
+    expect(height(files)).toBe(window.innerHeight - 28 - 82)
     expect(ui.getByRole('slider', { name: 'Icon size' }).step).toBe('4')
   })
 
@@ -141,7 +142,7 @@ describe('Ubuntu Desktop', () => {
     fireEvent.click(ui.getByRole('button', { name: 'Right' }))
     expect(dock().className).toBe('dock right')
     expect(left(files)).toBe(0)
-    expect(parseFloat(files.style.width)).toBe(VIEWPORT_W - 54)
+    expect(parseFloat(files.style.width)).toBe(VIEWPORT_W - 66)
     expect(ui.getByRole('button', { name: 'Right' }).getAttribute('aria-pressed')).toBe('true')
 
     fireEvent.click(ui.getByRole('button', { name: 'Bottom' }))

@@ -3,8 +3,10 @@ import { workArea } from '@/components/rafeyos/core/geometry'
 
 export const COMPACT_BREAKPOINT = 760
 export const COMPACT_ICON_SIZE = 34
-// The dock is the icon plus its padding (mockup: iconPx() + 14)
-const DOCK_PADDING = 14
+// The dock is a floating shelf: the icon, its 6px button inset and 6px of shelf padding each side
+const SHELF_PADDING = 18
+// The gap between the shelf and the screen edge
+const DOCK_MARGIN = 8
 
 /**
  * @param {{ w: number, h: number }} viewport
@@ -14,7 +16,7 @@ export const computeLayout = (viewport, { dockPos, iconSize }) => {
   const compact = viewport.w < COMPACT_BREAKPOINT
   const shownDockPos = compact ? 'bottom' : dockPos
   const shownIconSize = compact ? COMPACT_ICON_SIZE : iconSize
-  const dockSize = shownIconSize + DOCK_PADDING
+  const dockSize = shownIconSize + SHELF_PADDING + DOCK_MARGIN
   return Object.freeze({
     viewport,
     compact,

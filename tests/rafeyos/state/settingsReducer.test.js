@@ -4,7 +4,7 @@ import { settingsReducer, initialSettings, DEFAULT_SETTINGS } from '@/components
 describe('settingsReducer', () => {
   it('starts from the mockup defaults', () => {
     expect(initialSettings).toEqual({
-      style: 'dark', accent: '#E95420', wall: 0, dockPos: 'left', iconSize: 40, showHome: true, corner: 'tl',
+      style: 'dark', accent: '#E95420', wall: 0, dockPos: 'bottom', iconSize: 40, showHome: true, corner: 'tl',
       dnd: false, night: false, wifi: true, bt: false, volume: 70,
     })
     expect(Object.isFrozen(DEFAULT_SETTINGS)).toBe(true)

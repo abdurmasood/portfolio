@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   style: 'dark',
   accent: '#E95420',
   wall: 0,
-  dockPos: 'left',
+  dockPos: 'bottom',
   iconSize: 40,
   showHome: true,
   corner: 'tl',

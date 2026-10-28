@@ -53,7 +53,7 @@ describe('compact layout', () => {
     expect(files.classList.contains('max')).toBe(true)
     expect(files.style.width).toBe('390px')
     expect(files.style.top).toBe('28px')
-    expect(files.style.height).toBe(`${844 - 28 - 48}px`)
+    expect(files.style.height).toBe(`${844 - 28 - 60}px`)
   })
 
   it('maximizes open windows when the screen narrows, and refits them as it turns', () => {
@@ -70,7 +70,7 @@ describe('compact layout', () => {
 
     resizeTo(700, 390)
     expect(terminal.style.width).toBe('700px')
-    expect(terminal.style.height).toBe(`${390 - 28 - 48}px`)
+    expect(terminal.style.height).toBe(`${390 - 28 - 60}px`)
   })
 
   it('gives split views a sidebar toggle; picking a place closes the sidebar again', () => {
