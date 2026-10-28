@@ -33,7 +33,9 @@ const frameClassName = ({ style, overview, compact }) =>
 /** The .rafeyos root: theme class, accent and icon size. Children pass through without re-rendering. */
 const DesktopFrame = ({ children }) => {
   const { style, accent } = useSettings()
-  const { iconSize, compact } = useLayout()
+  const { iconSize, compact, dockPos, dockSize } = useLayout()
+  // The overview's app grid stops short of a bottom dock, so its last row stays clickable
+  const dockReserve = dockPos === 'bottom' ? dockSize : 0
   const shell = useShellState()
   const shellDispatch = useShellDispatch()
   const closeOutside = (event) => {
@@ -43,7 +45,7 @@ const DesktopFrame = ({ children }) => {
   return (
     <div
       className={frameClassName({ style, overview: shell.overview, compact })}
-      style={{ '--accent': accent, '--icon': `${iconSize}px` }}
+      style={{ '--accent': accent, '--icon': `${iconSize}px`, '--dock-reserve': `${dockReserve}px` }}
       onContextMenu={preventContextMenu}
       onPointerDownCapture={closeOutside}
     >
