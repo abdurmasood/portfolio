@@ -1,5 +1,5 @@
-import { memo, useCallback } from 'react'
-import { useDockRegistry, useLayout, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
+import { memo, useCallback, useEffect, useState } from 'react'
+import { useDockRegistry, useLayout, useServices, useShellDispatch, useShellState, useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
 import { APP, DOCK_FAVORITES, getApp, isImplemented } from '@/components/rafeyos/core/catalog/apps'
 import { runningApps, windowsForApp } from '@/components/rafeyos/state/logic/selectors'
 import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
@@ -12,8 +12,27 @@ import { menuItem } from '@/components/rafeyos/ui/menus/logic/menuItems'
 import { useEmptyTrash } from '@/components/rafeyos/ui/menus/logic/useTrashActions'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
+import { useDockMagnify } from './logic/useDockMagnify'
 
 const MAX_DOTS = 4
+// Matches .dk's calc(var(--icon) + 6px): the button the magnifier grows from
+const BUTTON_INSET = 6
+const TRASH_KEY = 'trash'
+const SHOW_APPS_KEY = 'apps'
+// Trash and Show Apps swell as their own group, apart from the apps
+const SYSTEM_KEYS = Object.freeze([TRASH_KEY, SHOW_APPS_KEY])
+// The .bounce animation's length in shell.css
+export const BOUNCE_MS = 900
+
+const buttonClassName = ({ focused = false, hot = false, bouncing = false }) =>
+  ['dk', focused && 'focused', hot && 'hot', bouncing && 'bounce'].filter(Boolean).join(' ')
+
+/** Pointer and focus wiring that makes a dock button the hovered one. Touch never magnifies. */
+const magnifyHandlers = (key, { hover, leave }) => ({
+  onPointerEnter: (event) => event.pointerType !== 'touch' && hover(key),
+  onFocus: () => hover(key),
+  onBlur: leave,
+})
 
 /** Favourites with a UI, then running apps that aren't favourites. */
 export const dockApps = (windows) => [
@@ -21,27 +40,35 @@ export const dockApps = (windows) => [
   ...runningApps(windows).filter((id) => !DOCK_FAVORITES.includes(id) && getApp(id).inDock),
 ]
 
-const DockButton = memo(function DockButton({ appId, count, focused, onActivate, onMenu }) {
+const DockButton = memo(function DockButton({ appId, count, focused, hot, bouncing, magnify, onActivate, onMenu }) {
   const registry = useDockRegistry()
   const { name } = getApp(appId)
+  const { bindElement } = magnify
   const register = useCallback(
-    (element) => (element ? registry.set(appId, element) : registry.delete(appId)),
-    [registry, appId],
+    (element) => {
+      if (element) registry.set(appId, element)
+      else registry.delete(appId)
+      bindElement(appId, element)
+    },
+    [registry, appId, bindElement],
   )
   return (
     <button
       type="button"
       ref={register}
-      className={focused ? 'dk focused' : 'dk'}
+      className={buttonClassName({ focused, hot, bouncing })}
       data-name={name}
       aria-label={name}
+      {...magnifyHandlers(appId, magnify)}
       onClick={(event) => onActivate(appId, rectOfElement(event.currentTarget))}
       onContextMenu={(event) => {
         event.preventDefault()
         onMenu(appId, rectOfElement(event.currentTarget))
       }}
     >
-      <AppIcon name={appId} />
+      <span className="b">
+        <AppIcon name={appId} tile />
+      </span>
       {count > 0 && (
         <span className="dots" data-testid={`dots-${appId}`}>
           {Array.from({ length: Math.min(count, MAX_DOTS) }, (_, i) => <i key={i} />)}
@@ -72,79 +99,113 @@ const useDockMenu = (windows, dockPos) => {
 }
 
 /** Show Apps opens the overview's app grid, or closes it when the grid is already up. */
-const ShowAppsButton = () => {
+const ShowAppsButton = ({ hot, magnify }) => {
   const { overview } = useShellState()
   const shellDispatch = useShellDispatch()
   const showing = overview?.mode === OVERVIEW_MODES.APPS
+  const { bindElement } = magnify
+  const bind = useCallback((element) => bindElement(SHOW_APPS_KEY, element), [bindElement])
   return (
     <button
       type="button"
-      className={showing ? 'dk focused' : 'dk'}
+      ref={bind}
+      className={buttonClassName({ focused: showing, hot })}
       data-name="Show Apps"
       aria-label="Show Apps"
       aria-pressed={showing}
+      {...magnifyHandlers(SHOW_APPS_KEY, magnify)}
       onClick={() => shellDispatch(showing ? { type: SHELL_ACTIONS.CLOSE_OVERVIEW } : { type: SHELL_ACTIONS.OPEN_OVERVIEW, mode: OVERVIEW_MODES.APPS })}
     >
-      <AppIcon name="apps" />
+      <span className="b">
+        <AppIcon name="apps" tile />
+      </span>
+    </button>
+  )
+}
+
+/** The bin: opens Files at Trash; its menu empties it. */
+const TrashButton = ({ hot, magnify, dockPos, onOpen }) => {
+  const { vfs } = useVfs()
+  const openMenu = useMenu()
+  const emptyTrash = useEmptyTrash()
+  const { bindElement } = magnify
+  const bind = useCallback((element) => bindElement(TRASH_KEY, element), [bindElement])
+  return (
+    <button
+      type="button"
+      ref={bind}
+      className={buttonClassName({ hot })}
+      data-name="Trash"
+      aria-label="Trash"
+      {...magnifyHandlers(TRASH_KEY, magnify)}
+      onClick={onOpen}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        const { point, anchorBottom } = dockMenuPlacement(rectOfElement(event.currentTarget), dockPos)
+        openMenu([menuItem('Empty Trash', emptyTrash)], point, { shell: true, anchorBottom })
+      }}
+    >
+      <span className="b">
+        <AppIcon name="trash" tile full={children(vfs, TRASH).length > 0} />
+      </span>
     </button>
   )
 }
 
 export const Dock = () => {
-  const { vfs } = useVfs()
   const windows = useWindowsState()
-  const { dockPos } = useLayout()
+  const { dockPos, iconSize } = useLayout()
+  const { reducedMotion } = useServices()
   const windowManager = useWindowManager()
   const shellDispatch = useShellDispatch()
   const openDockMenu = useDockMenu(windows, dockPos)
-  const openMenu = useMenu()
-  const emptyTrash = useEmptyTrash()
   const focusedApp = windows.byId[windows.focusedId]?.appId ?? null
+  const apps = dockApps(windows)
+  const { hot, controls: magnify } = useDockMagnify({ groups: [apps, SYSTEM_KEYS], rest: iconSize + BUTTON_INSET, reduced: reducedMotion })
+  const [bouncing, setBouncing] = useState(null)
+  // A timer, not animationend: that never fires in a hidden tab, which would leave the class stuck
+  useEffect(() => {
+    if (!bouncing) return undefined
+    const timer = setTimeout(() => setBouncing(null), BOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [bouncing])
   // Dock clicks leave the overview first, then act as usual
   const leaveShell = useCallback(() => {
     shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })
     shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
   }, [shellDispatch])
+  // Launching an app that isn't running bounces its icon, the way the macOS dock does
   const activate = useCallback(
     (appId, from) => {
+      const launching = windowsForApp(windows, appId).length === 0
       leaveShell()
       windowManager.activateApp(appId, from)
+      if (launching && !reducedMotion()) setBouncing(appId)
     },
-    [leaveShell, windowManager],
+    [windows, leaveShell, windowManager, reducedMotion],
   )
   const openTrash = (event) => {
     leaveShell()
     windowManager.openApp(APP.FILES, { path: TRASH, from: rectOfElement(event.currentTarget) })
   }
   return (
-    <div className={`dock ${dockPos}`} role="toolbar" aria-label="Dock">
-      {dockApps(windows).map((appId) => (
+    <div className={`dock ${dockPos}`} role="toolbar" aria-label="Dock" onPointerLeave={magnify.leave}>
+      {apps.map((appId) => (
         <DockButton
           key={appId}
           appId={appId}
           count={windowsForApp(windows, appId).length}
           focused={focusedApp === appId}
+          hot={hot === appId}
+          bouncing={bouncing === appId}
+          magnify={magnify}
           onActivate={activate}
           onMenu={openDockMenu}
         />
       ))}
-      <div className="grow" />
       <div className="dsep" />
-      <button
-        type="button"
-        className="dk"
-        data-name="Trash"
-        aria-label="Trash"
-        onClick={openTrash}
-        onContextMenu={(event) => {
-          event.preventDefault()
-          const { point, anchorBottom } = dockMenuPlacement(rectOfElement(event.currentTarget), dockPos)
-          openMenu([menuItem('Empty Trash', emptyTrash)], point, { shell: true, anchorBottom })
-        }}
-      >
-        <AppIcon name="trash" full={children(vfs, TRASH).length > 0} />
-      </button>
-      <ShowAppsButton />
+      <TrashButton hot={hot === TRASH_KEY} magnify={magnify} dockPos={dockPos} onOpen={openTrash} />
+      <ShowAppsButton hot={hot === SHOW_APPS_KEY} magnify={magnify} />
     </div>
   )
 }

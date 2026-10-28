@@ -29,4 +29,8 @@ describe('app registries', () => {
   it('has an icon for every app', () => {
     APP_IDS.forEach((id) => expect(() => render(<AppIcon name={id} />)).not.toThrow())
   })
+
+  it('has a launcher tile for every app', () => {
+    APP_IDS.forEach((id) => expect(() => render(<AppIcon name={id} tile />)).not.toThrow())
+  })
 })

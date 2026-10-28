@@ -117,9 +117,128 @@ const APP_ICON_BODIES = Object.freeze({
   apps: ShowAppsIcon,
 })
 
-/** @param {{ name: string, className?: string, full?: boolean }} props - an app id, or 'trash' / 'apps'. `full` is the Trash bin. */
-export const AppIcon = ({ name, className, full = false }) => {
-  const Body = APP_ICON_BODIES[name]
+// Tile icons: one squircle silhouette for the launcher surfaces (dock, app grid)
+
+/** A 48px squircle, light at the top; dark tiles get a faint rim so they don't sink into the glass. */
+const Tile = ({ from, to, rim = false, children }) => {
+  // Unique per instance, like the Music icon: the dock and the app grid can show a tile together
+  const gradientId = useId()
+  return (
+    <>
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={from} />
+          <stop offset="1" stopColor={to} />
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="11" fill={`url(#${gradientId})`} />
+      {rim && <rect x=".5" y=".5" width="47" height="47" rx="10.5" fill="none" stroke="rgba(255,255,255,.1)" />}
+      {children}
+    </>
+  )
+}
+
+const FilesTile = () => (
+  <Tile from="#f5f5f5" to="#dcdcdc">
+    <rect x="10" y="13" width="28" height="22" rx="3.5" fill="#7f7f7f" />
+    <path d="M10 19h28v12.5a3.5 3.5 0 0 1-3.5 3.5h-21a3.5 3.5 0 0 1-3.5-3.5z" fill="#b5b5b5" />
+    <rect x="20" y="25" width="8" height="2.6" rx="1.3" fill="#8a8a8a" />
+  </Tile>
+)
+
+const TerminalTile = () => (
+  <Tile from="#2e2e2e" to="#151515" rim>
+    <path d="M14 18l6 6-6 6" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M23 31h11" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+  </Tile>
+)
+
+const EditorTile = () => (
+  <Tile from="#fdfdfd" to="#e8e8e8">
+    <path d="M14 16h20M14 22h20M14 28h12" stroke="#a3a3a3" strokeWidth="2.4" strokeLinecap="round" />
+    <path d="M27 34l9-9 3 3-9 9-4.5 1z" fill="#E95420" />
+  </Tile>
+)
+
+const MusicTile = () => (
+  <Tile from="#ff9a3c" to="#e2501f">
+    <circle cx="24" cy="24" r="12" fill="#2b2b2b" />
+    <circle cx="24" cy="24" r="8" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="1" />
+    <circle cx="24" cy="24" r="3" fill="#ff9a3c" />
+  </Tile>
+)
+
+const MailTile = () => (
+  <Tile from="#4f9af0" to="#2a6fcf">
+    <rect x="11" y="15" width="26" height="18" rx="3" fill="#fff" />
+    <path d="M12 16.5l12 8.5 12-8.5" fill="none" stroke="#2a6fcf" strokeWidth="2.2" strokeLinejoin="round" />
+  </Tile>
+)
+
+const ProjectsTile = () => (
+  <Tile from="#232323" to="#0b0b0b" rim>
+    <g fill="none" stroke="#f2f2f2" strokeWidth="1.6" strokeLinejoin="round">
+      <path d="M24 11l10 13-10 13-10-13z" />
+      <path d="M14 24h20" />
+      <path d="M24 11l-4 13 4 13 4-13z" />
+    </g>
+    <path d="M24 11l10 13" stroke="#39ff14" strokeWidth="1.8" />
+  </Tile>
+)
+
+const SettingsTile = () => (
+  <Tile from="#a5a5a5" to="#737373">
+    <circle cx="24" cy="24" r="11" fill="none" stroke="#2f2f2f" strokeWidth="5" strokeDasharray="3.9 2.9" />
+    <circle cx="24" cy="24" r="9" fill="#2f2f2f" />
+    <circle cx="24" cy="24" r="3.6" fill="#8c8c8c" />
+  </Tile>
+)
+
+const PropertiesTile = () => (
+  <Tile from="#8a8a8a" to="#666">
+    <path d="M24 22v12M24 15v.1" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
+  </Tile>
+)
+
+/** `full` keeps the sheet sticking out of the lid, as on TrashIcon. */
+const TrashTile = ({ full = false }) => (
+  <Tile from="#3c3c3c" to="#242424" rim>
+    <path d="M16.5 19h15l-1.4 15.2a2 2 0 0 1-2 1.8h-8.2a2 2 0 0 1-2-1.8z" fill="#cfcfcf" />
+    {full && <path data-paper d="M19 8h7l4 4v6H19z" fill="#f7f7f7" />}
+    <rect x="14" y="14.5" width="20" height="3.6" rx="1.6" fill="#cfcfcf" />
+    <path d="M21.5 23v9M26.5 23v9" stroke="#8a8a8a" strokeWidth="1.6" strokeLinecap="round" />
+  </Tile>
+)
+
+const TILE_GRID_STOPS = [16, 24, 32]
+
+const ShowAppsTile = () => (
+  <Tile from="#3c3c3c" to="#242424" rim>
+    <g fill="#fff">
+      {TILE_GRID_STOPS.flatMap((y) => TILE_GRID_STOPS.map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.6" />))}
+    </g>
+  </Tile>
+)
+
+const APP_TILE_BODIES = Object.freeze({
+  [APP.FILES]: FilesTile,
+  [APP.TERMINAL]: TerminalTile,
+  [APP.EDITOR]: EditorTile,
+  [APP.MUSIC]: MusicTile,
+  [APP.MAIL]: MailTile,
+  [APP.PROJECTS]: ProjectsTile,
+  [APP.SETTINGS]: SettingsTile,
+  [APP.PROPERTIES]: PropertiesTile,
+  trash: TrashTile,
+  apps: ShowAppsTile,
+})
+
+/**
+ * @param {{ name: string, className?: string, full?: boolean, tile?: boolean }} props - an app id, or
+ *   'trash' / 'apps'. `full` is the Trash bin; `tile` draws the squircle launcher icon.
+ */
+export const AppIcon = ({ name, className, full = false, tile = false }) => {
+  const Body = (tile ? APP_TILE_BODIES : APP_ICON_BODIES)[name]
   if (!Body) throw new Error(`Unknown app icon: ${name}`)
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
