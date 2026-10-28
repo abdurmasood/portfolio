@@ -1,12 +1,15 @@
-// File and folder icons from the approved mockup; folders take the accent colour
+// File and folder icons, shaded like the dock's tiles; folders take the accent colour
+import { useId } from 'react'
 import { HOME, TRASH, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { children } from '@/components/rafeyos/core/vfs/queries'
 import { MailIcon, TrashIcon } from './appIcons'
 
-const FOLDER_TAB = { fill: 'color-mix(in srgb, var(--accent) 62%, #000)' }
-const FOLDER_BODY = { fill: 'var(--accent)' }
-const FOLDER_LIP = { fill: 'color-mix(in srgb, var(--accent) 80%, #fff)' }
-const FOLDER_GLYPH = { color: 'color-mix(in srgb, var(--accent) 45%, #000)' }
+// Folders are lit from the top: each part runs from a lighter to a deeper mix of the accent
+const FOLDER_TAB_STOPS = ['color-mix(in srgb, var(--accent) 78%, #000)', 'color-mix(in srgb, var(--accent) 62%, #000)']
+const FOLDER_BODY_STOPS = ['color-mix(in srgb, var(--accent) 78%, #fff)', 'color-mix(in srgb, var(--accent) 92%, #000)']
+const FOLDER_GLYPH = { color: 'color-mix(in srgb, var(--accent) 52%, #000)' }
+const PAGE_STOPS = ['#ffffff', '#e9e9e9']
+const FOLD_STOPS = ['#f2f2f2', '#cfcfcf']
 
 const GLYPH_STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }
 
@@ -27,34 +30,58 @@ const FOLDER_GLYPHS = Object.freeze({
   ),
 })
 
-const Folder = ({ glyph }) => (
-  <>
-    <path d="M6 14a4 4 0 0 1 4-4h14l5 5h25a4 4 0 0 1 4 4v3H6z" style={FOLDER_TAB} />
-    <rect x="6" y="20" width="52" height="36" rx="4" style={FOLDER_BODY} />
-    <rect x="6" y="20" width="52" height="3" style={FOLDER_LIP} />
-    {glyph && (
-      <g transform="translate(22 28) scale(1.25)" style={FOLDER_GLYPH}>
-        <g {...GLYPH_STROKE}>{glyph}</g>
-      </g>
-    )}
-  </>
+/** A two-stop gradient; stops are styles so they can take color-mix() of the accent. */
+const Gradient = ({ id, stops: [from, to], diagonal = false }) => (
+  <linearGradient id={id} x1="0" y1="0" x2={diagonal ? '1' : '0'} y2="1">
+    <stop offset="0" style={{ stopColor: from }} />
+    <stop offset="1" style={{ stopColor: to }} />
+  </linearGradient>
 )
 
-const Page = ({ children }) => (
-  <>
-    <path
-      d="M15 6h24l12 12v38a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z"
-      fill="#f7f7f7"
-      stroke="rgba(0,0,0,.12)"
-    />
-    <path d="M39 6v12h12z" fill="#dcdcdc" />
-    {children}
-  </>
-)
+// Gradient ids must be unique per instance: the Files grid shows many folders at once
+const Folder = ({ glyph }) => {
+  const id = useId()
+  return (
+    <>
+      <defs>
+        <Gradient id={`${id}tab`} stops={FOLDER_TAB_STOPS} />
+        <Gradient id={`${id}body`} stops={FOLDER_BODY_STOPS} />
+      </defs>
+      <path d="M6 15a5 5 0 0 1 5-5h12.5l5 5H53a5 5 0 0 1 5 5v4H6z" fill={`url(#${id}tab)`} />
+      <rect x="6" y="19" width="52" height="37" rx="5" fill={`url(#${id}body)`} />
+      <path d="M11 20.4h42" stroke="rgba(255,255,255,.45)" strokeWidth="1.2" strokeLinecap="round" />
+      <rect x="6.5" y="19.5" width="51" height="36" rx="4.5" fill="none" stroke="rgba(0,0,0,.12)" />
+      {glyph && (
+        <g transform="translate(22 29) scale(1.25)" style={FOLDER_GLYPH}>
+          <g {...GLYPH_STROKE}>{glyph}</g>
+        </g>
+      )}
+    </>
+  )
+}
+
+const Page = ({ children }) => {
+  const id = useId()
+  return (
+    <>
+      <defs>
+        <Gradient id={`${id}page`} stops={PAGE_STOPS} />
+        <Gradient id={`${id}fold`} stops={FOLD_STOPS} diagonal />
+      </defs>
+      <path
+        d="M16 6h23l12 12v37a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z"
+        fill={`url(#${id}page)`}
+        stroke="rgba(0,0,0,.1)"
+      />
+      <path d="M39 6v8a4 4 0 0 0 4 4h8z" fill={`url(#${id}fold)`} />
+      {children}
+    </>
+  )
+}
 
 const TextLines = () => (
-  <g stroke="#a3a3a3" strokeWidth="2.2" strokeLinecap="round">
-    <path d="M20 27h24M20 33h24M20 39h24M20 45h16" />
+  <g stroke="#b3b3b3" strokeWidth="2.2" strokeLinecap="round">
+    <path d="M20 28h24M20 34h24M20 40h24M20 46h15" />
   </g>
 )
 
