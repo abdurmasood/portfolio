@@ -44,7 +44,7 @@ const useCloseOnEmpty = () => {
 
 const AppTile = ({ appId, on, onLaunch }) => (
   <button type="button" className={on ? 'agi on' : 'agi'} onClick={() => onLaunch({ kind: RESULT_KINDS.APP, id: appId })}>
-    <AppIcon name={appId} />
+    <AppIcon name={appId} tile />
     <span>{getApp(appId).name}</span>
   </button>
 )
