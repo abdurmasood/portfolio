@@ -145,9 +145,28 @@ describe('mergeLegacy', () => {
     })
   })
 
+  it('skips legacy trash whose path is live again', () => {
+    const state = stateWith({ '/home/visitor/a.txt': text('restored') })
+    const merged = mergeLegacy(state, { files: {}, trash: { '/home/visitor/a.txt': 'stale' } }, 4)
+    expect(merged).toBe(state)
+    expect(merged.trash).toEqual({})
+  })
+
   it('returns the same state when nothing is new', () => {
     const state = stateWith({ '/home/visitor/a.txt': text('a') })
     expect(mergeLegacy(state, { files: { '/home/visitor/a.txt': 'old' }, trash: {} }, 2)).toBe(state)
+  })
+
+  it('returns the same state when every free legacy file is refused', () => {
+    const state = stateWith({ '/home/visitor/a.txt': text('a') })
+    expect(mergeLegacy(state, { files: { '/home/visitor/a.txt/b.txt': 'under a file' }, trash: {} }, 2)).toBe(state)
+  })
+
+  it('keeps the live file when legacy has a file and trash at one path', () => {
+    const state = seedState(1)
+    const merged = mergeLegacy(state, { files: { '/home/visitor/x.txt': 'live' }, trash: { '/home/visitor/x.txt': 'old' } }, 6)
+    expect(merged.nodes['/home/visitor/x.txt']).toEqual(text('live', 6))
+    expect(merged.trash).toEqual({})
   })
 
   it('recreates a save folder the state is missing', () => {

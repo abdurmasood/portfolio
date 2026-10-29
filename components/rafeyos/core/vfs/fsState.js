@@ -183,18 +183,21 @@ export const serializeState = (state) => JSON.stringify(state)
 
 /**
  * Adds legacy files whose path is free in both `nodes` and `trash` (so a file trashed here stays trashed),
- * and legacy trash entries whose path is free in `trash`. Nothing new returns `state` itself.
+ * and legacy trash entries whose path is likewise free and not just added live. Nothing new returns `state` itself.
  * @param {FsState} state
  * @param {LegacyDocuments} legacy
  * @param {number} now
  * @returns {FsState}
  */
 export const mergeLegacy = (state, legacy, now) => {
-  const free = (/** @type {string} */ path) => !Object.hasOwn(state.trash, path) && isVisitorPath(path, NODE_TYPES.TEXT)
-  const files = Object.entries(legacy.files).filter(([path]) => free(path) && !Object.hasOwn(state.nodes, path))
-  const trashed = Object.entries(legacy.trash).filter(([path]) => free(path))
-  if (!files.length && !trashed.length) return state
+  // A path already live or trashed here wins, so an old tab's stale trash never shadows a restored file
+  const free = (/** @type {string} */ path) =>
+    !Object.hasOwn(state.nodes, path) && !Object.hasOwn(state.trash, path) && isVisitorPath(path, NODE_TYPES.TEXT)
+  const files = Object.entries(legacy.files).filter(([path]) => free(path))
   const nodes = files.reduce((acc, [path, text]) => withFile(acc, path, text, now) ?? acc, state.nodes)
+  // Checked against the merged nodes too, so a legacy file and trash entry at one path keep only the live file
+  const trashed = Object.entries(legacy.trash).filter(([path]) => free(path) && !Object.hasOwn(nodes, path))
+  if (nodes === state.nodes && !trashed.length) return state
   const trash = { ...state.trash, ...Object.fromEntries(trashed.map(([path, text]) => [path, trashEntry(text, now)])) }
   return freezeState(nodes, trash)
 }
