@@ -15,6 +15,8 @@ import {
   menuEntry,
   menuLabels,
   openTerminal,
+  quotaError,
+  refusingWrites,
   renderDesktop,
   typeCommand,
   windowsOf,
@@ -23,6 +25,7 @@ import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { textDocuments } from '@/components/rafeyos/core/vfs/queries'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 import { documentLabel } from '@/components/rafeyos/apps/editor/logic/editorMenus'
+import { FS_KEY } from '@/components/rafeyos/core/vfs/fsStore'
 
 afterEach(cleanup)
 
@@ -278,7 +281,22 @@ describe('Text Editor', () => {
     fireEvent.click(within(blocked.ui.getByRole('dialog', { name: 'Save' })).getByRole('button', { name: 'Save' }))
 
     expect(screen.getByRole('status').textContent).toContain("Couldn't save")
+    expect(screen.getByRole('status').textContent).toContain('This browser blocked saving the file.')
     expect(blocked.ui.getByLabelText('Untitled').value).toBe('hello')
+  })
+
+  it('says the storage is full when a save does not fit, keeping the text and the disk as they were', () => {
+    const disk = memoryStorage()
+    const { win, ui } = openUntitled({ fs: fsStoreOn(refusingWrites(disk, quotaError())) })
+    fireEvent.change(field(ui, 'Untitled'), { target: { value: 'too big' } })
+
+    saveAs(ui, 'notes')
+
+    expect(screen.getByRole('status').textContent).toContain("Couldn't save")
+    expect(screen.getByRole('status').textContent).toContain("This browser's storage is full.")
+    expect(headerTitle(win)).toBe('• Untitled')
+    expect(ui.getByLabelText('Untitled').value).toBe('too big')
+    expect(disk.has(FS_KEY)).toBe(false)
   })
 
   it('asks which folder a new file goes in from a dropdown, defaulting to Documents', () => {

@@ -12,6 +12,8 @@ import {
   goToRafeyHome,
   menuEntry,
   menuLabels,
+  quotaError,
+  refusingWrites,
   renderDesktop,
   rightClick,
   windowsOf,
@@ -183,6 +185,46 @@ describe('Trash', () => {
     expect(ui.getByText('Trash is Empty')).toBeTruthy()
     expect(fsFiles(disk)).toEqual({ '/home/visitor/Desktop/keep.txt': 'stay\n' })
     expect(fsTrash(disk)).toEqual({})
+  })
+
+  it('says the browser blocked it when a file cannot be moved to Trash, leaving the file in place', () => {
+    const disk = fsDisk({ '/home/visitor/Documents/notes.txt': 'hello\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(disk, new Error('denied'))) })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+
+    goTo(within(win), 'Documents')
+    rightClick(item(win, '/home/visitor/Documents/notes.txt'))
+    chooseMenuItem('Move to Trash')
+
+    expect(screen.getByRole('status').textContent).toContain("Couldn't move to Trash")
+    expect(screen.getByRole('status').textContent).toContain('This browser blocked saving the file.')
+    expect(item(win, '/home/visitor/Documents/notes.txt')).toBeTruthy()
+    expect(fsFiles(disk)).toEqual({ '/home/visitor/Documents/notes.txt': 'hello\n' })
+    expect(fsTrash(disk)).toEqual({})
+  })
+
+  it('says the storage is full when a restore or Empty Trash cannot be written, keeping the bin', () => {
+    const disk = fsDisk({}, { '/home/visitor/Desktop/old.txt': 'old\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(disk, quotaError())) })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+    const trashed = trashItemPath('/home/visitor/Desktop/old.txt')
+
+    goTo(within(win), 'Trash')
+    rightClick(item(win, trashed))
+    chooseMenuItem('Restore')
+
+    expect(screen.getByRole('status').textContent).toContain("Couldn't restore")
+    expect(screen.getByRole('status').textContent).toContain("This browser's storage is full.")
+
+    rightClick(item(win, trashed))
+    chooseMenuItem('Empty Trash')
+
+    expect(screen.getByRole('status').textContent).toContain("Couldn't empty Trash")
+    expect(screen.getByRole('status').textContent).toContain("This browser's storage is full.")
+    expect(item(win, trashed)).toBeTruthy()
+    expect(fsTrash(disk)).toEqual({ '/home/visitor/Desktop/old.txt': 'old\n' })
   })
 
   it('empties Trash from the dock icon, and disables the command when the bin is empty', () => {

@@ -5,6 +5,7 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { belowElement, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
+import { reasonBody } from '@/components/rafeyos/ui/menus/logic/storageFailure'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
 import { editorMenuItems, folderLabel, recentDocumentItems } from './logic/editorMenus'
@@ -175,7 +176,7 @@ export const EditorApp = ({ windowId, arg }) => {
     }
     const saved = saveDocument(choice.folder, choice.name, text)
     if (!saved.ok) {
-      notify({ appId: APP.EDITOR, title: "Couldn't save", body: 'This browser blocked saving the file.' })
+      notify({ appId: APP.EDITOR, title: "Couldn't save", body: reasonBody(saved.reason) })
       setPrompt({ type: 'name', draft: raw, folder, error: saved.reason === 'taken' ? `Can't replace ${choice.name}.` : SAVE_ERROR, thenClose })
       return
     }

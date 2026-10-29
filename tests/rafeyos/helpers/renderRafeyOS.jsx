@@ -39,6 +39,17 @@ export const fsDisk = (files = {}, trash = {}) => {
   return memoryStorage({ [FS_KEY]: serializeState({ ...seed, nodes, trash: trashed }) })
 }
 
+/** `disk` with every write refused by throwing `error`, as a full or locked-down browser does. Reads still work. */
+export const refusingWrites = (disk, error) => ({
+  ...disk,
+  setItem: () => {
+    throw error
+  },
+})
+
+/** The error a browser throws when localStorage has no room left. */
+export const quotaError = () => new DOMException('', 'QuotaExceededError')
+
 const storedState = (disk) => JSON.parse(disk.getItem(FS_KEY))
 
 /** The visitor's files written to `disk`, as path -> text. */
