@@ -5,10 +5,10 @@ import { ACCENTS } from '@/components/rafeyos/core/theme/accents'
 import { Group, Page } from './SettingsRows'
 import { useSettingActions } from './logic/useSettingActions'
 
-// Window colours for each style's mini preview (the mockup's --win and --hb)
+// Window colours for each style's mini preview: the body (--win, or the --view card in dark) and --hb
 const PREVIEW_COLOURS = Object.freeze({
   [STYLES.LIGHT]: { body: '#fafafa', header: '#ebebeb' },
-  [STYLES.DARK]: { body: '#242424', header: '#303030' },
+  [STYLES.DARK]: { body: '#1d1d20', header: '#141416' },
 })
 const WINDOW_SHADOW = '0 2px 6px rgba(0,0,0,.3)'
 

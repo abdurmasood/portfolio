@@ -2,7 +2,11 @@
    wrapped in :where(.rafeyos) so their specificity matches the mockup exactly. */
 .rafeyos {
   --accent: #E95420;
-  --win: #242424; --view: #1e1e1e; --hb: #303030; --side: #2e2e2e;
+  /* Dark depth: header bar and sidebar share one near-black frame; the view is a card raised off it */
+  --win: #141416; --view: #1d1d20; --hb: var(--win); --side: var(--win);
+  /* Raised selection and recessed fields, shaded like the dock's tiles; dark only */
+  --raise: linear-gradient(#36363b, #2a2a2e); --raise-edge: inset 0 1px 0 rgba(255,255,255,.09), 0 1px 2px rgba(0,0,0,.6);
+  --recess: #1f1f22;
   /* Music: tinted from the disc artwork */
   /* Dialog fields: --view reads in dark, but is the dialog's own white in light */
   --field: #1e1e1e;
