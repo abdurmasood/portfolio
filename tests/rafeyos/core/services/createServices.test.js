@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { createServices } from '@/components/rafeyos/core/services/createServices'
 import { localStorageOrNull, sessionStorageOrNull } from '@/lib/browserStorage'
 import { FS_KEY, LEGACY_KEY } from '@/components/rafeyos/core/vfs/fsStore'
+import { SETTINGS_KEY } from '@/components/rafeyos/core/settings/settingsStore'
+import { memoryStorage } from '@/tests/rafeyos/helpers/renderRafeyOS'
 
 const fakeWindow = (overrides = {}) => ({
   sessionStorage: { getItem: () => null },
@@ -70,6 +72,47 @@ describe('services', () => {
 
     expect(services.reducedMotion()).toBe(false)
     expect(services.prefersDark()).toBe(true)
+    expect(services.watchColorScheme(vi.fn())).toEqual(expect.any(Function))
+  })
+
+  it('saves settings in localStorage, through one store per window', () => {
+    const win = fakeWindow({ localStorage: memoryStorage() })
+    const services = createServices({ router: { push: vi.fn() }, win })
+
+    expect(services.settings.set('accent', '#0073E5').ok).toBe(true)
+
+    expect(JSON.parse(win.localStorage.getItem(SETTINGS_KEY))).toEqual({ v: 1, values: { accent: '#0073E5' } })
+    expect(createServices({ router: { push: vi.fn() }, win }).settings).toBe(services.settings)
+  })
+
+  it('watches the colour scheme for changes until unsubscribed', () => {
+    const list = new EventTarget()
+    const services = createServices({ router: { push: vi.fn() }, win: fakeWindow({ matchMedia: () => list }) })
+    const listener = vi.fn()
+
+    const unsubscribe = services.watchColorScheme(listener)
+    list.dispatchEvent(new Event('change'))
+    unsubscribe()
+    list.dispatchEvent(new Event('change'))
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  it('watches the colour scheme through addListener where the list has no addEventListener', () => {
+    const list = { matches: true, addListener: vi.fn(), removeListener: vi.fn() }
+    const services = createServices({ router: { push: vi.fn() }, win: fakeWindow({ matchMedia: () => list }) })
+    const listener = vi.fn()
+
+    services.watchColorScheme(listener)()
+
+    expect(list.addListener).toHaveBeenCalledWith(listener)
+    expect(list.removeListener).toHaveBeenCalledWith(listener)
+  })
+
+  it('watches nothing when the media list has no listener methods', () => {
+    const services = createServices({ router: { push: vi.fn() }, win: fakeWindow() })
+
+    expect(() => services.watchColorScheme(vi.fn())()).not.toThrow()
   })
 })
 

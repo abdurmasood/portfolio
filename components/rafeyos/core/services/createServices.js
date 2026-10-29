@@ -1,6 +1,7 @@
 // Everything rafeyOS needs from the outside world, injected so tests can pass fakes
 import { sessionStorageOrNull } from '@/lib/browserStorage'
 import { sharedFsStore } from '@/components/rafeyos/core/vfs/fsStore'
+import { sharedSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 import { browserClipboard } from './clipboard'
 import { createAudio } from './audio'
 import { createMediaSession } from './mediaSession'
@@ -11,9 +12,23 @@ const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)'
 
 const matches = (win, query, fallback) => win?.matchMedia?.(query).matches ?? fallback
 
+/** Calls `listener` whenever `query` starts or stops matching; returns the unsubscribe. Older Safari has only addListener. */
+const watchQuery = (win, query, listener) => {
+  const list = win?.matchMedia?.(query)
+  if (list?.addEventListener) {
+    list.addEventListener('change', listener)
+    return () => list.removeEventListener?.('change', listener)
+  }
+  if (list?.addListener) {
+    list.addListener(listener)
+    return () => list.removeListener?.(listener)
+  }
+  return () => {}
+}
+
 /**
  * @param {{ router: { push: (href: string) => void }, win?: Window }} deps
- * @returns {{ navigate, storage, fs, now, openExternal, clipboard, createAudio, loadAudioSamples, mediaSession, reducedMotion, prefersDark }}
+ * @returns {{ navigate, storage, fs, settings, now, openExternal, clipboard, createAudio, loadAudioSamples, mediaSession, reducedMotion, prefersDark, watchColorScheme }}
  */
 export const createServices = ({ router, win = globalThis.window }) =>
   Object.freeze({
@@ -21,6 +36,8 @@ export const createServices = ({ router, win = globalThis.window }) =>
     storage: sessionStorageOrNull(win),
     // One per window, so a services rebuild (the router changing) keeps the same store
     fs: sharedFsStore(win),
+    // The visitor's saved appearance, shared the same way
+    settings: sharedSettingsStore(win),
     now: () => new Date(),
     openExternal: (href) => win?.open(href, '_blank', 'noopener,noreferrer'),
     clipboard: browserClipboard(win),
@@ -32,4 +49,6 @@ export const createServices = ({ router, win = globalThis.window }) =>
     mediaSession: createMediaSession(win),
     reducedMotion: () => matches(win, REDUCED_MOTION_QUERY, false),
     prefersDark: () => matches(win, DARK_SCHEME_QUERY, true),
+    // (listener) => unsubscribe; while no style is saved, rafeyOS follows the OS as it changes
+    watchColorScheme: (listener) => watchQuery(win, DARK_SCHEME_QUERY, listener),
   })

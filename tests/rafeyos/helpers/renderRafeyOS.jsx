@@ -6,6 +6,7 @@ import { RafeyOSRoot } from '@/components/rafeyos/RafeyOSRoot'
 import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
 import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
 import { FS_KEY, createFsStore } from '@/components/rafeyos/core/vfs/fsStore'
+import { createSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 import { mergeState, seedState, serializeState } from '@/components/rafeyos/core/vfs/fsState'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
@@ -77,6 +78,7 @@ export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),
   storage: memoryStorage(),
   fs: fsStoreOn(memoryStorage()),
+  settings: createSettingsStore({ storage: memoryStorage() }),
   now: () => FIXED_NOW,
   openExternal: vi.fn(),
   clipboard: { writeText: vi.fn(() => Promise.resolve()) },
@@ -85,6 +87,7 @@ export const fakeServices = (overrides = {}) => ({
   mediaSession: null,
   reducedMotion: () => true,
   prefersDark: () => true,
+  watchColorScheme: () => () => {},
   ...overrides,
 })
 
