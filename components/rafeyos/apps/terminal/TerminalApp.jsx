@@ -86,7 +86,7 @@ export const TerminalApp = ({ windowId, arg }) => {
   return (
     <>
       <TerminalHeader title={title} onNewWindow={() => windowManager.openApp(APP.TERMINAL, { path: session.cwd })} />
-      <div className="term" ref={scrollRef} onClick={focusInput}>
+      <div className="term pane" ref={scrollRef} onClick={focusInput}>
         <div className="tlog">
           {session.entries.map((entry) => (
             <TerminalLine key={entry.id} line={entry.line} />

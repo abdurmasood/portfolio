@@ -94,7 +94,7 @@ const FilesBody = ({ files, menus }) => {
   return (
     <div
       ref={bodyRef}
-      className="scroll fbody"
+      className="scroll fbody pane"
       tabIndex={0}
       aria-label="Files"
       onClick={() => dispatch({ type: FILES_ACTIONS.SELECT, mode: 'clear' })}

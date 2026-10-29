@@ -112,7 +112,7 @@ export const SettingsApp = ({ windowId, init }) => {
           title={title}
         />
         {/* Keyed so each page opens scrolled to the top */}
-        <div key={page} className="scroll sbody" data-page={page}>
+        <div key={page} className="scroll sbody pane" data-page={page}>
           <Page onGo={setPage} />
         </div>
       </div>

@@ -20,7 +20,7 @@ export const PropertiesApp = ({ windowId, arg }) => {
   return (
     <>
       <HeaderBar title="Properties" />
-      <div className="scroll">
+      <div className="scroll pane">
         <div className="props">
           <FileIcon vfs={vfs} path={arg} />
           <div className="pn seltext">{name}</div>

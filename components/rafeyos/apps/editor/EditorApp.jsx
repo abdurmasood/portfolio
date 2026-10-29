@@ -210,7 +210,7 @@ export const EditorApp = ({ windowId, arg }) => {
         menus={menus}
         onNew={() => windowManager.openApp(APP.EDITOR)}
       />
-      <div className="editor">
+      <div className="editor pane">
         <textarea
           value={text}
           onChange={(event) => {
