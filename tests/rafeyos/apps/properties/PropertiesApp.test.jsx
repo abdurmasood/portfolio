@@ -80,7 +80,7 @@ describe('propertiesRows', () => {
   })
 
   it('names where a trashed file came from', () => {
-    const merged = mergeState(realVfs, { ...seedState(0), trash: { '/home/visitor/Desktop/notes.txt': { text: 'hello\n', mtime: 0 } } })
+    const merged = mergeState(realVfs, { ...seedState(0), trash: { '/home/visitor/Desktop/notes.txt': { node: { type: 'text', text: 'hello\n', mtime: 0 }, mtime: 0 } } })
     const path = trashItemPath('/home/visitor/Desktop/notes.txt')
 
     expect(propertiesRows(merged, path).find((row) => row.label === 'Original Location').value).toBe('/home/visitor/Desktop/notes.txt')

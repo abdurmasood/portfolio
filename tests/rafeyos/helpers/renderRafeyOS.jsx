@@ -35,7 +35,7 @@ export const fsDisk = (files = {}, trash = {}) => {
   Object.entries(files).forEach(([path, text]) => {
     nodes[path] = { type: 'text', text, mtime }
   })
-  const trashed = Object.fromEntries(Object.entries(trash).map(([path, text]) => [path, { text, mtime }]))
+  const trashed = Object.fromEntries(Object.entries(trash).map(([path, text]) => [path, { node: { type: 'text', text, mtime }, mtime }]))
   return memoryStorage({ [FS_KEY]: serializeState({ ...seed, nodes, trash: trashed }) })
 }
 
@@ -58,7 +58,7 @@ export const fsFiles = (disk) =>
 
 /** The trash written to `disk`, as original path -> text. */
 export const fsTrash = (disk) =>
-  Object.fromEntries(Object.entries(storedState(disk).trash).map(([path, entry]) => [path, entry.text]))
+  Object.fromEntries(Object.entries(storedState(disk).trash).map(([path, entry]) => [path, entry.node.text]))
 
 export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),

@@ -1,11 +1,13 @@
 // @ts-check
 // The visitor's files as an external store outside React, persisted to localStorage and kept in step
 // across tabs. Every write re-reads the disk first, so a second tab's save is merged rather than clobbered.
+// /tmp is the exception: it lives in this store's memory only, laid back over every read, and empties on reload.
 import { localStorageOrNull } from '@/lib/browserStorage'
 import * as fsState from './fsState'
 import { readLegacy } from './legacyDocuments'
 
 /** @import { FsFailure, FsResult, FsState } from './fsState' */
+/** @import { FsOpResult } from './fsOps' */
 
 export const FS_KEY = 'rafeyos-fs'
 export const LEGACY_KEY = 'rafeyos-documents'
@@ -13,7 +15,9 @@ export const LEGACY_KEY = 'rafeyos-documents'
 /**
  * @typedef {Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>} FsStorage
  * @typedef {{ addEventListener?: (type: 'storage', listener: (event: Event) => void) => void }} FsWindow
- * @typedef {{ ok: true, state: FsState, path?: string, name?: string } | { ok: false, reason: FsFailure | 'full' | 'blocked' }} FsStoreResult
+ * @typedef {{ ok: false, reason: 'full' | 'blocked' }} StorageFailure
+ * @typedef {{ ok: true, state: FsState, path?: string, name?: string } | { ok: false, reason: FsFailure } | StorageFailure} FsStoreResult
+ * @typedef {FsOpResult | StorageFailure} FsCommitResult
  * @typedef {{ state: FsState, readOnly: boolean, hasLegacy: boolean }} Disk
  */
 
@@ -73,11 +77,22 @@ export const createFsStore = ({ storage, win, now }) => {
   const listeners = new Set()
 
   /**
-   * What the disk holds now, falling back to `current` when it holds nothing this build can use.
+   * What the disk holds now, falling back to `current` when it holds nothing this build can use; either way with
+   * `current`'s /tmp laid over it.
    * @param {FsState} current
    * @returns {Disk}
    */
   const readDisk = (current) => {
+    const disk = readStored(current)
+    return { ...disk, state: fsState.withTmpFrom(disk.state, current) }
+  }
+
+  /**
+   * What the disk holds, before /tmp is laid over it.
+   * @param {FsState} current
+   * @returns {Disk}
+   */
+  const readStored = (current) => {
     const stored = parseJson(readRaw(storage, FS_KEY))
     const legacyRaw = readRaw(storage, LEGACY_KEY)
     const legacy = parseJson(legacyRaw)
@@ -108,15 +123,14 @@ export const createFsStore = ({ storage, win, now }) => {
   }
 
   /**
-   * Re-reads the disk, applies the change and writes it back. Storage and state change together or not at all.
-   * @param {(state: FsState, now: number) => FsResult} change
-   * @returns {FsStoreResult}
+   * Writes a changed state to storage and makes it current. Storage and state change together or not at all.
+   * @template {{ ok: true, state: FsState }} R
+   * @param {Disk} disk what the change was made against
+   * @param {R} result
+   * @returns {R | StorageFailure}
    */
-  const write = (change) => {
-    const disk = readDisk(state)
+  const persist = (disk, result) => {
     if (!storage || disk.readOnly) return BLOCKED
-    const result = change(disk.state, now())
-    if (!result.ok) return result
     try {
       storage.setItem(FS_KEY, fsState.serializeState(result.state))
     } catch (error) {
@@ -124,6 +138,35 @@ export const createFsStore = ({ storage, win, now }) => {
     }
     state = result.state
     if (disk.hasLegacy) removeLegacy()
+    notify()
+    return result
+  }
+
+  /**
+   * The GUI's mutators: re-reads the disk, applies the change and writes it back. Refused before the change runs
+   * when storage can't take it, so a blocked store always answers 'blocked'.
+   * @param {(state: FsState, now: number) => FsResult} change
+   * @returns {FsStoreResult}
+   */
+  const write = (change) => {
+    const disk = readDisk(state)
+    if (!storage || disk.readOnly) return BLOCKED
+    const result = change(disk.state, now())
+    return result.ok ? persist(disk, result) : result
+  }
+
+  /**
+   * The shell's way in: runs `change` (an fsOps call) against the freshly re-read state and keeps what it returns.
+   * A change that only touches /tmp stays in memory, so it works however storage is doing.
+   * @param {(state: FsState, now: number) => FsOpResult} change
+   * @returns {FsCommitResult}
+   */
+  const commit = (change) => {
+    const disk = readDisk(state)
+    const result = change(disk.state, now())
+    if (!result.ok) return result
+    if (!fsState.changesOnlyTmp(disk.state, result.state)) return persist(disk, result)
+    state = result.state
     notify()
     return result
   }
@@ -155,6 +198,7 @@ export const createFsStore = ({ storage, win, now }) => {
     /** @param {string} path the file's original path */
     restoreFromTrash: (path) => write((current, time) => fsState.restoreFromTrash(current, path, time)),
     emptyTrash: () => write((current) => fsState.emptyTrash(current)),
+    commit,
   })
 }
 

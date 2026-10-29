@@ -106,7 +106,7 @@ describe('textDocuments', () => {
   })
 
   it('skips a file sitting in Trash', () => {
-    const merged = mergeState(realVfs, { ...seedState(0), trash: { '/home/visitor/Desktop/notes.txt': { text: 'hello\n', mtime: 0 } } })
+    const merged = mergeState(realVfs, { ...seedState(0), trash: { '/home/visitor/Desktop/notes.txt': { node: { type: 'text', text: 'hello\n', mtime: 0 }, mtime: 0 } } })
 
     expect(textDocuments(merged)).not.toContain(trashItemPath('/home/visitor/Desktop/notes.txt'))
     expect(textDocuments(merged)).toContain('/home/rafey/bio.txt')
