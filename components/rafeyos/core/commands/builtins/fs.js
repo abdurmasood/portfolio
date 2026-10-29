@@ -15,6 +15,10 @@ const HOME_FILE_MESSAGES = Object.freeze({
   'music.txt': 'Use the command "music" to explore Rafey\'s music',
 })
 
+/** What cat prints for one of the home terminal's pretend files, when `arg` names one that isn't really there. */
+export const homeFileMessage = (vfs, arg, cwd) =>
+  Object.hasOwn(HOME_FILE_MESSAGES, arg) && !vfs[joinPath(cwd, arg)] ? `${HOME_FILE_MESSAGES[arg]}\n` : undefined
+
 const LS_SPEC = Object.freeze({ name: 'ls', flags: 'laAh1trSd', usageCode: 2 })
 const CAT_SPEC = Object.freeze({ name: 'cat', flags: 'n' })
 const TREE_SPEC = Object.freeze({ name: 'tree', flags: 'ad', values: 'L' })
@@ -144,7 +148,8 @@ const pwd = ({ cwd }) => ({ stdout: `${absPath(cwd)}\n` })
 // One file's text, or the error cat prints for it
 const catOne = (vfs, arg, { cwd, stdin }) => {
   if (arg === '-') return { text: stdin ?? '' }
-  if (HOME_FILE_MESSAGES[arg] && !vfs[joinPath(cwd, arg)]) return { text: `${HOME_FILE_MESSAGES[arg]}\n` }
+  const message = homeFileMessage(vfs, arg, cwd)
+  if (message) return { text: message }
   const found = resolve(vfs, normalize(arg, cwd), { followLast: true })
   if (!found.ok) return { error: `cat: ${arg}: ${errnoText(found.errno)}` }
   const node = vfs[found.path]

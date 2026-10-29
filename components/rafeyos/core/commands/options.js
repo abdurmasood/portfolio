@@ -14,7 +14,8 @@
  * }} OptionSpec `flags`: short letters with no value; `values`: short letters that take one; `long`: each long name
  *   -> the short letter it stands for; `numeric`: the valued letter a bare `-5` sets (head, tail); `usageCode`: the exit
  *   code for a usage error, 1 unless the command says otherwise (ls and grep use 2)
- * @typedef {{ flags: Record<string, true>, values: Record<string, string>, operands: string[] }} ParsedOptions
+ * @typedef {{ flags: Record<string, true>, values: Record<string, string>, operands: string[] }} ParsedOptions `values`
+ *   lists its letters in the order they were last given, so a command can tell which of two came last (head -c, -n)
  * @typedef {{ error: string[], code: number }} OptionError the stderr lines to print and the code to exit with
  * @typedef {{ consumed: 0 | 1 } | OptionError} OptionStep how many following words an option used, or why it failed
  */
@@ -35,6 +36,12 @@ const usageError = (spec, message) => ({
 /** @param {OptionSpec} spec @param {string} letter */
 const takesValue = (spec, letter) => Boolean(spec.values?.includes(letter))
 
+/** A value given again moves to the end of `values`. @param {ParsedOptions} out @param {string} letter @param {string} value */
+const setValue = (out, letter, value) => {
+  delete out.values[letter]
+  out.values[letter] = value
+}
+
 /**
  * One `-abc` word: flags until a valued letter, which takes the rest of the word or the next one.
  * @param {string} arg
@@ -45,7 +52,7 @@ const takesValue = (spec, letter) => Boolean(spec.values?.includes(letter))
  */
 const readShort = (arg, next, spec, out) => {
   if (spec.numeric && BARE_NUMBER.test(arg)) {
-    out.values[spec.numeric] = arg.slice(1)
+    setValue(out, spec.numeric, arg.slice(1))
     return { consumed: 0 }
   }
   for (let index = 1; index < arg.length; index += 1) {
@@ -53,11 +60,11 @@ const readShort = (arg, next, spec, out) => {
     if (takesValue(spec, letter)) {
       const rest = arg.slice(index + 1)
       if (rest) {
-        out.values[letter] = rest
+        setValue(out, letter, rest)
         return { consumed: 0 }
       }
       if (next === undefined) return usageError(spec, `option requires an argument -- '${letter}'`)
-      out.values[letter] = next
+      setValue(out, letter, next)
       return { consumed: 1 }
     }
     if (!spec.flags?.includes(letter)) return usageError(spec, `invalid option -- '${letter}'`)
@@ -81,11 +88,11 @@ const readLong = (arg, next, spec, out) => {
   if (!letter) return usageError(spec, `unrecognized option '${arg}'`)
   if (takesValue(spec, letter)) {
     if (equals >= 0) {
-      out.values[letter] = arg.slice(equals + 1)
+      setValue(out, letter, arg.slice(equals + 1))
       return { consumed: 0 }
     }
     if (next === undefined) return usageError(spec, `option '--${name}' requires an argument`)
-    out.values[letter] = next
+    setValue(out, letter, next)
     return { consumed: 1 }
   }
   if (equals >= 0) return usageError(spec, `option '--${name}' doesn't allow an argument`)

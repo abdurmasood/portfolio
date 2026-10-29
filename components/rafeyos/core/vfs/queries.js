@@ -1,6 +1,7 @@
 import { BIN, HOME, RAFEY_HOME, TMP, USR_BIN } from './buildVfs'
 import { parentOf, realPath, resolve } from './paths'
 import { humanBytes } from './format'
+import { byteCount } from './bytes'
 
 const KIND = Object.freeze({
   dir: 'Folder',
@@ -38,7 +39,7 @@ export const children = (vfs, path) =>
 export const sizeOf = (vfs, path) => {
   const node = vfs[realPath(vfs, path)]
   if (!node || node.type === 'symlink') return 0
-  return node.type === 'audio' ? node.sizeBytes : encoder.encode(node.text || '').length
+  return node.type === 'audio' ? node.sizeBytes : byteCount(node.text || '')
 }
 
 /** A file's bytes, or a folder's item count; dotfiles aren't counted, as Files doesn't show them. */

@@ -104,6 +104,33 @@ describe('head and tail', () => {
     expect(shown(out)).toEqual(["tail: cannot open 'nope' for reading: No such file or directory", '==> n.txt <==\n12'])
     expect(out.code).toBe(1)
   })
+
+  it('-c counts UTF-8 bytes, keeping a cut character as the bytes it was cut to', () => {
+    expect(shown(last(['echo é | head -c 1 | wc -c']))).toEqual(['1'])
+    expect(shown(last(['echo é | tail -c 2 | wc -c']))).toEqual(['2'])
+    expect(shown(last(['echo é | head -c 1 | wc -m']))).toEqual(['0'])
+    expect(shown(last(['echo é | head -c 1 | cat - | head -c 1 | wc -c']))).toEqual(['1'])
+    expect(shown(last(['echo é | head -c 2 | wc -m']))).toEqual(['1'])
+    expect(shown(last(['echo é | head -c 1 > f && ls -l f']))[0]).toMatch(/ visitor 1 /)
+  })
+
+  it('-c and -n: the one given last wins', () => {
+    const { run } = session()
+    run(TWELVE)
+
+    expect(shown(run('head -c 3 -n 1 n.txt'))).toEqual(['1'])
+    expect(shown(run('head -n 1 -c 3 n.txt'))).toEqual(['1\n2'])
+    expect(shown(run('head --bytes=3 -1 n.txt'))).toEqual(['1'])
+    expect(shown(run('tail -c 2 -n 1 n.txt'))).toEqual(['12'])
+    expect(shown(run('tail -n 1 -c 2 n.txt'))).toEqual(['2'])
+    expect(shown(run('head -c 5 -n 1 -c 3 n.txt'))).toEqual(['1\n2'])
+    expect(shown(run('tail -n 5 -c 9 -n 1 n.txt'))).toEqual(['12'])
+  })
+
+  it('rejects a bad -c even when -n comes after it, and the other way round', () => {
+    expect(last([TWELVE, 'head -c x -n 1 n.txt'])).toMatchObject({ lines: [{ text: "head: invalid number of bytes: 'x'" }], code: 1 })
+    expect(last([TWELVE, 'tail -n x -c 1 n.txt'])).toMatchObject({ lines: [{ text: "tail: invalid number of lines: 'x'" }], code: 1 })
+  })
 })
 
 describe('wc', () => {
@@ -186,6 +213,23 @@ describe('grep', () => {
     expect(last(['mkdir d && ln -s .. d/up && echo hi > d/f', 'grep -R hi d'])).toMatchObject({ code: 0 })
   })
 
+  it('-r with no file finds nothing in a deleted current folder', () => {
+    expect(last(['grep -r x'], { cwd: `${HOME}/gone` })).toMatchObject({ lines: [], code: 1 })
+  })
+
+  it('-w counts letters past ASCII as part of a word', () => {
+    expect(last(['echo aé | grep -w a'])).toMatchObject({ lines: [], code: 1 })
+    expect(last(['echo a٣ | grep -w a'])).toMatchObject({ lines: [], code: 1 })
+    expect(shown(last(['echo "é a" | grep -w a']))).toEqual(['é a'])
+    expect(shown(last(['echo aé | grep -w aé']))).toEqual(['aé'])
+  })
+
+  it('-w still matches a pattern only a non-Unicode regex accepts', () => {
+    expect(shown(last(["echo 'x ] y' | grep -w ']'"]))).toEqual(['x ] y'])
+    expect(shown(last(["echo a-b | grep -w 'a\\-b'"]))).toEqual(['a-b'])
+    expect(shown(last(["echo 'a{ b' | grep -wE 'a{'"]))).toEqual(['a{ b'])
+  })
+
   it('grep_exit_codes', () => {
     expect(inRafey('grep Bio bio.txt').code).toBe(0)
     expect(inRafey('grep nothing bio.txt')).toMatchObject({ lines: [], code: 1 })
@@ -248,6 +292,15 @@ describe('sort and uniq', () => {
     expect(shown(run('uniq a b c'))).toEqual(["uniq: extra operand 'c'", "Try 'uniq --help' for more information."])
   })
 
+  it('uniq writes to stdout when its output is -', () => {
+    const { run, fs } = session()
+    run('echo -e "a\\na" > in')
+
+    expect(shown(run('uniq in -'))).toEqual(['a'])
+    expect(shown(run('echo -e "b\\nb" | uniq - -'))).toEqual(['b'])
+    expect(fs.vfs()[`${HOME}/-`]).toBeUndefined()
+  })
+
   it('uniq says when storage is full', () => {
     const disk = refusingWrites(fsDisk({ [`${HOME}/in`]: 'a\n' }), quotaError())
 
@@ -260,6 +313,21 @@ describe('less', () => {
     expect(shown(inRafey('less bio.txt'))).toEqual(['Bio text'])
     expect(shown(inRafey('less bio.txt skills.txt'))).toEqual(['Bio text\nSkills text'])
     expect(shown(inRafey('echo hi | less'))).toEqual(['hi'])
+  })
+
+  it('skips its options, and the word an option takes', () => {
+    expect(inRafey('less -N bio.txt')).toMatchObject({ lines: [{ text: 'Bio text' }], code: 0 })
+    expect(shown(inRafey('less -SN -p Bio bio.txt'))).toEqual(['Bio text'])
+    expect(shown(inRafey('less -x4 +G --LINE-NUMBERS bio.txt'))).toEqual(['Bio text'])
+    expect(shown(inRafey('less -- -N'))).toEqual(['-N: No such file or directory'])
+    expect(shown(inRafey('echo hi | less -N'))).toEqual(['hi'])
+    expect(inRafey('less -N')).toMatchObject({ lines: [{ text: 'Missing filename ("less --help" for help)' }], code: 1 })
+  })
+
+  it("gives cat's answer for the home terminal's pretend files", () => {
+    expect(shown(last(['less projects.txt']))).toEqual(shown(last(['cat projects.txt'])))
+    expect(shown(last(['less music.txt']))).toEqual(['Use the command "music" to explore Rafey\'s music'])
+    expect(shown(last(['less constructor']))).toEqual(['constructor: No such file or directory'])
   })
 
   it('reports what it cannot show', () => {

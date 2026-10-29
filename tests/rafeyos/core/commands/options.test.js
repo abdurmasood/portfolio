@@ -31,6 +31,13 @@ describe('parseOptions', () => {
     expect(parseOptions(['-n', '1', '-n', '2'], HEAD).values).toEqual({ n: '2' })
   })
 
+  it('a valued letter given again moves to the end of values, however it is spelled', () => {
+    expect(Object.keys(parseOptions(['-n', '1', '-c', '3', '-n2'], HEAD).values)).toEqual(['c', 'n'])
+    expect(Object.keys(parseOptions(['-c3', '-n', '1', '--bytes=5'], HEAD).values)).toEqual(['n', 'c'])
+    expect(Object.keys(parseOptions(['-n', '1', '-c', '3', '-5'], HEAD).values)).toEqual(['c', 'n'])
+    expect(Object.keys(parseOptions(['--lines', '1', '-c', '3', '--lines', '2'], HEAD).values)).toEqual(['c', 'n'])
+  })
+
   it('reports an unknown short flag the GNU way, with the usage code', () => {
     expect(parseOptions(['-lz'], LS)).toEqual({
       error: ["ls: invalid option -- 'z'", "Try 'ls --help' for more information."],

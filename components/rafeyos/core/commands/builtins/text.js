@@ -3,10 +3,12 @@
 // stdin when it has none (`-` names stdin too), and words its errors the way its GNU namesake does.
 import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { writeFile } from '@/components/rafeyos/core/vfs/fsOps'
+import { byteCount, bytesOf, characterCount, textOf } from '@/components/rafeyos/core/vfs/bytes'
 import { normalize, resolve } from '@/components/rafeyos/core/vfs/paths'
 import { errnoText } from '@/components/rafeyos/core/commands/errors'
 import { parseOptions } from '@/components/rafeyos/core/commands/options'
 import { inside, missing, nameOf, shellChildren, usage, why } from './fileInfo'
+import { homeFileMessage } from './fs'
 
 /**
  * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
@@ -32,9 +34,6 @@ const UNIQ_COUNT_WIDTH = 7
 // grep and sort exit 2 on trouble, not 1
 const TROUBLE = 2
 const NO_MATCH = 1
-
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
 
 /** @param {string} line */
 const withNewline = (line) => `${line}\n`
@@ -148,9 +147,13 @@ const ends = ({ argv, name, fs, cwd, stdin }) => {
   const { spec, pick } = ENDS[/** @type {'head' | 'tail'} */ (name)]
   const parsed = options(argv, spec)
   if (!('operands' in parsed)) return parsed
-  const bytes = parsed.values.c !== undefined
-  const amount = bytes ? amountOf(parsed.values.c) : amountOf(parsed.values.n ?? String(DEFAULT_LINES))
-  if (!amount) return { stderr: [`${name}: invalid number of ${bytes ? 'bytes' : 'lines'}: '${parsed.values.c ?? parsed.values.n}'`], code: 1 }
+  // GNU checks each count as it reads it, and counts in the unit of whichever of -n and -c came last
+  const given = Object.entries(parsed.values)
+  const bad = given.find(([, value]) => !amountOf(value))
+  if (bad) return { stderr: [`${name}: invalid number of ${bad[0] === 'c' ? 'bytes' : 'lines'}: '${bad[1]}'`], code: 1 }
+  const [unit, value] = given.at(-1) ?? ['n', String(DEFAULT_LINES)]
+  const bytes = unit === 'c'
+  const amount = /** @type {Amount} */ (amountOf(value))
   const vfs = fs.vfs()
   const operands = inputsOf(parsed.operands)
   /** @type {string[]} */
@@ -164,7 +167,7 @@ const ends = ({ argv, name, fs, cwd, stdin }) => {
       stderr.push(readError(name, typed, input, (_, reason) => `${name}: ${wording}: ${reason}`))
       continue
     }
-    const picked = bytes ? decoder.decode(pick(encoder.encode(input.text), amount)) : pick(linesOf(input.text), amount).join('')
+    const picked = bytes ? textOf(pick(bytesOf(input.text), amount)) : pick(linesOf(input.text), amount).join('')
     const header = operands.length > 1 ? `${parts.length ? '\n' : ''}==> ${typed === STDIN ? STDIN_NAME : typed} <==\n` : ''
     parts.push(header + picked)
   }
@@ -180,8 +183,8 @@ const WC_DEFAULT = Object.freeze(['l', 'w', 'c'])
 const countsOf = (text) => ({
   l: (text.match(/\n/g) ?? []).length,
   w: text.split(/\s+/).filter(Boolean).length,
-  m: [...text].length,
-  c: encoder.encode(text).length,
+  m: characterCount(text),
+  c: byteCount(text),
 })
 
 /** @param {Input} input */
@@ -195,7 +198,7 @@ const isFolder = (input) => !input.ok && 'errno' in input && input.errno === 'EI
 const wcWidth = (read, columns) => {
   if ((read.length === 1 && columns === 1) || (!read[0].input.ok && !isFolder(read[0].input))) return 1
   const special = read.some(({ input, typed }) => (input.ok && typed === STDIN) || isFolder(input))
-  const total = read.reduce((sum, { input }) => sum + (input.ok ? encoder.encode(input.text).length : 0), 0)
+  const total = read.reduce((sum, { input }) => sum + (input.ok ? byteCount(input.text) : 0), 0)
   return Math.max(String(total).length, special ? WC_STDIN_WIDTH : 1)
 }
 
@@ -228,6 +231,18 @@ const wc = ({ argv, fs, cwd, stdin }) => {
 // grep: patterns are JavaScript regular expressions, close to grep -E (Claude's call 5)
 const GREP_SPEC = Object.freeze({ name: 'grep', flags: 'invclrRwFE', usageCode: TROUBLE })
 const REGEX_SPECIALS = /[\\^$.*+?()[\]{}|/]/g
+// -w's word characters: letters and digits in any script, and _, as GNU grep has them in a UTF-8 locale
+const WORD_CHARACTER = '[\\p{L}\\p{N}_]'
+
+/** @param {string} source @param {string} flags @returns {RegExp | null} */
+const compileRegex = (source, flags) => {
+  try {
+    return new RegExp(source, flags)
+  } catch (error) {
+    if (error instanceof SyntaxError) return null
+    throw error
+  }
+}
 
 /**
  * @param {string} pattern @param {ParsedOptions['flags']} flags
@@ -235,12 +250,13 @@ const REGEX_SPECIALS = /[\\^$.*+?()[\]{}|/]/g
  */
 const grepRegex = (pattern, flags) => {
   const source = flags.F ? pattern.replace(REGEX_SPECIALS, '\\$&') : pattern
-  try {
-    return new RegExp(flags.w ? `(?<!\\w)(?:${source})(?!\\w)` : source, flags.i ? 'i' : '')
-  } catch (error) {
-    if (error instanceof SyntaxError) return null
-    throw error
-  }
+  const ignoreCase = flags.i ? 'i' : ''
+  if (!flags.w) return compileRegex(source, ignoreCase)
+  // \p{…} needs the u flag, which rejects some patterns grep takes, like ] and \-; those keep ASCII word edges
+  return (
+    compileRegex(`(?<!${WORD_CHARACTER})(?:${source})(?!${WORD_CHARACTER})`, `${ignoreCase}u`) ??
+    compileRegex(`(?<!\\w)(?:${source})(?!\\w)`, ignoreCase)
+  )
 }
 
 /**
@@ -276,6 +292,8 @@ const walkFolder = (vfs, root, follow) => {
 const grepTargets = (typed, flags, { fs, cwd, stdin }) => {
   if (typed === STDIN) return { files: [{ name: '(standard input)', text: stdin ?? '' }], walked: false }
   const vfs = fs.vfs()
+  // A folder deleted from under the shell still searches, as nothing
+  if (!typed && !vfs[cwd]) return { files: [], walked: true }
   const found = resolve(vfs, normalize(typed || '.', cwd), { followLast: true })
   if (!found.ok) return { error: `grep: ${typed}: ${errnoText(found.errno)}` }
   const node = vfs[found.path]
@@ -379,7 +397,7 @@ const sort = (context) => {
   return { stdout: kept.map(withNewline).join('') }
 }
 
-// uniq: runs of equal adjacent lines; a second operand is the file to write
+// uniq: runs of equal adjacent lines; a second operand is the file to write, `-` for stdout
 const UNIQ_SPEC = Object.freeze({ name: 'uniq', flags: 'cdui' })
 
 /**
@@ -410,9 +428,27 @@ const uniq = ({ argv, fs, cwd, stdin }) => {
   const { flags } = parsed
   const runs = runsOf(rowsOf(input.text), Boolean(flags.i)).filter(({ count }) => !(flags.d && count === 1) && !(flags.u && count > 1))
   const text = runs.map(({ line, count }) => withNewline(flags.c ? `${String(count).padStart(UNIQ_COUNT_WIDTH)} ${line}` : line)).join('')
-  if (to === undefined) return { stdout: text }
+  if (to === undefined || to === STDIN) return { stdout: text }
   const written = fs.apply(writeFile, { path: normalize(to, cwd), text })
   return written.ok ? {} : { stderr: [`uniq: ${to}: ${why(written)}`], code: 1 }
+}
+
+// less's options that take a value, from the rest of their word or else the next one (`-pBio`, `-p Bio`)
+const LESS_VALUED = /[bhjkoOpPtTxyz#]/
+
+/**
+ * The files less shows: the words after its leading options (`-N`, `+G`, `--LINE-NUMBERS`) and a `--` that ends them.
+ * @param {readonly string[]} argv
+ */
+const lessFiles = (argv) => {
+  for (let at = 0; at < argv.length; at += 1) {
+    const word = argv[at]
+    if (word === '--') return argv.slice(at + 1)
+    if (word.length < 2 || !'-+'.includes(word[0])) return argv.slice(at)
+    const valued = word[0] === '-' && word[1] !== '-' ? word.slice(1).search(LESS_VALUED) : -1
+    if (valued >= 0 && valued === word.length - 2) at += 1
+  }
+  return []
 }
 
 /**
@@ -420,12 +456,15 @@ const uniq = ({ argv, fs, cwd, stdin }) => {
  * @param {CommandContext} context @returns {CommandOutput}
  */
 const less = ({ argv, fs, cwd, stdin }) => {
-  if (!argv.length && stdin === null) return { stderr: ['Missing filename ("less --help" for help)'], code: 1 }
+  const files = lessFiles(argv)
+  if (!files.length && stdin === null) return { stderr: ['Missing filename ("less --help" for help)'], code: 1 }
   const vfs = fs.vfs()
   const stderr = []
   let text = ''
-  for (const typed of inputsOf(argv)) {
-    const input = readInput(vfs, typed, { cwd, stdin })
+  for (const typed of inputsOf(files)) {
+    const message = homeFileMessage(vfs, typed, cwd)
+    /** @type {Input} */
+    const input = message ? { ok: true, text: message } : readInput(vfs, typed, { cwd, stdin })
     if (input.ok) text += input.text
     else stderr.push(readError('less', typed, input, (_, reason) => (reason === errnoText('EISDIR') ? `${typed} is a directory` : `${typed}: ${reason}`)))
   }

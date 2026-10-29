@@ -220,6 +220,7 @@ describe('fs commands', () => {
   it('cat projects.txt and music.txt give the home terminal messages', () => {
     expect(texts(run('cat projects.txt'))).toEqual(['Use the command "projects" for all project details'])
     expect(texts(run('cat music.txt'))).toEqual(['Use the command "music" to explore Rafey\'s music'])
+    expect(texts(run('cat constructor'))).toEqual(['cat: constructor: No such file or directory'])
   })
 
   it('cat reports folders, missing files and binary audio', () => {
