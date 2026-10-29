@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, renderHook } from '@testing-library/react'
-import { HOME_CWD_KEY, VISIBLE_IN_RAFEYOS, useHomeShell } from '@/components/home/shell/useHomeShell'
+import { VISIBLE_IN_RAFEYOS, useHomeShell } from '@/components/home/shell/useHomeShell'
+import { HOME_CWD_KEY } from '@/lib/storageKeys'
 import { TerminalProvider } from '@/components/home/TerminalProvider'
 import { HOME_EFFECTS, HOME_PANELS } from '@/components/home/shell/homeCommands'
 import { HISTORY_FILE, historyLines, recordHistory } from '@/components/rafeyos/core/commands/history'

@@ -5,7 +5,9 @@ import {
   clickDock,
   desktopIcon,
   fsDisk,
+  fsFiles,
   fsStoreOn,
+  fsTrash,
   memoryStorage,
   openTerminal,
   quotaError,
@@ -15,6 +17,7 @@ import {
   typeCommand,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { createSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 
 afterEach(cleanup)
 
@@ -509,5 +512,150 @@ describe('neofetch in the Terminal', () => {
       "   .-'''-.", '  /  .-.  \\', ' |  ( r )  |', 'OS', "  \\  '-'  /", 'Host', "   '-...-'", 'Kernel',
       'Uptime', 'Shell', 'DE', 'Theme', 'CPU', 'Memory',
     ])
+  })
+})
+
+describe('reset-home in the Terminal', () => {
+  const QUESTION = 'reset-home: erase /home/visitor, saved settings and history? [y/N]'
+  const NOTES = '/home/visitor/Desktop/notes.txt'
+  const HISTORY = '/home/visitor/.bash_history'
+  const root = (container) => container.querySelector('.rafeyos')
+  const promptOf = (win) => win.querySelector('.tline')
+  const savedDisk = () => fsDisk({ [NOTES]: 'hi\n', [HISTORY]: 'ls\n' }, { '/home/visitor/old.txt': 'old\n' })
+  /** A saved purple accent, light style, right-hand dock and bigger icons. */
+  const savedSettings = () => {
+    const settings = createSettingsStore({ storage: memoryStorage() })
+    settings.set('accent', '#7764D8')
+    settings.set('style', 'light')
+    settings.set('dockPos', 'right')
+    settings.set('iconSize', 48)
+    return settings
+  }
+
+  it('reset_home_asks_and_enter_means_no', () => {
+    const disk = savedDisk()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'reset-home')
+    expect(promptOf(win).textContent).toBe(`${QUESTION} `)
+    expect(promptOf(win).querySelector('.pg')).toBeNull()
+    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:/home/rafey$ reset-home')
+
+    typeCommand(input, '')
+
+    expect(log(win).lastElementChild.textContent).toBe(`${QUESTION} `)
+    expect(promptOf(win).querySelector('.pg').textContent).toBe('visitor@rafey.ai')
+    expect(fsFiles(disk)).toMatchObject({ [NOTES]: 'hi\n' })
+    expect(fsTrash(disk)).toEqual({ '/home/visitor/old.txt': 'old\n' })
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('0')
+  })
+
+  it('reset_home_y_wipes_files_trash_history_and_settings', () => {
+    const disk = savedDisk()
+    const settings = savedSettings()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk), settings })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'y')
+
+    expect(log(win).lastElementChild.textContent).toBe(`${QUESTION} y`)
+    expect(fsFiles(disk)).toEqual({})
+    expect(fsTrash(disk)).toEqual({})
+    expect(settings.getState()).toEqual({})
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  history')
+  })
+
+  it('desktop_icons_and_accent_return_to_defaults_after_reset', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(savedDisk()), settings: savedSettings() })
+    const { input } = openTerminal(container)
+    expect(desktopIcon(container, NOTES)).not.toBeNull()
+    expect(root(container).className).toBe('rafeyos light')
+    expect(root(container).style.getPropertyValue('--accent')).toBe('#7764D8')
+    expect(container.querySelector('.dock').className).toBe('dock right')
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'YES')
+
+    expect(desktopIcon(container, NOTES)).toBeNull()
+    expect(root(container).className).toBe('rafeyos')
+    expect(root(container).style.getPropertyValue('--accent')).toBe('#E95420')
+    expect(container.querySelector('.dock').className).toBe('dock bottom')
+  })
+
+  it('ctrl_c_at_the_question_cancels_with_130', () => {
+    const disk = savedDisk()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'reset-home')
+    fireEvent.change(input, { target: { value: 'ma' } })
+
+    fireEvent.keyDown(input, { key: 'c', ctrlKey: true })
+
+    expect(input.value).toBe('')
+    expect(log(win).lastElementChild.textContent).toBe(`${QUESTION} ma^C`)
+    expect(promptOf(win).querySelector('.pg')).not.toBeNull()
+    expect(fsFiles(disk)).toMatchObject({ [NOTES]: 'hi\n' })
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('130')
+  })
+
+  it('answer_is_not_saved_to_history_or_up_arrow', () => {
+    const disk = fsDisk()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'reset-home')
+
+    // Tab, ↑ and ↓ do nothing while the question waits
+    for (const key of ['ArrowUp', 'Tab', 'ArrowDown']) fireEvent.keyDown(input, { key })
+    expect(input.value).toBe('')
+    typeCommand(input, 'nope')
+
+    expect(fsFiles(disk)[HISTORY]).toBe('reset-home\n')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('reset-home')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('reset-home')
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  reset-home\n    2  history')
+  })
+
+  it('other_open_terminal_up_arrow_is_cleared', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(savedDisk()) })
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'echo one')
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    const second = within(windowsOf(container, 'terminal')[1]).getByLabelText('Terminal input')
+    typeCommand(second, 'echo two')
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'y')
+
+    fireEvent.keyDown(second, { key: 'ArrowUp' })
+    expect(second.value).toBe('')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('')
+  })
+
+  it('a failed reset after y prints why, sets 1 and changes nothing', () => {
+    const disk = refusingWrites(savedDisk(), quotaError())
+    const settings = savedSettings()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk), settings })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'y')
+
+    expect([...log(win).children].slice(-2).map((row) => row.textContent)).toEqual([
+      `${QUESTION} y`,
+      'reset-home: cannot reset: No space left on device',
+    ])
+    expect(desktopIcon(container, NOTES)).not.toBeNull()
+    expect(settings.getState()).toMatchObject({ accent: '#7764D8' })
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('1')
   })
 })

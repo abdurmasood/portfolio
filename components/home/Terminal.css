@@ -122,6 +122,15 @@
   margin-right: 1ch;
 }
 
+/* reset-home's [y/N] question stands in for the prompt; on a narrow screen it wraps and leaves room for the answer */
+.question {
+  margin-right: 1ch;
+}
+
+.question + .terminal-input-field {
+  min-width: 4ch;
+}
+
 .terminal-cursor {
   position: absolute;
   top: 50%;

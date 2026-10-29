@@ -16,6 +16,7 @@ import { complete } from '@/components/rafeyos/core/commands/complete';
 import { completionCommands } from '@/components/rafeyos/core/commands/exec';
 import { tilde } from '@/components/rafeyos/core/vfs/paths';
 import { useCommandRecall } from '@/components/rafeyos/apps/terminal/logic/useCommandRecall';
+import { answerKey } from '@/components/rafeyos/apps/terminal/logic/useQuestion';
 
 const TYPING_IDLE_MS = 500;
 // Long enough to read 'starting rOS…' while the chunk prefetches
@@ -102,7 +103,7 @@ const useCursor = (inputRef, { input, foregroundId }) => {
 
 /** Running a line, Tab completion and the ↑/↓ recall, for the prompt's key handler. */
 const usePromptKeys = ({ shell, input, setInput }) => {
-  const recall = useCommandRecall(shell.shellFs);
+  const recall = useCommandRecall(shell.shellFs, shell.vfs);
   const tabCount = useRef(0);
 
   const submit = (command) => {
@@ -133,15 +134,20 @@ const usePromptKeys = ({ shell, input, setInput }) => {
   return { keys, submit, resetTab: () => { tabCount.current = 0; } };
 };
 
+/** The prompt, or a command's [y/N] question waiting for its answer. */
+const PromptText = ({ cwd, question }) => (question === null ? (
+  <span className="prompt">
+    visitor
+    <span className='base-color'>@</span>
+    <span className='hostname'>rafey.ai</span>
+    <span className='base-color'>:{tilde(cwd)}$</span>
+  </span>
+) : <span className="question">{question}</span>);
+
 /** The live prompt line: input, ghost `help` and block cursor. */
-const PromptLine = ({ cwd, input, inputRef, cursor, ghostSuggestion, onChange, onKeyDown, onGhostTap }) => (
+const PromptLine = ({ cwd, question, input, inputRef, cursor, ghostSuggestion, onChange, onKeyDown, onGhostTap }) => (
   <div className="terminal-input">
-    <span className="prompt">
-      visitor
-      <span className='base-color'>@</span>
-      <span className='hostname'>rafey.ai</span>
-      <span className='base-color'>:{tilde(cwd)}$</span>
-    </span>
+    <PromptText cwd={cwd} question={question} />
     <span className="terminal-input-field">
       <input
         ref={inputRef}
@@ -185,8 +191,9 @@ const PromptLine = ({ cwd, input, inputRef, cursor, ghostSuggestion, onChange, o
   </div>
 );
 
-/** The prompt's key handling: the ghost first, then Ctrl chords, then the plain keys. */
+/** The prompt's key handling: a waiting question first, then the ghost, then Ctrl chords, then the plain keys. */
 const keyDownHandler = ({ ghostSuggestion, input, setInput, shell, prompt }) => (e) => {
+  if (shell.question !== null && answerKey(e, { session: shell, input, setInput })) return undefined;
   const completesGhost = ghostSuggestion && (
     e.key === 'Tab'
     || (e.key === 'ArrowRight' && e.target.selectionStart === input.length)
@@ -293,7 +300,7 @@ const Terminal = () => {
     <div className="terminal" ref={terminalRef} onClick={focusInputOnClick}>
       <Screen shell={shell} onDone={finish} />
       {/* A playing track, the projects picker, the blog picker or nano owns the terminal */}
-      {!shell.foregroundId && <PromptLine cwd={shell.cwd} inputRef={inputRef} {...promptLine} />}
+      {!shell.foregroundId && <PromptLine cwd={shell.cwd} question={shell.question} inputRef={inputRef} {...promptLine} />}
     </div>
   );
 };

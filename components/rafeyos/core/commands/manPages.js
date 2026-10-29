@@ -328,6 +328,15 @@ const PAGES = Object.freeze({
       "desktop's style and accent, and the details on Settings → About. Piped, it prints plain text.",
     ],
   },
+  'reset-home': {
+    summary: "erase the visitor's home, saved settings and history",
+    synopsis: ['reset-home'],
+    description: [
+      'Ask before putting /home/visitor back as it was on the first visit: every file, folder and Trash entry goes,',
+      "with the desktop's saved settings and the command history. Only y or yes goes ahead. /home/rafey and /tmp stay.",
+      'With standard input, its first line is the answer and nothing is asked.',
+    ],
+  },
   hostname: { summary: "show the system's host name", synopsis: ['hostname'], description: ['Print the name of this host.'] },
   history: {
     summary: 'display the command history',

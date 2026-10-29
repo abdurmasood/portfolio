@@ -42,6 +42,8 @@ export const EFFECTS = Object.freeze({
   CLOSE_SELF: 'closeSelf',
   LOGOUT: 'logout',
   KILL: 'kill',
+  ASK: 'ask',
+  RESET_HOME: 'resetHome',
 })
 
 /**
@@ -53,7 +55,9 @@ export const EFFECTS = Object.freeze({
  *   | { type: typeof EFFECTS.PLAY | typeof EFFECTS.CLEAR | typeof EFFECTS.CLEAR_HISTORY | typeof EFFECTS.CLOSE_SELF }
  *   | { type: typeof EFFECTS.LOGOUT }
  *   | { type: typeof EFFECTS.KILL, pid: number, force: boolean }
- * } Effect
+ *   | { type: typeof EFFECTS.ASK, question: string, onYes: Effect[] }
+ *   | { type: typeof EFFECTS.RESET_HOME }
+ * } Effect `ask` puts a [y/N] question to the visitor and runs `onYes` on y or yes
  */
 
 /**

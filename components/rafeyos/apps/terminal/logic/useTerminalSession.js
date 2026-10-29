@@ -9,6 +9,8 @@ import { START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
 import { settingsView } from '@/components/rafeyos/core/settings/settingsView'
 import { windowProcesses } from '@/components/rafeyos/core/commands/builtins/process'
 import { applyTerminalEffects } from './terminalEffects'
+import { useOwnLines } from './useCommandRecall'
+import { useQuestion } from './useQuestion'
 import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 
 // Lets "Returning to the rafey.ai terminal…" show before the session ends (as in the mockup)
@@ -74,6 +76,24 @@ const useEffectHandlers = (windowId) => {
 }
 
 /**
+ * A command's [y/N] question in this window: the answer or ^C is printed and sets $?.
+ * @param {{ context: { fs: object, settings: object }, shell: { current: object }, append: Function }} options
+ */
+const useWindowQuestion = ({ context, shell, append }) => {
+  const question = useQuestion(context)
+  const settle = ({ lines, code }) => {
+    shell.current = { ...shell.current, lastCode: code }
+    append(lines)
+  }
+  return {
+    question: question.question,
+    ask: question.ask,
+    answer: (input) => settle(question.answer(input)),
+    cancel: (input) => settle(question.cancel(input)),
+  }
+}
+
+/**
  * One terminal window's shell: its folder, variables and last exit code, the output log, and running lines through
  * exec() + effects.
  * @param {{ windowId: number, initialCwd: string }} options
@@ -87,10 +107,10 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   const [startedAt] = useState(() => context.now())
   // Read and written within one keypress, so a ref rather than state
   const shell = useRef({ cwd, env: { PWD: cwd }, lastCode: 0 })
-  // This window's lines since it opened or last ran `history -c`: what `history` lists when the file can't be written
-  const ownLines = useRef([])
+  const ownLines = useOwnLines(vfs)
   const log = useLog()
   const { append } = log
+  const { ask, ...question } = useWindowQuestion({ context, shell, append })
   // Tells the caller whether the line ran `history -c`, so the ↑ list can forget too
   const run = useCallback((raw) => {
     const before = shell.current
@@ -105,12 +125,12 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
       ownLines.current = []
     }
     // Read after exec, so a file the line just made can be opened by it
-    const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, clearHistory, vfs: context.fs.vfs() })
+    const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, clearHistory, ask, vfs: context.fs.vfs() })
     setCwd(result.cwd)
     const echoed = clear ? [] : [prompt(before.cwd, raw)]
     append([...echoed, ...result.lines, ...notes], { clearFirst: clear })
     return { historyCleared }
-  }, [context, startedAt, handlers, append, windowId])
+  }, [context, startedAt, handlers, append, windowId, ask, ownLines])
   // Ctrl+C at the prompt: the abandoned line is echoed with ^C and $? becomes 130
   const interrupt = useCallback((input) => {
     shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }
@@ -118,5 +138,5 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   }, [append])
   // The window's variables and $? as they are now, for Tab to fill in a typed `$HOME/` or `$OLDPWD/`
   const variables = useCallback(() => ({ env: { ...ENV, ...shell.current.env }, lastCode: shell.current.lastCode }), [])
-  return { cwd, entries: log.entries, run, interrupt, variables, append, clear: log.clear }
+  return { cwd, entries: log.entries, run, interrupt, variables, append, clear: log.clear, ...question }
 }

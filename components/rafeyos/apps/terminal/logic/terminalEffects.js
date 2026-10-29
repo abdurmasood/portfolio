@@ -15,7 +15,7 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
 
 /**
  * openLink shows the Open Link dialog; play starts the track without opening a window; clearHistory empties the
- * window's own history after `history -c`.
+ * window's own history after `history -c`; ask puts a command's [y/N] question on the prompt.
  * @typedef {{
  *   vfs: Vfs,
  *   windowManager: Pick<WindowManager, 'openApp' | 'openPath' | 'close' | 'forceClose'>,
@@ -25,6 +25,7 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
  *   closeSelf: () => void,
  *   logout: () => void,
  *   clearHistory: () => void,
+ *   ask: (question: Extract<Effect, { type: 'ask' }>) => void,
  * }} EffectHandlers
  */
 
@@ -89,6 +90,9 @@ const runEffect = (effect, handlers) => {
       return null
     case EFFECTS.CLEAR_HISTORY:
       handlers.clearHistory()
+      return null
+    case EFFECTS.ASK:
+      handlers.ask(effect)
       return null
     // The terminal's own PID closes it like exit, but kill prints no `logout`
     case EFFECTS.KILL:

@@ -205,20 +205,24 @@ const writeOut = (path, ran, name, shell) => {
   return written.ok ? { ...ran, stdout: '' } : writeError(ran, name, failureErrno(written))
 }
 
+/** @param {Effect} effect */
+const isQuestion = (effect) => effect.type === EFFECTS.ASK
+
 /**
- * The handler's output as a Ran.
+ * The handler's output as a Ran. A question needs the screen, so one asked into a pipe or a file is dropped.
  * @param {CommandOutput} output
  * @param {boolean} tty
  * @returns {Ran}
  */
 const ranFrom = (output, tty) => {
   const stdout = output.stdout ?? plainText(output.display ?? [])
+  const effects = output.effects ?? []
   return {
     stdout,
     screen: tty ? screenOf(output.display, stdout) : [],
     stderr: output.stderr ?? [],
     code: output.code ?? SUCCESS,
-    effects: output.effects ?? [],
+    effects: tty ? effects : effects.filter((effect) => !isQuestion(effect)),
     cwd: output.cwd,
     env: output.env,
   }
@@ -251,7 +255,8 @@ const runCommand = (command, { stdin, last }, shell) => {
 
 /**
  * Runs a pipeline: each command's stdout is the next one's stdin. Only a command that runs alone can change the
- * window's folder or variables, or stop the rest of the line, as each stage of a real pipeline is a subshell.
+ * window's folder or variables, or stop the rest of the line, as each stage of a real pipeline is a subshell. A
+ * question on the screen stops it too, as a shell waiting on `read` runs nothing after it.
  * @param {Pipeline} pipeline
  * @param {Shell} shell
  * @returns {{ lines: Line[], effects: Effect[], code: number, cwd?: string, env?: Record<string, string>, aborts?: boolean }}
@@ -274,7 +279,7 @@ const runPipeline = (pipeline, shell) => {
     code: final.code,
     cwd: alone ? final.cwd : undefined,
     env: alone ? final.env : undefined,
-    aborts: alone && final.aborts,
+    aborts: (alone && final.aborts) || final.effects.some(isQuestion),
   }
 }
 

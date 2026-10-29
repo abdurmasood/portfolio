@@ -16,9 +16,10 @@ import { homeChanged, mergeState } from '@/components/rafeyos/core/vfs/fsState'
 import { sharedFsStore } from '@/components/rafeyos/core/vfs/fsStore'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
+import { useOwnLines } from '@/components/rafeyos/apps/terminal/logic/useCommandRecall'
+import { useQuestion } from '@/components/rafeyos/apps/terminal/logic/useQuestion'
 import { localStorageOrNull } from '@/lib/browserStorage'
-
-export const HOME_CWD_KEY = 'rafey-home-cwd'
+import { HOME_CWD_KEY } from '@/lib/storageKeys'
 
 /** Printed after a line that changed the visitor's files, which the desktop shows too. */
 export const VISIBLE_IN_RAFEYOS = '→ visible in rafeyOS'
@@ -75,6 +76,9 @@ const runEffects = (effects, handlers) =>
           return { ...outcome, clear: true }
         case EFFECTS.CLEAR_HISTORY:
           return { ...outcome, historyCleared: true }
+        case EFFECTS.ASK:
+          handlers.ask(effect)
+          return outcome
         case HOME_EFFECTS.NEW_TAB:
           handlers.newTab(effect.href)
           return outcome
@@ -125,6 +129,28 @@ const useHomeFs = () => {
   const state = useSyncExternalStore(fs.store.subscribe, fs.store.getState, fs.store.getState)
   const vfs = useMemo(() => mergeState(fs.base, state), [fs.base, state])
   return { ...fs, vfs }
+}
+
+/** The hint, when what the desktop shows changed since `before`. */
+const hintSince = (before, fs) => (changedDesktop(before, desktopState(fs)) ? [dim(VISIBLE_IN_RAFEYOS)] : [])
+
+/** A command's [y/N] question on this page: the answer or ^C is printed, with the hint when a reset changed things. */
+const useHomeQuestion = ({ fs, terminal, append }) => {
+  const question = useQuestion({ fs: fs.shellFs, settings: fs.settings })
+  const settle = ({ lines, code }, hint = []) => {
+    append([...lines, ...hint])
+    terminal.setLastCode(code)
+  }
+  return {
+    question: question.question,
+    ask: question.ask,
+    answer: (input) => {
+      const before = desktopState(fs)
+      const outcome = question.answer(input)
+      settle(outcome, hintSince(before, fs))
+    },
+    cancel: (input) => settle(question.cancel(input)),
+  }
 }
 
 /** Calls `startFresh` after the delay, unless the terminal has gone by then. */
@@ -189,10 +215,10 @@ export const useHomeShell = ({ handlers }) => {
   const [foregroundId, setForegroundId] = useState(null)
   // When this page's shell started: uptime counts from it
   const [startedAt] = useState(() => new Date())
-  // This page's lines since it loaded or last ran `history -c`: what `history` lists when the file can't be written
-  const ownLines = useRef([])
+  const ownLines = useOwnLines(vfs)
   const newSession = useNewSession(terminal)
   const { append, ...screen } = useScreen({ terminal, cwd, setForegroundId })
+  const { ask, ...question } = useHomeQuestion({ fs, terminal, append })
   const env = { PWD: cwd, ...terminal.env }
 
   // Tells the caller whether the line ran `history -c`, so the ↑ list can forget too
@@ -200,9 +226,9 @@ export const useHomeShell = ({ handlers }) => {
     const history = record(shellFs, raw, ownLines)
     const before = desktopState(fs)
     const result = exec(raw, { fs: shellFs, cwd, env, lastCode: terminal.lastCode, content, history, startedAt, settings, processes: LONE_SHELL, commands: HOME_COMMANDS })
-    const { clear, historyCleared } = runEffects(result.effects, { ...handlers, newSession })
+    const { clear, historyCleared } = runEffects(result.effects, { ...handlers, newSession, ask })
     if (historyCleared) ownLines.current = []
-    const hint = changedDesktop(before, desktopState(fs)) ? [dim(VISIBLE_IN_RAFEYOS)] : []
+    const hint = hintSince(before, fs)
     const echoed = clear ? [] : [prompt(cwd, raw)]
     setForegroundId(lastForeground(append([...echoed, ...result.lines, ...hint], { clearFirst: clear })))
     terminal.setCwd(result.cwd)
@@ -216,11 +242,13 @@ export const useHomeShell = ({ handlers }) => {
   return {
     cwd,
     shellFs,
+    vfs,
     entries: terminal.entries,
     foregroundId,
     started: terminal.ranThisVisit > 0,
     run,
     ...screen,
+    ...question,
     // The variables and $? as they are now, for Tab to fill in a typed `$HOME/`
     variables: () => ({ env: { ...ENV, ...env }, lastCode: terminal.lastCode }),
   }

@@ -4,7 +4,7 @@
 // state, or an errno. Only HOME, TMP and the visitor's own folders inside them can change; everything else is EACCES.
 // Every `path` argument is absolute and normalised (paths.normalize); an error names it as the caller spelled it.
 import { HOME, NODE_TYPES, TMP } from './buildVfs'
-import { COPY, MAX_NAME, copyNode, dirNode, symlinkNode, textNode, withFile, withNodes, without } from './fsState'
+import { COPY, MAX_NAME, copyNode, dirNode, seedState, symlinkNode, textNode, withFile, withNodes, withTmpFrom, without } from './fsState'
 import { MAX_HOPS, joinPath, parentOf, resolve } from './paths'
 
 /** @import { Vfs, VfsNode } from './buildVfs' */
@@ -410,3 +410,13 @@ export const symlink = (vfs, state, { target, path, replace = false }, now) => {
   if (refused) return refused
   return done(withNodes(state, { ...state.nodes, [spot.path]: symlinkNode(target, now) }))
 }
+
+/**
+ * reset-home: the visitor's home as on a first visit, with every file, folder and trash entry gone. /tmp stays.
+ * @param {Vfs} _vfs
+ * @param {FsState} state
+ * @param {unknown} _args
+ * @param {number} now
+ * @returns {FsOpResult}
+ */
+export const resetHome = (_vfs, state, _args, now) => done(withTmpFrom(seedState(now), state))

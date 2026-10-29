@@ -8,6 +8,7 @@ import { gsettingsCommands } from './builtins/gsettings'
 import { launchCommands } from './builtins/launch'
 import { neofetchCommands } from './builtins/neofetch'
 import { processCommands } from './builtins/process'
+import { resetHomeCommands } from './builtins/resetHome'
 import { systemCommands } from './builtins/system'
 import { textCommands } from './builtins/text'
 
@@ -37,6 +38,7 @@ export const COMMANDS = Object.freeze(
     ...launchCommands,
     ...neofetchCommands,
     ...processCommands,
+    ...resetHomeCommands,
     ...systemCommands,
     ...textCommands,
   }),

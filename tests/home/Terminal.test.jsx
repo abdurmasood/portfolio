@@ -2,7 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { realContent } from '@/tests/rafeyos/helpers/testVfs'
-import { resetSharedStore } from '@/tests/home/helpers/homeStore'
+import { resetSharedStore, sharedVfs } from '@/tests/home/helpers/homeStore'
+import { sharedSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
+import { HOME_CWD_KEY } from '@/lib/storageKeys'
 import { bioDescription } from '@/lib/descriptions'
 
 const push = vi.fn()
@@ -296,5 +298,58 @@ describe('home terminal: neofetch', () => {
       "   .-'''-.", '  /  .-.  \\', ' |  ( r )  |', 'OS', "  \\  '-'  /", 'Host', "   '-...-'", 'Kernel',
       'Uptime', 'Shell', 'DE', 'Theme', 'CPU', 'Memory',
     ])
+  })
+})
+
+describe('home terminal: reset-home', () => {
+  const QUESTION = 'reset-home: erase /home/visitor, saved settings and history? [y/N]'
+  const promptRow = (container) => container.querySelector('.terminal-input')
+
+  it('reset_home_on_home_works_shows_the_hint_and_resets_the_saved_folder', () => {
+    const { container } = render(<Page />)
+    run("mkdir ~/notes && cd ~/Documents && gsettings set org.gnome.desktop.interface accent-color 'purple'")
+    expect(window.localStorage.getItem(HOME_CWD_KEY)).toBe('/home/visitor/Documents')
+
+    run('reset-home')
+    expect(promptRow(container).textContent).toBe(QUESTION)
+    expect(promptRow(container).querySelector('.prompt')).toBeNull()
+    // Tab, ↑ and ↓ do nothing while the question waits
+    for (const key of ['Tab', 'ArrowUp', 'ArrowDown']) press(key)
+    expect(input().value).toBe('')
+    run('y')
+
+    const rows = [...container.querySelector('.terminal-output').children].slice(-2).map((row) => row.textContent)
+    expect(rows).toEqual([`${QUESTION} y`, '→ visible in rafeyOS'])
+    expect(sharedVfs()['/home/visitor/notes']).toBeUndefined()
+    expect(sharedSettingsStore(window).getState()).toEqual({})
+    expect(window.localStorage.getItem(HOME_CWD_KEY)).toBeNull()
+    expect(promptRow(container).textContent).toBe(`${PROMPT}~/Documents$`)
+    press('ArrowUp')
+    expect(input().value).toBe('')
+    run('echo $?')
+    expect(lastRow(container).textContent).toBe('0')
+  })
+
+  it('Enter alone means no, and ctrl+c cancels with 130, both kept out of history', () => {
+    const { container } = render(<Page />)
+    run('mkdir ~/notes')
+
+    run('reset-home')
+    press('Enter')
+    expect(lastRow(container).textContent).toBe(`${QUESTION} `)
+    run('reset-home')
+    type('ma')
+    press('c', { ctrlKey: true })
+
+    expect(lastRow(container).textContent).toBe(`${QUESTION} ma^C`)
+    expect(sharedVfs()['/home/visitor/notes']).toMatchObject({ type: 'dir' })
+    run('echo $?')
+    expect(lastRow(container).textContent).toBe('130')
+    press('ArrowUp')
+    press('ArrowUp')
+    expect(input().value).toBe('reset-home')
+    press('ArrowUp')
+    press('ArrowUp')
+    expect(input().value).toBe('mkdir ~/notes')
   })
 })
