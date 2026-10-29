@@ -67,11 +67,11 @@ const PromptLine = ({ cwd, input, keys, inputRef }) => (
 
 /** GNOME Terminal running rafeyOS's bash. */
 export const TerminalApp = ({ windowId, arg }) => {
-  const { vfs } = useVfs()
+  const { shellFs } = useVfs()
   const windowManager = useWindowManager()
   const session = useTerminalSession({ windowId, initialCwd: arg })
   const [input, setInput] = useState('')
-  const keys = useTerminalKeys({ session, input, setInput, vfs })
+  const keys = useTerminalKeys({ session, input, setInput, shellFs })
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
   const title = terminalTitle(session.cwd)

@@ -1,3 +1,4 @@
+import { shellCollate } from './expand'
 import { runLine } from './run'
 import { asksForHelp, helpText } from './manPages'
 import { contentCommands } from './builtins/content'
@@ -35,12 +36,15 @@ export const COMMANDS = Object.freeze(
   }),
 )
 
-// What tab completes for the first word; startx is deliberately hidden
-export const COMPLETION_COMMANDS = Object.freeze([
-  'help', 'bio', 'projects', 'blog', 'skills', 'music', 'contact', 'open', 'xdg-open', 'ls', 'cd',
-  'pwd', 'cat', 'clear', 'exit', 'nautilus', 'gnome-text-editor', 'whoami', 'uname', 'echo', 'sudo',
-  'logout',
-])
+// Commands tab leaves out; startx is deliberately hidden
+const UNLISTED = new Set(['startx'])
+
+/** What tab completes for the first word: every command in the registry, in the shell's name order. */
+export const COMPLETION_COMMANDS = Object.freeze(
+  Object.keys(COMMANDS)
+    .filter((name) => !UNLISTED.has(name))
+    .sort(shellCollate),
+)
 
 /**
  * Runs one command line. Files change through `context.fs`; every other side effect comes back as a descriptor for

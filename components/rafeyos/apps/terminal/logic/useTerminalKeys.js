@@ -12,8 +12,8 @@ const ACCEPTS_STARTER = new Set(['Tab', 'ArrowRight', 'Enter'])
  * Bash-style history: ↑ walks back, ↓ forward, past the newest clears the line. It walks ~/.bash_history as it was
  * when the window opened, then this window's own lines; other windows' later lines show only in `history`.
  */
-const useHistory = (vfs) => {
-  const [snapshot] = useState(() => historyLines(vfs))
+const useHistory = (shellFs) => {
+  const [snapshot] = useState(() => historyLines(shellFs.vfs()))
   const items = useRef(snapshot)
   const index = useRef(snapshot.length)
   return {
@@ -31,11 +31,11 @@ const useHistory = (vfs) => {
 
 /**
  * Keyboard handling for the terminal prompt.
- * @param {{ session: object, input: string, setInput: Function, vfs: object }} options
+ * @param {{ session: object, input: string, setInput: Function, shellFs: import('@/components/rafeyos/core/vfs/shellFs').ShellFs }} options
  * @returns {{ onKeyDown: Function, onChange: Function, started: boolean, runStarter: Function }}
  */
-export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
-  const history = useHistory(vfs)
+export const useTerminalKeys = ({ session, input, setInput, shellFs }) => {
+  const history = useHistory(shellFs)
   const tabCount = useRef(0)
   const [started, setStarted] = useState(false)
   const submit = (command) => {
@@ -46,7 +46,9 @@ export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
   }
   const tab = () => {
     tabCount.current += 1
-    const outcome = complete(input, { vfs, cwd: session.cwd, commands: COMPLETION_COMMANDS, tabCount: tabCount.current })
+    // The tree as it is right now, so a file the last line made completes at once
+    const context = { vfs: shellFs.vfs(), cwd: session.cwd, commands: COMPLETION_COMMANDS, tabCount: tabCount.current }
+    const outcome = complete(input, context)
     if (outcome.list) session.append([prompt(session.cwd, input), pre(outcome.list.join('  '))])
     else setInput(outcome.value)
   }

@@ -156,7 +156,7 @@ describe('Terminal app', () => {
     fireEvent.keyDown(input, { key: 'Tab' })
     fireEvent.keyDown(input, { key: 'Tab' })
 
-    expect(log(win).textContent).toContain('contact  cd  cat  clear')
+    expect(log(win).textContent).toContain('cat  cd  clear  contact  cp')
   })
 
   it('clears with clear and with Ctrl+L', () => {
