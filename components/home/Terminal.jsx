@@ -235,6 +235,7 @@ const Screen = ({ shell, onDone }) => (
         line={entry.line}
         active={entry.id === shell.foregroundId}
         onDone={(props, options) => onDone(entry.id, props, options)}
+        shell={shell}
       />
     ))}
   </div>
@@ -268,7 +269,7 @@ const Terminal = () => {
   return (
     <div className="terminal" ref={terminalRef} onClick={focusInputOnClick}>
       <Screen shell={shell} onDone={finish} />
-      {/* A playing track, the projects picker, or the blog picker owns the terminal */}
+      {/* A playing track, the projects picker, the blog picker or nano owns the terminal */}
       {!shell.foregroundId && (
         <PromptLine
           cwd={shell.cwd}

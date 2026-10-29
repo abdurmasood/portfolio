@@ -422,6 +422,39 @@
   }
 }
 
+/* nano: the buffer and the file name prompt type in the terminal's own font and colours */
+.terminal .nano > p {
+  margin: 0;
+}
+
+.terminal .nano-buffer,
+.terminal .nano-file-name {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: none;
+  color: var(--term-fg);
+  font: inherit;
+  letter-spacing: inherit;
+  font-variant-ligatures: inherit;
+  caret-color: var(--term-fg);
+}
+
+.terminal .nano-buffer {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  resize: none;
+  white-space: pre-wrap;
+}
+
+.terminal .nano-file-name {
+  width: 32ch;
+  max-width: 100%;
+}
+
 /* One glyph per 1ch cell: keeps fallback-font symbols on the monospace grid */
 .terminal .cell {
   display: inline-block;

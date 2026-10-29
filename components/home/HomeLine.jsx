@@ -6,6 +6,7 @@ import { tilde } from '@/components/rafeyos/core/vfs/paths'
 import { HOME_PANELS } from '@/components/home/shell/homeCommands'
 import { BlogArticle, BlogPicker } from '@/components/home/BlogOutput'
 import { MusicPlayer, MusicStory } from '@/components/home/MusicOutput'
+import { NanoEditor } from '@/components/home/NanoEditor'
 import { ProjectPicker } from '@/components/home/ProjectsOutput'
 
 // A block drops the newline it ends with, so one more keeps a trailing blank row on screen, as a terminal shows it
@@ -56,11 +57,15 @@ const PANELS = Object.freeze({
       onStop={({ at, duration }) => onDone({ stoppedAt: at, duration })}
     />
   ),
+  // The folder nano's typed file names count from: the shell's, which can't change while nano has the keyboard
+  [HOME_PANELS.NANO]: ({ props, active, onDone, shell }) => (
+    <NanoEditor path={props.path} cwd={shell.cwd} shellFs={shell.shellFs} active={active} onDone={onDone} />
+  ),
 })
 
-const PanelLine = ({ line, active, onDone }) => {
+const PanelLine = ({ line, active, onDone, shell }) => {
   const Panel = PANELS[line.kind]
-  return Panel ? <Panel props={line.props} active={active} onDone={onDone} /> : null
+  return Panel ? <Panel props={line.props} active={active} onDone={onDone} shell={shell} /> : null
 }
 
 const RENDERERS = Object.freeze({
@@ -73,11 +78,12 @@ const RENDERERS = Object.freeze({
 })
 
 /**
- * @param {{ line: import('@/components/rafeyos/core/commands/lines').Line, active: boolean, onDone: Function }} props
- *   `active` when this line's panel holds the keyboard
+ * @param {{ line: import('@/components/rafeyos/core/commands/lines').Line, active: boolean, onDone: Function,
+ *   shell: { cwd: string, shellFs: import('@/components/rafeyos/core/vfs/shellFs').ShellFs } }} props
+ *   `active` when this line's panel holds the keyboard; `shell` is the folder and filesystem nano works in
  */
-export const HomeLine = ({ line, active, onDone }) => {
+export const HomeLine = ({ line, active, onDone, shell }) => {
   const Render = RENDERERS[line.type]
   if (!Render) throw new Error(`Unknown terminal line type: ${line.type}`)
-  return <Render line={line} active={active} onDone={onDone} />
+  return <Render line={line} active={active} onDone={onDone} shell={shell} />
 }
