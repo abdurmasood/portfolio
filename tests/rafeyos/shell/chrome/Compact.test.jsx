@@ -114,12 +114,12 @@ describe('touch', () => {
     const { container } = renderDesktop()
     clickDock('Files')
     const [files] = windowsOf(container, 'files')
-    const music = files.querySelector('[data-path="~/Music"]')
+    const desktop = files.querySelector('[data-path="/home/visitor/Desktop"]')
 
-    fireEvent.pointerDown(music, { pointerType: 'touch' })
-    fireEvent.click(music)
+    fireEvent.pointerDown(desktop, { pointerType: 'touch' })
+    fireEvent.click(desktop)
 
-    expect(files.getAttribute('aria-label')).toBe('Music')
+    expect(files.getAttribute('aria-label')).toBe('Desktop')
   })
 
   it('picks a window in the overview with a tap', () => {

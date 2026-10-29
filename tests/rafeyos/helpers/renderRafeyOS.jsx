@@ -89,6 +89,12 @@ export const menuEntry = (name) =>
 
 export const chooseMenuItem = (name) => fireEvent.click(menuEntry(name))
 
+/** A Files window to /home/rafey the way a visitor gets there: the projects place, then "rafey" in the pathbar. */
+export const goToRafeyHome = (filesWindow) => {
+  fireEvent.click(within(within(filesWindow).getByRole('navigation', { name: 'Places' })).getByText('projects'))
+  fireEvent.click(within(filesWindow.querySelector('.pathbar')).getByText('rafey'))
+}
+
 export const desktopIcon = (container, path) => container.querySelector(`.dicon[data-path="${path}"]`)
 
 export const openPowerMenu = () => {

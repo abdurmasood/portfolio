@@ -20,7 +20,7 @@ describe('file icons', () => {
     const { container } = render(
       <>
         <FileIcon vfs={vfs} path={HOME} />
-        <FileIcon vfs={vfs} path="~/Desktop" />
+        <FileIcon vfs={vfs} path="/home/visitor/Desktop" />
       </>,
     )
 

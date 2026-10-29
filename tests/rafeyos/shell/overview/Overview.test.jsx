@@ -111,7 +111,7 @@ describe('Activities overview: windows', () => {
     fireEvent.pointerOver(files)
 
     const labels = [...container.querySelectorAll('.ovlab')]
-    expect(labels.map((label) => label.textContent).sort()).toEqual(['Home', 'visitor@rafey: ~'])
+    expect(labels.map((label) => label.textContent).sort()).toEqual(['Home', 'visitor@rafey: /home/rafey'])
     expect(container.querySelector('.ovlab.on').textContent).toBe('Home')
     fireEvent.pointerLeave(workspace(container))
     expect(container.querySelector('.ovlab.on')).toBeNull()
@@ -154,7 +154,7 @@ describe('Activities overview: search', () => {
 
     const files = within(screen.getByRole('group', { name: 'Files' }))
     const row = files.getByRole('button', { name: /bio\.txt/ })
-    expect(row.querySelector('small').textContent).toBe('~')
+    expect(row.querySelector('small').textContent).toBe('/home/rafey')
     expect(row.classList.contains('on')).toBe(true)
     expect(root(container).classList.contains('ovhide')).toBe(true)
   })

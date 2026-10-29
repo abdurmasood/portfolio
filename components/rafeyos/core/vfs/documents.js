@@ -1,13 +1,14 @@
 // Visitor documents saved in this browser. Shipped files never go through here.
 import { HOME, NODE_TYPES, TRASH } from './buildVfs'
+import { joinPath } from './paths'
 
-export const DOCUMENTS = '~/Documents'
+export const DOCUMENTS = joinPath(HOME, 'Documents')
 export const DOCUMENTS_KEY = 'rafeyos-documents'
 
 /** Folders a new file may be saved into. Portfolio folders stay out. */
 export const SAVE_FOLDERS = Object.freeze([
   Object.freeze({ path: HOME, label: 'Home', icon: 'home' }),
-  Object.freeze({ path: '~/Desktop', label: 'Desktop', icon: 'desktop' }),
+  Object.freeze({ path: joinPath(HOME, 'Desktop'), label: 'Desktop', icon: 'desktop' }),
   Object.freeze({ path: DOCUMENTS, label: 'Documents', icon: 'folder' }),
 ])
 
@@ -24,8 +25,8 @@ export const documentName = (raw) => {
   return { ok: true, name: hasExtension(name) ? name : `${name}.txt` }
 }
 
-/** "~/Desktop" + "notes.txt" -> "~/Desktop/notes.txt". Home is "~". */
-export const filePath = (folder, name) => `${folder}/${name}`
+/** "/home/visitor/Desktop" + "notes.txt" -> "/home/visitor/Desktop/notes.txt". */
+export const filePath = (folder, name) => joinPath(folder, name)
 
 /**
  * What Save should do with a typed name in a chosen folder.
@@ -79,8 +80,14 @@ export const restoreFromTrash = (state, path, takenPaths) => {
   }
 }
 
-/** A stored key is a full path. A bare name is a Documents file from before folders existed. */
-const storedPath = (key) => (key.includes('/') ? key : filePath(DOCUMENTS, key))
+/**
+ * A stored key is a full path. A bare name is a Documents file from before folders existed,
+ * and a "~/..." key was saved before home was /home/visitor.
+ */
+const storedPath = (key) => {
+  if (key.startsWith('~/')) return HOME + key.slice(1)
+  return key.includes('/') ? key : filePath(DOCUMENTS, key)
+}
 
 const savedFiles = (files) => {
   if (!files || typeof files !== 'object' || Array.isArray(files)) return []

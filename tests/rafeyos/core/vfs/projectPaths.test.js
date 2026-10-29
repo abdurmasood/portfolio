@@ -13,20 +13,20 @@ describe('project paths', () => {
     expect(projectIndexFor(projects, undefined)).toBe(0)
   })
 
-  it('knows which project a ~/projects file describes', () => {
+  it('knows which project a /home/rafey/projects file describes', () => {
     const content = buildContent()
     const vfs = buildVfs(content)
     const [first] = content.projects
 
-    expect(projectForPath({ vfs, content }, `~/projects/${first.slug}.txt`)).toBe(first)
-    expect(projectForPath({ vfs, content }, '~/bio.txt')).toBeNull()
-    expect(projectForPath({ vfs, content }, '~/projects')).toBeNull()
-    expect(projectForPath({ vfs, content }, '~/nope')).toBeNull()
+    expect(projectForPath({ vfs, content }, `/home/rafey/projects/${first.slug}.txt`)).toBe(first)
+    expect(projectForPath({ vfs, content }, '/home/rafey/bio.txt')).toBeNull()
+    expect(projectForPath({ vfs, content }, '/home/rafey/projects')).toBeNull()
+    expect(projectForPath({ vfs, content }, '/home/rafey/nope')).toBeNull()
   })
 
   it('matches by the project index buildVfs stores, not by position', () => {
     const vfs = buildVfs(fixtureContent)
 
-    expect(projectForPath({ vfs, content: fixtureContent }, '~/projects/beta.txt')?.title).toBe('Beta')
+    expect(projectForPath({ vfs, content: fixtureContent }, '/home/rafey/projects/beta.txt')?.title).toBe('Beta')
   })
 })

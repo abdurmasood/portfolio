@@ -10,7 +10,9 @@ import {
   memoryStorage,
   menuEntry,
   menuLabels,
+  openTerminal,
   renderDesktop,
+  typeCommand,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
@@ -95,7 +97,7 @@ describe('Text Editor', () => {
 
     expect(screen.getByText('Recent Documents')).toBeTruthy()
     expect(menuLabels()).toEqual(textDocuments(realVfs).map((path) => documentLabel(realVfs, path)))
-    chooseMenuItem(/^README\.txt\s+~$/)
+    chooseMenuItem(/^README\.txt\s+\/home\/rafey$/)
     const readme = windowsOf(container, 'editor')[1]
     const text = within(readme).getByLabelText('README.txt')
     expect(readme.getAttribute('aria-label')).toBe('README.txt')
@@ -111,8 +113,8 @@ describe('Text Editor', () => {
     chooseMenuItem('Show in Files')
 
     const [files] = windowsOf(container, 'files')
-    expect(files.getAttribute('aria-label')).toBe('Home')
-    expect(files.querySelector('.fbody [data-path="~/bio.txt"]').className).toContain('sel')
+    expect(files.getAttribute('aria-label')).toBe('rafey')
+    expect(files.querySelector('.fbody [data-path="/home/rafey/bio.txt"]').className).toContain('sel')
   })
 
   it("opens a terminal in its file's folder", () => {
@@ -121,7 +123,7 @@ describe('Text Editor', () => {
     fireEvent.click(ui.getByRole('button', { name: 'Main Menu' }))
     chooseMenuItem('Open in Terminal')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey')
   })
 
   it('keeps Save off for a shipped file and uses New to open a blank page', () => {
@@ -159,17 +161,17 @@ describe('Text Editor', () => {
 
     expect(ui.getByLabelText('notes.txt').value).toBe('hello\n')
     expect(headerTitle(windowsOf(container, 'editor')[0])).toBe('notes.txt')
-    expect(disk.getItem('rafeyos-documents')).toBe(JSON.stringify({ files: { '~/Documents/notes.txt': 'hello\n' }, trash: {} }))
+    expect(disk.getItem('rafeyos-documents')).toBe(JSON.stringify({ files: { '/home/visitor/Documents/notes.txt': 'hello\n' }, trash: {} }))
 
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
-    expect(files.querySelector('[data-path="~/Documents/notes.txt"]')).toBeTruthy()
+    expect(files.querySelector('[data-path="/home/visitor/Documents/notes.txt"]')).toBeTruthy()
 
     clickDock('Terminal')
     const terminal = windowsOf(container, 'terminal')[0]
     const input = within(terminal).getByLabelText('Terminal input')
-    fireEvent.change(input, { target: { value: 'cat Documents/notes.txt' } })
+    fireEvent.change(input, { target: { value: 'cat ~/Documents/notes.txt' } })
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(terminal.querySelector('.tlog').textContent).toContain('hello')
   })
@@ -186,7 +188,7 @@ describe('Text Editor', () => {
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
-    fireEvent.doubleClick(files.querySelector('[data-path="~/Documents/notes.txt"]'))
+    fireEvent.doubleClick(files.querySelector('[data-path="/home/visitor/Documents/notes.txt"]'))
 
     const editor = windowsOf(container, 'editor')[0]
     const text = within(editor).getByLabelText('notes.txt')
@@ -198,7 +200,7 @@ describe('Text Editor', () => {
     fireEvent.click(within(editor).getByRole('button', { name: 'Main Menu' }))
     chooseMenuItem('Save')
     expect(headerTitle(editor)).toBe('notes.txt')
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['~/Documents/notes.txt']).toBe('hello again\n')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['/home/visitor/Documents/notes.txt']).toBe('hello again\n')
   })
 
   it('asks before replacing a file, and refuses when that file is already open', () => {
@@ -257,7 +259,7 @@ describe('Text Editor', () => {
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save' })).getByRole('button', { name: 'Save' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['~/Documents/later.txt']).toBe('from close')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['/home/visitor/Documents/later.txt']).toBe('from close')
   })
 
   it('rejects a bad name and reports a blocked write', () => {
@@ -353,36 +355,37 @@ describe('Text Editor', () => {
     saveAs(ui, 'note', 'Desktop')
 
     expect(ui.getByLabelText('note.txt').value).toBe('on the desk\n')
-    expect(desktopIcon(container, '~/Desktop/note.txt')).toBeTruthy()
+    expect(desktopIcon(container, '/home/visitor/Desktop/note.txt')).toBeTruthy()
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Desktop'))
-    expect(files.querySelector('[data-path="~/Desktop/note.txt"]')).toBeTruthy()
-    expect(files.querySelector('[data-path="~/Documents/note.txt"]')).toBeNull()
+    expect(files.querySelector('[data-path="/home/visitor/Desktop/note.txt"]')).toBeTruthy()
+    expect(files.querySelector('[data-path="/home/visitor/Documents/note.txt"]')).toBeNull()
   })
 
-  it('refuses to save over a file that came with the OS', () => {
+  it('saves a name Rafey uses into the visitor\'s Home, leaving his file alone', () => {
     const disk = memoryStorage()
-    const { ui } = openUntitled({ documents: createDocumentsStore(disk) })
-    fireEvent.change(field(ui, 'Untitled'), { target: { value: 'hacked' } })
+    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    fireEvent.change(field(ui, 'Untitled'), { target: { value: 'mine' } })
     saveAs(ui, 'bio', 'Home')
 
-    const blocked = within(ui.getByRole('dialog', { name: "Can't replace" }))
-    expect(blocked.getByRole('heading', { name: "Can't replace bio.txt" })).toBeTruthy()
-    expect(disk.getItem('rafeyos-documents')).toBeNull()
-    expect(field(ui, 'Untitled').value).toBe('hacked')
+    expect(ui.queryByRole('dialog', { name: "Can't replace" })).toBeNull()
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).files).toEqual({ '/home/visitor/bio.txt': 'mine' })
+    const { input } = openTerminal(container)
+    typeCommand(input, 'cat bio.txt')
+    expect(windowsOf(container, 'terminal')[0].querySelector('.tlog').textContent).toContain(realContent.bio.trim().slice(0, 20))
   })
 
   it('opens a trashed file read-only, with Trash as its folder', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '~/Desktop/notes.txt': 'gone\n' } }),
+      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '/home/visitor/Desktop/notes.txt': 'gone\n' } }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
 
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Trash'))
-    fireEvent.doubleClick(files.querySelector(`[data-path="${trashItemPath('~/Desktop/notes.txt')}"]`))
+    fireEvent.doubleClick(files.querySelector(`[data-path="${trashItemPath('/home/visitor/Desktop/notes.txt')}"]`))
 
     const editor = windowsOf(container, 'editor')[0]
     const text = within(editor).getByLabelText('notes.txt')
@@ -402,11 +405,11 @@ describe('Text Editor', () => {
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
-    rightClick(files.querySelector('[data-path="~/Documents/notes.txt"]'))
+    rightClick(files.querySelector('[data-path="/home/visitor/Documents/notes.txt"]'))
     chooseMenuItem('Move to Trash')
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/Documents/notes.txt']).toBe('hello\n')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Documents/notes.txt']).toBe('hello\n')
   })
 
   it('leaves a dirty file alone when the trash prompt is cancelled', () => {
@@ -419,12 +422,12 @@ describe('Text Editor', () => {
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
-    rightClick(files.querySelector('[data-path="~/Documents/notes.txt"]'))
+    rightClick(files.querySelector('[data-path="/home/visitor/Documents/notes.txt"]'))
     chooseMenuItem('Move to Trash')
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Cancel' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(1)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['~/Documents/notes.txt']).toBe('hello\n')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['/home/visitor/Documents/notes.txt']).toBe('hello\n')
     expect(JSON.parse(disk.getItem('rafeyos-documents')).trash).toEqual({})
   })
 
@@ -438,12 +441,12 @@ describe('Text Editor', () => {
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
-    rightClick(files.querySelector('[data-path="~/Documents/notes.txt"]'))
+    rightClick(files.querySelector('[data-path="/home/visitor/Documents/notes.txt"]'))
     chooseMenuItem('Move to Trash')
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Discard' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/Documents/notes.txt']).toBe('hello\n')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Documents/notes.txt']).toBe('hello\n')
   })
 
   it('saves dirty text and then moves the file to Trash', () => {
@@ -456,11 +459,11 @@ describe('Text Editor', () => {
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
-    rightClick(files.querySelector('[data-path="~/Documents/notes.txt"]'))
+    rightClick(files.querySelector('[data-path="/home/visitor/Documents/notes.txt"]'))
     chooseMenuItem('Move to Trash')
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Save' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/Documents/notes.txt']).toBe('dirty\n')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Documents/notes.txt']).toBe('dirty\n')
   })
 })

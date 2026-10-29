@@ -1,4 +1,4 @@
-import { HOME, TRASH } from './buildVfs'
+import { HOME, RAFEY_HOME } from './buildVfs'
 import { parentOf, realPath } from './paths'
 import { humanBytes } from './format'
 
@@ -45,20 +45,17 @@ export const kindOf = (vfs, path) => {
   return KIND[node.type]
 }
 
-/** Case-insensitive name search across home; skips trash, links and ~ itself. */
+// Strictly inside one of the two homes: system files, the homes themselves and trash stay out
+const inHomes = (path) => path.startsWith(`${HOME}/`) || path.startsWith(`${RAFEY_HOME}/`)
+
+/** Case-insensitive name search across both homes; skips links. */
 export const search = (vfs, query) => {
   const needle = query.trim().toLowerCase()
   if (!needle) return []
   return Object.keys(vfs).filter(
-    (path) =>
-      path !== TRASH &&
-      path !== HOME &&
-      path.startsWith(HOME) &&
-      vfs[path].type !== 'symlink' &&
-      displayName(vfs, path).toLowerCase().includes(needle),
+    (path) => inHomes(path) && vfs[path].type !== 'symlink' && displayName(vfs, path).toLowerCase().includes(needle),
   )
 }
 
-/** Every text file, in vfs order: the editor's "Recent Documents". */
-/** Every live text file, in vfs order: the editor's "Recent Documents". Trash stays out. */
-export const textDocuments = (vfs) => Object.keys(vfs).filter((path) => vfs[path].type === 'text' && !vfs[path].trashedFrom)
+/** Every live text file in both homes, in vfs order: the editor's "Recent Documents". Trash stays out. */
+export const textDocuments = (vfs) => Object.keys(vfs).filter((path) => inHomes(path) && vfs[path].type === 'text')

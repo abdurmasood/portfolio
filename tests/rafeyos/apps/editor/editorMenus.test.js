@@ -5,10 +5,11 @@ import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('editor menus', () => {
   it('labels documents by name and folder', () => {
-    expect(documentLabel(realVfs, '~/bio.txt')).toBe('bio.txt   ~')
-    expect(documentLabel(realVfs, '~/Music/story.txt')).toBe('story.txt   ~/Music')
-    expect(folderLabel('~/Music/story.txt')).toBe('~/Music/')
-    expect(folderLabel('~')).toBe('~/')
+    expect(documentLabel(realVfs, '/home/rafey/bio.txt')).toBe('bio.txt   /home/rafey')
+    expect(documentLabel(realVfs, '/home/rafey/Music/story.txt')).toBe('story.txt   /home/rafey/Music')
+    expect(folderLabel('/home/rafey/Music/story.txt')).toBe('/home/rafey/Music/')
+    expect(folderLabel('/home/visitor/notes.txt')).toBe('~/')
+    expect(folderLabel('/home/visitor/Desktop/notes.txt')).toBe('~/Desktop/')
   })
 
   it('opens the picked recent document', () => {
@@ -16,9 +17,9 @@ describe('editor menus', () => {
     const [heading, ...items] = recentDocumentItems(realVfs, open)
 
     expect(heading).toMatchObject({ kind: 'heading', label: 'Recent Documents' })
-    items.find((item) => item.label === 'skills.txt   ~').action()
+    items.find((item) => item.label === 'skills.txt   /home/rafey').action()
 
-    expect(open).toHaveBeenCalledWith('~/skills.txt')
+    expect(open).toHaveBeenCalledWith('/home/rafey/skills.txt')
   })
 
   it('disables what a read-only editor cannot do', () => {

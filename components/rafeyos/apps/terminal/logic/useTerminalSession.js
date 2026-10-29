@@ -4,7 +4,7 @@ import { exec } from '@/components/rafeyos/core/commands/exec'
 import { prompt } from '@/components/rafeyos/core/commands/lines'
 import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
-import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
 import { applyTerminalEffects } from './terminalEffects'
 import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 
@@ -45,7 +45,7 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   const logout = useDelayedLogout()
   const openLink = useOpenLinkDialog()
   const { play } = useMusicControls()
-  const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : HOME))
+  const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : START_DIR))
   const cwdRef = useRef(cwd)
   const log = useLog()
   const handlers = useMemo(

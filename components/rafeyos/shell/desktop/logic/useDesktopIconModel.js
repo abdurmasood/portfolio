@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useLayout, useSettings, useVfs } from '@/components/rafeyos/state/logic/contexts'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 import { children } from '@/components/rafeyos/core/vfs/queries'
 import { iconLayout } from './iconLayout'
 
-export const DESKTOP = '~/Desktop'
+export const DESKTOP = joinPath(HOME, 'Desktop')
 const NONE_PLACED = Object.freeze({})
 
 /**

@@ -1,6 +1,7 @@
 // File and folder icons, shaded like the dock's tiles; folders take the accent colour
 import { useId } from 'react'
-import { HOME, TRASH, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { HOME, RAFEY_HOME, TRASH, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 import { children } from '@/components/rafeyos/core/vfs/queries'
 import { MailIcon, TrashIcon } from './appIcons'
 
@@ -16,13 +17,13 @@ const GLYPH_STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' 
 
 const FOLDER_GLYPHS = Object.freeze({
   [HOME]: <path d="M2.5 7.5L8 3l5.5 4.5v6h-11z" strokeLinejoin="round" />,
-  '~/Desktop': (
+  [joinPath(HOME, 'Desktop')]: (
     <>
       <rect x="2" y="3" width="12" height="8" rx="1" />
       <path d="M6 13.5h4" />
     </>
   ),
-  '~/Music': (
+  [joinPath(RAFEY_HOME, 'Music')]: (
     <>
       <path d="M6 12V3.5l7-1.5v9" />
       <circle cx="4.25" cy="12" r="1.75" />

@@ -1,6 +1,7 @@
 // Filesystem commands: ls, cd, pwd, cat
 import { error, ls as lsLine, pre } from '@/components/rafeyos/core/commands/lines'
-import { realPath, absPath } from '@/components/rafeyos/core/vfs/paths'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath, realPath, absPath } from '@/components/rafeyos/core/vfs/paths'
 import { children, isDir } from '@/components/rafeyos/core/vfs/queries'
 import { result } from './result'
 import { target } from './target'
@@ -29,7 +30,7 @@ const ls = ({ parsed, vfs, cwd }) => {
 
 const cd = ({ parsed, vfs, cwd }) => {
   const arg = parsed.args.join(' ')
-  const path = arg ? target(vfs, arg, cwd) : '~'
+  const path = arg ? target(vfs, arg, cwd) : HOME
   if (!path) return result([error(`bash: cd: ${arg}: No such file or directory`)])
   if (!isDir(vfs, path)) return result([error(`bash: cd: ${arg}: Not a directory`)])
   return { ...result(), cwd: realPath(vfs, path) }
@@ -40,7 +41,7 @@ const pwd = ({ cwd }) => result([pre(absPath(cwd))])
 const cat = ({ parsed, vfs, cwd }) => {
   const arg = parsed.args.join(' ')
   if (!arg) return result([pre('Usage: cat <file-name>')])
-  if (HOME_FILE_MESSAGES[arg] && !vfs[`${cwd}/${arg}`]) return result([pre(HOME_FILE_MESSAGES[arg])])
+  if (HOME_FILE_MESSAGES[arg] && !vfs[joinPath(cwd, arg)]) return result([pre(HOME_FILE_MESSAGES[arg])])
   const path = target(vfs, arg, cwd)
   if (!path) return result([error(`cat: ${arg}: No such file or directory`)])
   if (isDir(vfs, path)) return result([error(`cat: ${arg}: Is a directory`)])

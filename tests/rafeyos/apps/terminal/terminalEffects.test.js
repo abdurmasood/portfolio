@@ -19,8 +19,8 @@ describe('terminal effects', () => {
 
     const outcome = applyTerminalEffects(
       [
-        { type: 'openApp', app: 'files', path: '~' },
-        { type: 'openPath', path: '~/blog' },
+        { type: 'openApp', app: 'files', path: '/home/visitor' },
+        { type: 'openPath', path: '/home/rafey/blog' },
         { type: 'openLink', href: 'https://x' },
         { type: 'openExternal', href: '/projects' },
         { type: 'closeSelf' },
@@ -30,7 +30,7 @@ describe('terminal effects', () => {
     )
 
     expect(outcome).toEqual({ notes: [], clear: false })
-    expect(deps.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~' })
+    expect(deps.windowManager.openApp).toHaveBeenCalledWith('files', { path: '/home/visitor' })
     expect(deps.openLink).toHaveBeenCalledTimes(1)
     expect(deps.openExternal).toHaveBeenCalledWith('/projects')
     expect(deps.closeSelf).toHaveBeenCalled()
@@ -41,7 +41,7 @@ describe('terminal effects', () => {
     const deps = handlers({ windowManager: { openApp: () => false, openPath: () => false } })
 
     const { notes } = applyTerminalEffects(
-      [{ type: 'openApp', app: 'projects' }, { type: 'openPath', path: '~/bio.txt' }],
+      [{ type: 'openApp', app: 'projects' }, { type: 'openPath', path: '/home/rafey/bio.txt' }],
       deps,
     )
 
@@ -56,15 +56,15 @@ describe('terminal effects', () => {
     expect(deps.play).toHaveBeenCalledTimes(1)
     expect(deps.windowManager.openApp).not.toHaveBeenCalled()
 
-    applyTerminalEffects([{ type: 'openPath', path: '~/Music/storms-ahead.mp3' }], deps)
+    applyTerminalEffects([{ type: 'openPath', path: '/home/rafey/Music/storms-ahead.mp3' }], deps)
     expect(deps.play).toHaveBeenCalledTimes(2)
-    expect(deps.windowManager.openPath).toHaveBeenCalledWith('~/Music/storms-ahead.mp3')
+    expect(deps.windowManager.openPath).toHaveBeenCalledWith('/home/rafey/Music/storms-ahead.mp3')
   })
 
   it('asks before opening a web link file', () => {
     const deps = handlers()
 
-    const { notes } = applyTerminalEffects([{ type: 'openPath', path: '~/contact/linkedin.desktop' }], deps)
+    const { notes } = applyTerminalEffects([{ type: 'openPath', path: '/home/rafey/contact/linkedin.desktop' }], deps)
 
     expect(notes).toEqual([])
     expect(deps.openLink).toHaveBeenCalledTimes(1)

@@ -1,5 +1,6 @@
 // What a Files window shows for its reducer state. Pure, so the components stay thin.
-import { HOME, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { HOME, RAFEY_HOME, ROOT, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 import { children, displayName, isDir, kindOf, search, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 
 export const RECENT = 'recent'
@@ -16,13 +17,13 @@ export const SIDEBAR = Object.freeze([
   { path: RECENT, label: 'Recent', icon: 'recent' },
   { path: STARRED, label: 'Starred', icon: 'star' },
   { path: HOME, label: 'Home', icon: 'home' },
-  { path: '~/Desktop', label: 'Desktop', icon: 'desktop' },
-  { path: '~/Documents', label: 'Documents', icon: 'folder' },
-  { path: '~/Music', label: 'Music', icon: 'music' },
+  { path: joinPath(HOME, 'Desktop'), label: 'Desktop', icon: 'desktop' },
+  { path: joinPath(HOME, 'Documents'), label: 'Documents', icon: 'folder' },
+  { path: joinPath(RAFEY_HOME, 'Music'), label: 'Music', icon: 'music' },
   null,
-  { path: '~/projects', label: 'projects', icon: 'folder' },
-  { path: '~/blog', label: 'blog', icon: 'folder' },
-  { path: '~/contact', label: 'contact', icon: 'folder' },
+  { path: joinPath(RAFEY_HOME, 'projects'), label: 'projects', icon: 'folder' },
+  { path: joinPath(RAFEY_HOME, 'blog'), label: 'blog', icon: 'folder' },
+  { path: joinPath(RAFEY_HOME, 'contact'), label: 'contact', icon: 'folder' },
   null,
   { path: TRASH, label: 'Trash', icon: 'trash' },
 ])
@@ -47,10 +48,17 @@ export const emptyState = ({ path, search: query }) => {
   return { icon: 'folder', title: 'Folder is Empty', body: '' }
 }
 
-/** "~/projects" -> ["~", "~/projects"]: one pathbar button per ancestor. */
+const isUnderHome = (path) => path === HOME || path.startsWith(`${HOME}/`)
+
+/**
+ * One pathbar button per ancestor. Inside the visitor's home the bar starts at Home, as it
+ * always has; anywhere else it starts at the root:
+ * "/home/visitor/Desktop" -> [HOME, HOME/Desktop]; "/home/rafey" -> ["/", "/home", "/home/rafey"].
+ */
 export const pathSegments = (path) => {
-  const parts = path.split('/')
-  return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
+  const start = isUnderHome(path) ? HOME : ROOT
+  const names = path.slice(start.length).split('/').filter(Boolean)
+  return names.reduce((segments, name) => [...segments, joinPath(segments[segments.length - 1], name)], [start])
 }
 
 export const floatbarText = (vfs, selection) => {

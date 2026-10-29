@@ -21,10 +21,10 @@ describe('window manager', () => {
   it('opens implemented apps with their registry size and name', () => {
     const { wm, state } = setup()
 
-    expect(wm.openApp('files', { path: '~/blog' })).toBe(true)
+    expect(wm.openApp('files', { path: '/home/rafey/blog' })).toBe(true)
 
     const [win] = Object.values(state().byId)
-    expect(win).toMatchObject({ appId: 'files', arg: '~/blog', title: 'Files', mode: SNAP_MODES.NORMAL })
+    expect(win).toMatchObject({ appId: 'files', arg: '/home/rafey/blog', title: 'Files', mode: SNAP_MODES.NORMAL })
     expect(win.rect.w).toBe(760)
   })
 
@@ -49,13 +49,13 @@ describe('window manager', () => {
   it('opens each file in its app', () => {
     const { wm, state } = setup()
 
-    expect(wm.openPath('~/projects')).toBe(true)
-    expect(wm.openPath('~/bio.txt')).toBe(true)
-    expect(wm.openPath('~/contact/email.desktop')).toBe(true)
-    expect(wm.openPath('~/Music/storms-ahead.mp3')).toBe(true)
+    expect(wm.openPath('/home/rafey/projects')).toBe(true)
+    expect(wm.openPath('/home/rafey/bio.txt')).toBe(true)
+    expect(wm.openPath('/home/rafey/contact/email.desktop')).toBe(true)
+    expect(wm.openPath('/home/rafey/Music/storms-ahead.mp3')).toBe(true)
 
     const opened = Object.values(state().byId).map((win) => [win.appId, win.arg])
-    expect(opened).toEqual([['files', '~/projects'], ['editor', '~/bio.txt'], ['mail', ''], ['music', '']])
+    expect(opened).toEqual([['files', '/home/rafey/projects'], ['editor', '/home/rafey/bio.txt'], ['mail', ''], ['music', '']])
   })
 
   it('opens a path from the filesystem as it is now', () => {
@@ -72,15 +72,15 @@ describe('window manager', () => {
 
     vfs = mergeDocuments(realVfs, { 'notes.txt': 'hello\n' })
 
-    expect(wm.openPath('~/Documents/notes.txt')).toBe(true)
-    expect(state.byId[1].arg).toBe('~/Documents/notes.txt')
+    expect(wm.openPath('/home/visitor/Documents/notes.txt')).toBe(true)
+    expect(state.byId[1].arg).toBe('/home/visitor/Documents/notes.txt')
   })
 
   it('leaves web links, missing paths and unbuilt apps to the caller', () => {
     const { wm, dispatch } = setup()
 
-    expect(wm.openPath('~/contact/linkedin.desktop')).toBe(false)
-    expect(wm.openPath('~/nope')).toBe(false)
+    expect(wm.openPath('/home/rafey/contact/linkedin.desktop')).toBe(false)
+    expect(wm.openPath('/home/rafey/nope')).toBe(false)
     expect(dispatch).not.toHaveBeenCalled()
   })
 
@@ -89,9 +89,9 @@ describe('window manager', () => {
 
     wm.openApp('editor')
     wm.openApp('editor')
-    wm.openApp('editor', { path: '~/README.txt' })
+    wm.openApp('editor', { path: '/home/rafey/README.txt' })
 
-    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['', '~/README.txt'])
+    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['', '/home/rafey/README.txt'])
   })
 
   it('lets a close guard keep the window open', () => {
@@ -129,9 +129,9 @@ describe('window manager', () => {
   it('passes launch options to the new window', () => {
     const { wm, state } = setup()
 
-    wm.openApp('files', { path: '~', init: { select: '~/bio.txt' } })
+    wm.openApp('files', { path: '/home/visitor', init: { select: '/home/rafey/bio.txt' } })
 
-    expect(state().byId[1].init).toEqual({ select: '~/bio.txt' })
+    expect(state().byId[1].init).toEqual({ select: '/home/rafey/bio.txt' })
   })
 
   it('toggles maximize and back', () => {

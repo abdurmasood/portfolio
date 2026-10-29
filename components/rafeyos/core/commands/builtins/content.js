@@ -2,10 +2,13 @@
 import { pre, dim } from '@/components/rafeyos/core/commands/lines'
 import { result, EFFECTS } from './result'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 
 const PROJECT_NAME_WIDTH = 22
 const SUMMARY_WORDS = 7
 const EXAMPLE_PROJECT = 'leaf-line'
+const STORY = joinPath(RAFEY_HOME, 'Music/story.txt')
 
 const help = ({ content }) => result([pre(content.help.lines.join('\n')), dim(content.help.hint)])
 
@@ -49,7 +52,7 @@ const music = ({ parsed, vfs, content }) => {
   if (subcommand === 'play') {
     return result([pre(`▶ playing   ${track.title} · ${track.artist}`)], [{ type: EFFECTS.PLAY }])
   }
-  if (subcommand === 'story') return result([pre(vfs['~/Music/story.txt'].text)])
+  if (subcommand === 'story') return result([pre(vfs[STORY].text)])
   return musicUsage(content.music)
 }
 

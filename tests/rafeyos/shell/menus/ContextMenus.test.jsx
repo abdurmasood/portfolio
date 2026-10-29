@@ -20,7 +20,7 @@ const wallpaper = () => screen.getByTestId('wallpaper')
 
 const desktopWithNote = () => {
   const disk = memoryStorage({
-    'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+    'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
   })
   return renderDesktop({ documents: createDocumentsStore(disk) })
 }
@@ -100,24 +100,24 @@ describe('desktop icon menu', () => {
   it('offers a folder its terminal and Show in Files, and selects the icon', () => {
     const { container } = renderDesktop()
 
-    rightClick(desktopIcon(container, '~'))
+    rightClick(desktopIcon(container, '/home/visitor'))
 
     expect(menuLabels()).toEqual([...FILE_ACTIONS, 'Open in Terminal', 'Show in Files', 'Properties'])
     DISABLED_FILE_ACTIONS.forEach((name) => expect(menuEntry(name).disabled).toBe(true))
-    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['~'])
+    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['/home/visitor'])
   })
 
   it('has no terminal entry for a file', () => {
     const { container } = desktopWithNote()
 
-    rightClick(desktopIcon(container, '~/Desktop/note.txt'))
+    rightClick(desktopIcon(container, '/home/visitor/Desktop/note.txt'))
 
     expect(menuLabels()).toEqual([...FILE_ACTIONS, 'Show in Files', 'Properties'])
   })
 
   it('opens the icon', () => {
     const { container } = desktopWithNote()
-    rightClick(desktopIcon(container, '~/Desktop/note.txt'))
+    rightClick(desktopIcon(container, '/home/visitor/Desktop/note.txt'))
 
     chooseMenuItem('Open')
 
@@ -126,7 +126,7 @@ describe('desktop icon menu', () => {
 
   it("opens a folder's terminal inside it", () => {
     const { container } = renderDesktop()
-    rightClick(desktopIcon(container, '~'))
+    rightClick(desktopIcon(container, '/home/visitor'))
 
     chooseMenuItem('Open in Terminal')
 
@@ -135,25 +135,25 @@ describe('desktop icon menu', () => {
 
   it('shows a file in Files, selected', () => {
     const { container } = desktopWithNote()
-    rightClick(desktopIcon(container, '~/Desktop/note.txt'))
+    rightClick(desktopIcon(container, '/home/visitor/Desktop/note.txt'))
 
     chooseMenuItem('Show in Files')
 
     const [files] = windowsOf(container, 'files')
     expect(files.getAttribute('aria-label')).toBe('Desktop')
-    expect(files.querySelector('.fbody .sel').dataset.path).toBe('~/Desktop/note.txt')
+    expect(files.querySelector('.fbody .sel').dataset.path).toBe('/home/visitor/Desktop/note.txt')
   })
 
   it('moves a file created on the desktop into Trash', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
 
-    rightClick(desktopIcon(container, '~/Desktop/note.txt'))
+    rightClick(desktopIcon(container, '/home/visitor/Desktop/note.txt'))
     chooseMenuItem('Move to Trash')
 
-    expect(desktopIcon(container, '~/Desktop/note.txt')).toBeNull()
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/Desktop/note.txt']).toBe('desk\n')
+    expect(desktopIcon(container, '/home/visitor/Desktop/note.txt')).toBeNull()
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Desktop/note.txt']).toBe('desk\n')
   })
 })

@@ -3,10 +3,7 @@ import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { absPath, parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { isDir, kindOf, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 
-// ~ has no parent in the vfs; on disk it lives in /home
-const HOME_PARENT = '/home'
-
-/** @returns {{ label: string, value: string }[]} Size, Type, Link Target (symlinks only), Parent Folder */
+/** @returns {{ label: string, value: string }[]} Size, Type, Link Target (symlinks only), Parent Folder (all but the root) */
 export const propertiesRows = (vfs, path) => {
   const node = vfs[path]
   const parent = parentOf(path)
@@ -14,7 +11,7 @@ export const propertiesRows = (vfs, path) => {
     { label: 'Size', value: sizeLabel(vfs, path) },
     { label: 'Type', value: isDir(vfs, path) ? 'Folder' : kindOf(vfs, path) },
     ...(node.type === NODE_TYPES.SYMLINK ? [{ label: 'Link Target', value: absPath(node.target) }] : []),
-    { label: 'Parent Folder', value: parent ? absPath(parent) : HOME_PARENT },
+    ...(parent ? [{ label: 'Parent Folder', value: absPath(parent) }] : []),
     ...(node.trashedFrom ? [{ label: 'Original Location', value: absPath(node.trashedFrom) }] : []),
   ]
 }

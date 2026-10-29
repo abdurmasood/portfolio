@@ -39,41 +39,42 @@ describe('documentName', () => {
 })
 
 describe('saveChoice', () => {
-  const userPaths = ['~/Documents/notes.txt']
-  const blockedPaths = ['~/bio.txt']
+  const userPaths = ['/home/visitor/Documents/notes.txt']
+  // A shipped path the caller reports in a save folder (the vfs has none there today)
+  const blockedPaths = ['/home/visitor/bio.txt']
 
   it('writes into the chosen folder, and treats the same name elsewhere as a different file', () => {
-    expect(saveChoice({ raw: 'ideas', folder: '~/Desktop', userPaths, openPaths: [], blockedPaths })).toEqual({
+    expect(saveChoice({ raw: 'ideas', folder: '/home/visitor/Desktop', userPaths, openPaths: [], blockedPaths })).toEqual({
       type: 'write',
       name: 'ideas.txt',
-      path: '~/Desktop/ideas.txt',
-      folder: '~/Desktop',
+      path: '/home/visitor/Desktop/ideas.txt',
+      folder: '/home/visitor/Desktop',
     })
-    expect(saveChoice({ raw: 'notes', folder: '~', userPaths, openPaths: [], blockedPaths }).type).toBe('write')
+    expect(saveChoice({ raw: 'notes', folder: '/home/visitor', userPaths, openPaths: [], blockedPaths }).type).toBe('write')
   })
 
   it('replaces the visitor\'s file, refuses a shipped one, and refuses one that is open', () => {
     expect(saveChoice({ raw: 'notes', folder: DOCUMENTS, userPaths, openPaths: [], blockedPaths })).toMatchObject({
       type: 'replace',
-      path: '~/Documents/notes.txt',
+      path: '/home/visitor/Documents/notes.txt',
     })
-    expect(saveChoice({ raw: 'bio', folder: '~', userPaths, openPaths: ['~/bio.txt'], blockedPaths })).toMatchObject({
+    expect(saveChoice({ raw: 'bio', folder: '/home/visitor', userPaths, openPaths: ['/home/visitor/bio.txt'], blockedPaths })).toMatchObject({
       type: 'blocked',
-      path: '~/bio.txt',
+      path: '/home/visitor/bio.txt',
     })
-    expect(saveChoice({ raw: 'notes', folder: DOCUMENTS, userPaths, openPaths: ['~/Documents/notes.txt'], blockedPaths })).toMatchObject({
+    expect(saveChoice({ raw: 'notes', folder: DOCUMENTS, userPaths, openPaths: ['/home/visitor/Documents/notes.txt'], blockedPaths })).toMatchObject({
       type: 'open',
     })
     expect(saveChoice({
       raw: 'notes.txt',
       folder: DOCUMENTS,
       userPaths,
-      openPaths: ['~/Documents/notes.txt'],
+      openPaths: ['/home/visitor/Documents/notes.txt'],
       blockedPaths,
-      currentPath: '~/Documents/notes.txt',
+      currentPath: '/home/visitor/Documents/notes.txt',
     }).type).toBe('write')
     expect(saveChoice({ raw: 'a/b', folder: DOCUMENTS, userPaths, openPaths: [], blockedPaths }).type).toBe('invalid')
-    expect(saveChoice({ raw: 'notes', folder: '~/blog', userPaths, openPaths: [], blockedPaths }).type).toBe('invalid')
+    expect(saveChoice({ raw: 'notes', folder: '/home/rafey/blog', userPaths, openPaths: [], blockedPaths }).type).toBe('invalid')
   })
 })
 
@@ -82,20 +83,28 @@ describe('mergeDocuments', () => {
 
   it('adds a file in the chosen folder, keeps an old Documents name, and leaves shipped files alone', () => {
     const merged = mergeDocuments(vfs, {
-      '~/Desktop/note.txt': 'desk\n',
-      '~/bio.txt': 'hacked\n',
+      '/home/visitor/Desktop/note.txt': 'desk\n',
+      '/home/rafey/bio.txt': 'hacked\n',
       'old.txt': 'legacy\n',
     })
 
     expect(merged).not.toBe(vfs)
     expect(Object.isFrozen(merged)).toBe(true)
-    expect(merged['~/Desktop/note.txt']).toMatchObject({ type: 'text', name: 'note.txt', text: 'desk\n', user: true })
-    expect(Object.isFrozen(merged['~/Desktop/note.txt'])).toBe(true)
+    expect(merged['/home/visitor/Desktop/note.txt']).toMatchObject({ type: 'text', name: 'note.txt', text: 'desk\n', user: true })
+    expect(Object.isFrozen(merged['/home/visitor/Desktop/note.txt'])).toBe(true)
     expect(merged[filePath(DOCUMENTS, 'old.txt')].text).toBe('legacy\n')
-    expect(merged['~/bio.txt'].text).toBe('Bio text\n')
-    expect(merged['~/bio.txt'].user).toBeUndefined()
-    expect(children(merged, '~/Desktop')).toContain('~/Desktop/note.txt')
+    expect(merged['/home/rafey/bio.txt'].text).toBe('Bio text\n')
+    expect(merged['/home/rafey/bio.txt'].user).toBeUndefined()
+    expect(children(merged, '/home/visitor/Desktop')).toContain('/home/visitor/Desktop/note.txt')
     expect(children(merged, DOCUMENTS)).toEqual([filePath(DOCUMENTS, 'old.txt')])
+  })
+
+  it('loads a file saved under ~ into the visitor home, never into Rafey\'s', () => {
+    const merged = mergeDocuments(vfs, { '~/Desktop/old.txt': 'desk\n', '~/x.txt': 'home\n' })
+
+    expect(merged['/home/visitor/Desktop/old.txt']).toMatchObject({ text: 'desk\n', user: true })
+    expect(merged['/home/visitor/x.txt']).toMatchObject({ text: 'home\n', user: true })
+    expect(merged['/home/rafey/x.txt']).toBeUndefined()
   })
 
   it('ignores a missing, broken or unsafe map', () => {
@@ -104,52 +113,52 @@ describe('mergeDocuments', () => {
   })
 
   it('lists a trashed file under Trash and drops it from its folder', () => {
-    const merged = mergeDocuments(vfs, {}, { '~/Desktop/note.txt': 'desk\n', '~/Documents/old.txt': 'gone\n' })
-    const desk = trashItemPath('~/Desktop/note.txt')
-    const docs = trashItemPath('~/Documents/old.txt')
+    const merged = mergeDocuments(vfs, {}, { '/home/visitor/Desktop/note.txt': 'desk\n', '/home/visitor/Documents/old.txt': 'gone\n' })
+    const desk = trashItemPath('/home/visitor/Desktop/note.txt')
+    const docs = trashItemPath('/home/visitor/Documents/old.txt')
 
     expect(desk).not.toBe(docs)
-    expect(children(merged, '~/Desktop')).not.toContain('~/Desktop/note.txt')
+    expect(children(merged, '/home/visitor/Desktop')).not.toContain('/home/visitor/Desktop/note.txt')
     expect(children(merged, 'trash')).toEqual(expect.arrayContaining([desk, docs]))
-    expect(merged[desk]).toMatchObject({ name: 'note.txt', text: 'desk\n', user: true, trashedFrom: '~/Desktop/note.txt' })
-    expect(merged[docs]).toMatchObject({ name: 'old.txt', text: 'gone\n', user: true, trashedFrom: '~/Documents/old.txt' })
+    expect(merged[desk]).toMatchObject({ name: 'note.txt', text: 'desk\n', user: true, trashedFrom: '/home/visitor/Desktop/note.txt' })
+    expect(merged[docs]).toMatchObject({ name: 'old.txt', text: 'gone\n', user: true, trashedFrom: '/home/visitor/Documents/old.txt' })
     expect(Object.isFrozen(merged[desk])).toBe(true)
   })
 })
 
 describe('moveToTrash and restoreFromTrash', () => {
-  const state = { files: { '~/Desktop/notes.txt': 'hello\n' }, trash: { '~/Documents/old.txt': 'gone\n' } }
+  const state = { files: { '/home/visitor/Desktop/notes.txt': 'hello\n' }, trash: { '/home/visitor/Documents/old.txt': 'gone\n' } }
 
   it('moves a live file into trash without changing the previous state', () => {
-    expect(moveToTrash(state, '~/Desktop/notes.txt')).toEqual({
+    expect(moveToTrash(state, '/home/visitor/Desktop/notes.txt')).toEqual({
       files: {},
-      trash: { '~/Documents/old.txt': 'gone\n', '~/Desktop/notes.txt': 'hello\n' },
+      trash: { '/home/visitor/Documents/old.txt': 'gone\n', '/home/visitor/Desktop/notes.txt': 'hello\n' },
     })
-    expect(moveToTrash(state, '~/Desktop/missing.txt')).toBeNull()
-    expect(state.files).toEqual({ '~/Desktop/notes.txt': 'hello\n' })
+    expect(moveToTrash(state, '/home/visitor/Desktop/missing.txt')).toBeNull()
+    expect(state.files).toEqual({ '/home/visitor/Desktop/notes.txt': 'hello\n' })
   })
 
   it('restores a free path and refuses one that is taken', () => {
-    const trashed = { files: {}, trash: { '~/Desktop/notes.txt': 'hello\n' } }
+    const trashed = { files: {}, trash: { '/home/visitor/Desktop/notes.txt': 'hello\n' } }
 
-    expect(restoreFromTrash(trashed, '~/Desktop/notes.txt', [])).toEqual({
+    expect(restoreFromTrash(trashed, '/home/visitor/Desktop/notes.txt', [])).toEqual({
       ok: true,
-      state: { files: { '~/Desktop/notes.txt': 'hello\n' }, trash: {} },
+      state: { files: { '/home/visitor/Desktop/notes.txt': 'hello\n' }, trash: {} },
     })
-    expect(restoreFromTrash(trashed, '~/Desktop/notes.txt', ['~/Desktop/notes.txt'])).toEqual({ ok: false, reason: 'taken' })
+    expect(restoreFromTrash(trashed, '/home/visitor/Desktop/notes.txt', ['/home/visitor/Desktop/notes.txt'])).toEqual({ ok: false, reason: 'taken' })
     expect(restoreFromTrash(
-      { files: { '~/Desktop/notes.txt': 'other\n' }, trash: { '~/Desktop/notes.txt': 'hello\n' } },
-      '~/Desktop/notes.txt',
+      { files: { '/home/visitor/Desktop/notes.txt': 'other\n' }, trash: { '/home/visitor/Desktop/notes.txt': 'hello\n' } },
+      '/home/visitor/Desktop/notes.txt',
       [],
     )).toEqual({ ok: false, reason: 'taken' })
-    expect(restoreFromTrash(trashed, '~/Desktop/missing.txt', [])).toEqual({ ok: false, reason: 'missing' })
-    expect(trashed.trash).toEqual({ '~/Desktop/notes.txt': 'hello\n' })
+    expect(restoreFromTrash(trashed, '/home/visitor/Desktop/missing.txt', [])).toEqual({ ok: false, reason: 'missing' })
+    expect(trashed.trash).toEqual({ '/home/visitor/Desktop/notes.txt': 'hello\n' })
   })
 
   it('drops every trashed file and leaves live files alone', () => {
-    expect(emptyTrash(state)).toEqual({ files: { '~/Desktop/notes.txt': 'hello\n' }, trash: {} })
+    expect(emptyTrash(state)).toEqual({ files: { '/home/visitor/Desktop/notes.txt': 'hello\n' }, trash: {} })
     expect(emptyTrash({ files: {}, trash: {} })).toBeNull()
-    expect(state.trash).toEqual({ '~/Documents/old.txt': 'gone\n' })
+    expect(state.trash).toEqual({ '/home/visitor/Documents/old.txt': 'gone\n' })
   })
 })
 
@@ -164,17 +173,21 @@ describe('createDocumentsStore', () => {
   it('round-trips saved files and reports a failed write', () => {
     const disk = storage()
     const store = createDocumentsStore(disk)
-    const saved = { files: { '~/Desktop/notes.txt': 'hello\n' }, trash: { '~/Documents/old.txt': 'gone\n' } }
+    const saved = { files: { '/home/visitor/Desktop/notes.txt': 'hello\n' }, trash: { '/home/visitor/Documents/old.txt': 'gone\n' } }
 
     expect(store.save(saved)).toBe(true)
     expect(store.load()).toEqual(saved)
     expect(createDocumentsStore(storage('{ "notes.txt": "old\\n" }')).load()).toEqual({
-      files: { '~/Documents/notes.txt': 'old\n' },
+      files: { '/home/visitor/Documents/notes.txt': 'old\n' },
       trash: {},
     })
     expect(createDocumentsStore(storage('{ "~/Desktop/notes.txt": "flat\\n" }')).load()).toEqual({
-      files: { '~/Desktop/notes.txt': 'flat\n' },
+      files: { '/home/visitor/Desktop/notes.txt': 'flat\n' },
       trash: {},
+    })
+    expect(createDocumentsStore(storage('{ "files": { "~/x.txt": "home\\n" }, "trash": { "~/Desktop/y.txt": "bin\\n" } }')).load()).toEqual({
+      files: { '/home/visitor/x.txt': 'home\n' },
+      trash: { '/home/visitor/Desktop/y.txt': 'bin\n' },
     })
 
     const blocked = {

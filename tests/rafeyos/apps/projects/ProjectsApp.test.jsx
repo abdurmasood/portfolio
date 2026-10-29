@@ -86,7 +86,7 @@ describe('Projects app', () => {
     expect(within(win.querySelector('.p3card')).queryByRole('link')).toBeNull()
   })
 
-  it('opens ~/projects in Files', () => {
+  it('opens Rafey\'s projects folder in Files', () => {
     const { container, ui } = openProjects()
 
     fireEvent.click(ui.getByRole('button', { name: 'Show in Files' }))
@@ -114,7 +114,7 @@ describe('Open in Projects', () => {
     const { container, files } = openProjectsFolder()
     const target = projects[projects.length - 1]
 
-    rightClick(files.querySelector(`[data-path="~/projects/${target.slug}.txt"]`))
+    rightClick(files.querySelector(`[data-path="/home/rafey/projects/${target.slug}.txt"]`))
     expect(menuLabels()).toContain('Open in Projects')
     chooseMenuItem('Open in Projects')
 
@@ -128,7 +128,7 @@ describe('Open in Projects', () => {
     clickDock('Projects')
     const target = projects[1]
 
-    rightClick(files.querySelector(`[data-path="~/projects/${target.slug}.txt"]`))
+    rightClick(files.querySelector(`[data-path="/home/rafey/projects/${target.slug}.txt"]`))
     chooseMenuItem('Open in Projects')
 
     expect(windowsOf(container, 'projects')).toHaveLength(1)
@@ -138,11 +138,11 @@ describe('Open in Projects', () => {
   it('is not offered for other files, and Open still uses the Text Editor', () => {
     const { container, files } = openProjectsFolder()
 
-    fireEvent.doubleClick(files.querySelector(`[data-path="~/projects/${projects[0].slug}.txt"]`))
+    fireEvent.doubleClick(files.querySelector(`[data-path="/home/rafey/projects/${projects[0].slug}.txt"]`))
     expect(windowsOf(container, 'editor')).toHaveLength(1)
 
-    fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByRole('button', { name: 'Home' }))
-    rightClick(files.querySelector('[data-path="~/bio.txt"]'))
+    fireEvent.click(within(files.querySelector('.pathbar')).getByRole('button', { name: 'rafey' }))
+    rightClick(files.querySelector('[data-path="/home/rafey/bio.txt"]'))
     expect(menuLabels()).not.toContain('Open in Projects')
   })
 })

@@ -10,13 +10,13 @@ const icon = (container, path) => container.querySelector(`.dicon[data-path="${p
 
 const desktopWithNote = () => {
   const disk = memoryStorage({
-    'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+    'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
   })
   return renderDesktop({ documents: createDocumentsStore(disk) })
 }
 
 describe('desktop', () => {
-  it('lays out Home and the ~/Desktop entries as icons', () => {
+  it('lays out Home and the Desktop entries as icons', () => {
     const { container } = renderDesktop()
 
     const names = [...container.querySelectorAll('.dicon .nm')].map((node) => node.textContent)
@@ -27,7 +27,7 @@ describe('desktop', () => {
   it('opens Home in Files on double click', () => {
     const { container } = renderDesktop()
 
-    fireEvent.doubleClick(icon(container, '~'))
+    fireEvent.doubleClick(icon(container, '/home/visitor'))
 
     const [files] = windowsOf(container, 'files')
     expect(files.getAttribute('aria-label')).toBe('Home')
@@ -35,7 +35,7 @@ describe('desktop', () => {
 
   it('opens on a single tap with touch', () => {
     const { container } = renderDesktop()
-    const home = icon(container, '~')
+    const home = icon(container, '/home/visitor')
 
     fireEvent.pointerDown(home, { button: 0, pointerType: 'touch' })
     fireEvent.click(home)
@@ -46,18 +46,18 @@ describe('desktop', () => {
   it('selects on a single click and clears the selection from the wallpaper', () => {
     const { container } = renderDesktop()
 
-    fireEvent.pointerDown(icon(container, '~'), { button: 0 })
-    expect(icon(container, '~').className).toContain('sel')
+    fireEvent.pointerDown(icon(container, '/home/visitor'), { button: 0 })
+    expect(icon(container, '/home/visitor').className).toContain('sel')
 
     fireEvent.pointerDown(screen.getByTestId('wallpaper'), { button: 0 })
-    expect(icon(container, '~').className).not.toContain('sel')
+    expect(icon(container, '/home/visitor').className).not.toContain('sel')
   })
 
   it('adds to the selection with Ctrl held', () => {
     const { container } = desktopWithNote()
 
-    fireEvent.pointerDown(icon(container, '~'), { button: 0 })
-    fireEvent.pointerDown(icon(container, '~/Desktop/note.txt'), { button: 0, ctrlKey: true })
+    fireEvent.pointerDown(icon(container, '/home/visitor'), { button: 0 })
+    fireEvent.pointerDown(icon(container, '/home/visitor/Desktop/note.txt'), { button: 0, ctrlKey: true })
 
     expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
   })
@@ -65,7 +65,7 @@ describe('desktop', () => {
   it('opens a file on the desktop in the Text Editor', () => {
     const { container } = desktopWithNote()
 
-    fireEvent.doubleClick(icon(container, '~/Desktop/note.txt'))
+    fireEvent.doubleClick(icon(container, '/home/visitor/Desktop/note.txt'))
 
     const [editor] = windowsOf(container, 'editor')
     expect(editor.getAttribute('aria-label')).toBe('note.txt')
@@ -142,19 +142,19 @@ describe('dock', () => {
 
   it('puts a sheet in the dock bin while Trash holds a file', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
     const paper = () => within(dock()).getByRole('button', { name: 'Trash' }).querySelector('[data-paper]')
 
     expect(paper()).toBeNull()
-    rightClick(icon(container, '~/Desktop/note.txt'))
+    rightClick(icon(container, '/home/visitor/Desktop/note.txt'))
     chooseMenuItem('Move to Trash')
     expect(paper()).toBeTruthy()
 
     clickDock('Trash')
     const files = windowsOf(container, 'files')[0]
-    rightClick(files.querySelector(`[data-path="${trashItemPath('~/Desktop/note.txt')}"]`))
+    rightClick(files.querySelector(`[data-path="${trashItemPath('/home/visitor/Desktop/note.txt')}"]`))
     chooseMenuItem('Restore')
 
     expect(paper()).toBeNull()

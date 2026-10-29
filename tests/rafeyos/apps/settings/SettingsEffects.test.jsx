@@ -87,11 +87,11 @@ describe('Ubuntu Desktop', () => {
     const toggle = ui.getByRole('switch', { name: 'Show Personal Folder' })
 
     fireEvent.click(toggle)
-    expect(desktopIcon(container, '~')).toBeNull()
+    expect(desktopIcon(container, '/home/visitor')).toBeNull()
     expect(toggle.getAttribute('aria-checked')).toBe('false')
 
     fireEvent.click(toggle)
-    expect(desktopIcon(container, '~')).toBeTruthy()
+    expect(desktopIcon(container, '/home/visitor')).toBeTruthy()
   })
 
   it('re-lays the icons out from the chosen corner, forgetting where they were dragged', () => {
@@ -101,7 +101,7 @@ describe('Ubuntu Desktop', () => {
       return { x, y, left: x, top: y, width: 90, height: 80, right: x + 90, bottom: y + 80 }
     })
     const { container, win, go } = openSettings()
-    const home = () => desktopIcon(container, '~')
+    const home = () => desktopIcon(container, '/home/visitor')
     const start = left(home())
     fireEvent.pointerDown(home(), { button: 0, pointerId: 1, clientX: 0, clientY: 0 })
     fireEvent.pointerMove(home(), { pointerId: 1, clientX: 200, clientY: 100 })

@@ -4,7 +4,7 @@ import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { parentOf, tilde } from '@/components/rafeyos/core/vfs/paths'
 import { textDocuments } from '@/components/rafeyos/core/vfs/queries'
 
-/** "~/blog/" for a file in ~/blog: the editor's subtitle. */
+/** "/home/rafey/blog/" for a file in Rafey's blog, "~/Desktop/" on the visitor's desktop: the editor's subtitle. */
 export const folderLabel = (path) => `${tilde(parentOf(path) ?? HOME)}/`
 
 /** Name, then its folder, as one row: "bio.txt   ~". */

@@ -19,14 +19,14 @@ describe('Terminal app', () => {
     expect(log(win).querySelector('.pg').textContent).toBe('visitor@rafey')
   })
 
-  it('lists home with folders in blue and links in cyan', () => {
+  it('starts in Rafey\'s home and lists it with folders in blue', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
 
     typeCommand(input, 'ls')
 
     const pre = log(win).querySelector('pre')
-    expect(pre.textContent).toContain('Desktop')
+    expect(pre.textContent).toContain('Music')
     expect(pre.textContent).toContain('bio.txt')
     expect([...pre.querySelectorAll('.pb')].map((node) => node.textContent)).toContain('projects')
   })
@@ -57,8 +57,8 @@ describe('Terminal app', () => {
 
     typeCommand(input, 'cd projects')
 
-    expect(win.getAttribute('aria-label')).toBe('visitor@rafey: ~/projects')
-    expect(win.querySelector('.tline .pb').textContent).toBe('~/projects')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/projects')
+    expect(win.querySelector('.tline .pb').textContent).toBe('/home/rafey/projects')
   })
 
   it('completes with Tab and walks history with the arrows', () => {
@@ -165,7 +165,7 @@ describe('Terminal app', () => {
 
     const terminals = windowsOf(container, 'terminal')
     expect(terminals).toHaveLength(2)
-    expect(terminals[1].getAttribute('aria-label')).toBe('visitor@rafey: ~/blog')
+    expect(terminals[1].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/blog')
   })
 
   it('closes its window on exit', () => {

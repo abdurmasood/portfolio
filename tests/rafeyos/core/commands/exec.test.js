@@ -4,12 +4,12 @@ import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 const vfs = buildVfs(fixtureContent)
-const run = (raw, cwd = '~', content = fixtureContent) => exec(raw, { vfs: content === fixtureContent ? vfs : realVfs, cwd, content })
+const run = (raw, cwd = '/home/rafey', content = fixtureContent) => exec(raw, { vfs: content === fixtureContent ? vfs : realVfs, cwd, content })
 const texts = (out) => out.lines.map((line) => line.text)
 
 describe('exec basics', () => {
   it('does nothing for blank input', () => {
-    expect(run('   ', '~/Music')).toEqual({ lines: [], effects: [], cwd: '~/Music' })
+    expect(run('   ', '/home/rafey/Music')).toEqual({ lines: [], effects: [], cwd: '/home/rafey/Music' })
   })
 
   it('reports unknown commands with the original spelling', () => {
@@ -33,7 +33,7 @@ describe('exec basics', () => {
 
 describe('content commands', () => {
   it('help prints the help block and a dim hint', () => {
-    const out = run('help', '~', realContent)
+    const out = run('help', '/home/rafey', realContent)
 
     expect(out.lines[0].text).toBe(
       "Available commands:\n\n  bio         biography\n  skills      toolkit\n" +
@@ -59,7 +59,7 @@ describe('content commands', () => {
   })
 
   it('projects prefers leaf-line in the hint, as the mockup does', () => {
-    expect(run('projects', '~', realContent).lines[1].text).toBe(
+    expect(run('projects', '/home/rafey', realContent).lines[1].text).toBe(
       'Open one with: xdg-open projects/leaf-line.txt   ·   3D view: projects --3d',
     )
   })
@@ -67,7 +67,7 @@ describe('content commands', () => {
   it('projects without any projects only mentions the 3D view', () => {
     const empty = { ...fixtureContent, projects: [] }
 
-    expect(exec('projects', { vfs, cwd: '~', content: empty }).lines[1].text).toBe('3D view: projects --3d')
+    expect(exec('projects', { vfs, cwd: '/home/rafey', content: empty }).lines[1].text).toBe('3D view: projects --3d')
   })
 
   it('projects --3d opens the Projects app', () => {
@@ -85,7 +85,7 @@ describe('content commands', () => {
   })
 
   it('blog with no posts prints total 0 and no hint', () => {
-    const out = exec('blog', { vfs, cwd: '~', content: { ...fixtureContent, posts: [] } })
+    const out = exec('blog', { vfs, cwd: '/home/rafey', content: { ...fixtureContent, posts: [] } })
 
     expect(texts(out)).toEqual(['total 0'])
   })
@@ -121,7 +121,7 @@ describe('content commands', () => {
 
 describe('fs commands', () => {
   it('ls lists the cwd with kinds', () => {
-    const out = run('ls', '~/Desktop')
+    const out = run('ls', '/home/visitor/Desktop')
 
     expect(out.lines).toEqual([])
   })
@@ -146,7 +146,7 @@ describe('fs commands', () => {
   it('ls quotes names with spaces', () => {
     const spaced = buildVfs({ ...fixtureContent, projects: [{ ...fixtureContent.projects[1], slug: 'two words' }] })
 
-    const out = exec('ls projects', { vfs: spaced, cwd: '~', content: fixtureContent })
+    const out = exec('ls projects', { vfs: spaced, cwd: '/home/rafey', content: fixtureContent })
 
     expect(out.lines[0].entries).toEqual([{ name: "'two words.txt'", kind: 'file' }])
   })
@@ -158,27 +158,34 @@ describe('fs commands', () => {
   it('ls of an empty folder prints nothing', () => {
     const noPosts = buildVfs({ ...fixtureContent, posts: [] })
 
-    expect(exec('ls blog', { vfs: noPosts, cwd: '~', content: fixtureContent }).lines).toEqual([])
+    expect(exec('ls blog', { vfs: noPosts, cwd: '/home/rafey', content: fixtureContent }).lines).toEqual([])
   })
 
   it('cd changes cwd; bare cd goes home', () => {
-    expect(run('cd Music').cwd).toBe('~/Music')
-    expect(run('cd projects').cwd).toBe('~/projects')
-    expect(run('cd', '~/Music').cwd).toBe('~')
-    expect(run('cd ..', '~/Music').cwd).toBe('~')
+    expect(run('cd Music').cwd).toBe('/home/rafey/Music')
+    expect(run('cd projects').cwd).toBe('/home/rafey/projects')
+    expect(run('cd', '/home/rafey/Music').cwd).toBe('/home/visitor')
+    expect(run('cd ..', '/home/rafey/Music').cwd).toBe('/home/rafey')
   })
 
   it('cd reports missing paths and files', () => {
-    expect(run('cd nope')).toEqual({ lines: [{ type: 'error', text: 'bash: cd: nope: No such file or directory' }], effects: [], cwd: '~' })
+    expect(run('cd nope')).toEqual({ lines: [{ type: 'error', text: 'bash: cd: nope: No such file or directory' }], effects: [], cwd: '/home/rafey' })
     expect(texts(run('cd bio.txt'))).toEqual(['bash: cd: bio.txt: Not a directory'])
   })
 
   it('pwd prints the absolute path', () => {
-    expect(texts(run('pwd', '~/Music'))).toEqual(['/home/visitor/Music'])
+    expect(texts(run('pwd', '/home/rafey/Music'))).toEqual(['/home/rafey/Music'])
+    expect(texts(run('pwd', '/home/visitor'))).toEqual(['/home/visitor'])
   })
 
   it('cat prints files', () => {
     expect(texts(run('cat bio.txt'))).toEqual(['Bio text\n'])
+    expect(texts(run('cat /etc/hostname'))).toEqual(['rafey.ai\n'])
+  })
+
+  it('ls / lists the system folders, and .. climbs from Rafey\'s home to the visitor\'s', () => {
+    expect(run('ls /').lines[0].entries.map((e) => e.name)).toEqual(['etc', 'home', 'tmp', 'usr'])
+    expect(run('cd ../visitor').cwd).toBe('/home/visitor')
   })
 
   it('cat without a file prints usage', () => {
@@ -214,12 +221,12 @@ describe('launch commands', () => {
 
   it('gio open treats its first arg as the subcommand', () => {
     expect(run('gio open email').effects).toEqual([{ type: 'openApp', app: 'mail' }])
-    expect(run('gio open Music').effects).toEqual([{ type: 'openPath', path: '~/Music' }])
+    expect(run('gio open Music').effects).toEqual([{ type: 'openPath', path: '/home/rafey/Music' }])
   })
 
   it('open a path emits openPath with the real path and no output', () => {
-    expect(run('open projects')).toEqual({ lines: [], effects: [{ type: 'openPath', path: '~/projects' }], cwd: '~' })
-    expect(run('open music.txt').effects).toEqual([{ type: 'openPath', path: '~/Music' }])
+    expect(run('open projects')).toEqual({ lines: [], effects: [{ type: 'openPath', path: '/home/rafey/projects' }], cwd: '/home/rafey' })
+    expect(run('open music.txt').effects).toEqual([{ type: 'openPath', path: '/home/rafey/Music' }])
   })
 
   it('open reports missing operands and paths', () => {
@@ -228,8 +235,8 @@ describe('launch commands', () => {
   })
 
   it('nautilus opens Files at a folder, defaulting to cwd', () => {
-    expect(run('nautilus', '~/Music').effects).toEqual([{ type: 'openApp', app: 'files', path: '~/Music' }])
-    expect(run('nautilus projects').effects).toEqual([{ type: 'openApp', app: 'files', path: '~/projects' }])
+    expect(run('nautilus', '/home/rafey/Music').effects).toEqual([{ type: 'openApp', app: 'files', path: '/home/rafey/Music' }])
+    expect(run('nautilus projects').effects).toEqual([{ type: 'openApp', app: 'files', path: '/home/rafey/projects' }])
   })
 
   it('nautilus refuses files and missing paths', () => {
@@ -238,15 +245,15 @@ describe('launch commands', () => {
   })
 
   it('gedit and gnome-text-editor open the editor silently', () => {
-    expect(run('gedit bio.txt')).toEqual({ lines: [], effects: [{ type: 'openApp', app: 'editor', path: '~/bio.txt' }], cwd: '~' })
-    expect(run('gnome-text-editor skills.txt').effects[0].path).toBe('~/skills.txt')
+    expect(run('gedit bio.txt')).toEqual({ lines: [], effects: [{ type: 'openApp', app: 'editor', path: '/home/rafey/bio.txt' }], cwd: '/home/rafey' })
+    expect(run('gnome-text-editor skills.txt').effects[0].path).toBe('/home/rafey/skills.txt')
   })
 
   it.each(['nano', 'vim', 'vi'])('%s opens the editor with a note', (editor) => {
     const out = run(`${editor} skills.txt`)
 
     expect(out.lines).toEqual([{ type: 'dim', text: `${editor} isn't installed here, opened Text Editor instead` }])
-    expect(out.effects).toEqual([{ type: 'openApp', app: 'editor', path: '~/skills.txt' }])
+    expect(out.effects).toEqual([{ type: 'openApp', app: 'editor', path: '/home/rafey/skills.txt' }])
   })
 
   it('editors refuse folders and missing files', () => {
@@ -274,11 +281,11 @@ describe('system commands', () => {
   })
 
   it('clear emits clear', () => {
-    expect(run('clear')).toEqual({ lines: [], effects: [{ type: 'clear' }], cwd: '~' })
+    expect(run('clear')).toEqual({ lines: [], effects: [{ type: 'clear' }], cwd: '/home/rafey' })
   })
 
   it('exit prints logout and closes the window', () => {
-    expect(run('exit')).toEqual({ lines: [{ type: 'pre', text: 'logout' }], effects: [{ type: 'closeSelf' }], cwd: '~' })
+    expect(run('exit')).toEqual({ lines: [{ type: 'pre', text: 'logout' }], effects: [{ type: 'closeSelf' }], cwd: '/home/rafey' })
   })
 
   it('logout returns to the home terminal', () => {

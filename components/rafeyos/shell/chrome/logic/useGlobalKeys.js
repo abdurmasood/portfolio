@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useShellDispatch, useShellState, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { useLatest } from '@/components/rafeyos/state/logic/useLatest'
-import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
 import { OVERVIEW_MODES } from '@/components/rafeyos/wm/logic/overviewModel'
 import { OVERVIEW_SEARCH_ID } from '@/components/rafeyos/shell/logic/shellIds'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
@@ -57,7 +57,7 @@ const runKeyAction = (action, { event, shell, shellDispatch, windowManager }) =>
   if (action === KEY_ACTIONS.OPEN_TERMINAL) {
     event.preventDefault()
     if (shell.overview) shellDispatch({ type: SHELL_ACTIONS.CLOSE_OVERVIEW })
-    windowManager.openApp(APP.TERMINAL, { path: HOME })
+    windowManager.openApp(APP.TERMINAL, { path: START_DIR })
   }
 }
 

@@ -36,8 +36,8 @@ describe('Files menus', () => {
   })
 
   it('selects every listed item', () => {
-    const state = filesReducer(initialFilesState('~'), { type: 'selectAll', paths: ['~/a', '~/b'] })
+    const state = filesReducer(initialFilesState('/home/visitor'), { type: 'selectAll', paths: ['/home/visitor/a', '/home/visitor/b'] })
 
-    expect(state.selection).toEqual(['~/a', '~/b'])
+    expect(state.selection).toEqual(['/home/visitor/a', '/home/visitor/b'])
   })
 })

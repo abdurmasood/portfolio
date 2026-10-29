@@ -5,6 +5,7 @@ import {
   chooseMenuItem,
   clickDock,
   dock,
+  goToRafeyHome,
   memoryStorage,
   menuEntry,
   menuLabels,
@@ -23,52 +24,59 @@ const openFiles = () => {
   return { ...view, win, ui: within(win) }
 }
 
+/** Files open on Rafey's home, where his folders and notes are. */
+const openRafeyHome = () => {
+  const files = openFiles()
+  goToRafeyHome(files.win)
+  return files
+}
+
 const item = (win, path) => win.querySelector(`.fbody [data-path="${path}"]`)
 const body = (win) => win.querySelector('.fbody')
 const goTo = (ui, place) => fireEvent.click(within(ui.getByRole('navigation', { name: 'Places' })).getByText(place))
 
 describe('Files item menu', () => {
   it('matches the desktop menu without Show in Files', () => {
-    const { win } = openFiles()
+    const { win } = openRafeyHome()
 
-    rightClick(item(win, '~/projects'))
+    rightClick(item(win, '/home/rafey/projects'))
 
     expect(menuLabels()).toEqual([
       'Open', 'Open With…', 'Cut', 'Copy', 'Rename…', 'Move to Trash', 'Open in Terminal', 'Properties',
     ])
-    expect(item(win, '~/projects').className).toContain('sel')
+    expect(item(win, '/home/rafey/projects').className).toContain('sel')
   })
 
   it('keeps an existing multi-selection when right-clicking inside it', () => {
-    const { win } = openFiles()
-    fireEvent.click(item(win, '~/bio.txt'))
-    fireEvent.click(item(win, '~/skills.txt'), { ctrlKey: true })
+    const { win } = openRafeyHome()
+    fireEvent.click(item(win, '/home/rafey/bio.txt'))
+    fireEvent.click(item(win, '/home/rafey/skills.txt'), { ctrlKey: true })
 
-    rightClick(item(win, '~/skills.txt'))
+    rightClick(item(win, '/home/rafey/skills.txt'))
 
     expect(win.querySelectorAll('.fbody .sel')).toHaveLength(2)
     expect(menuLabels()).not.toContain('Open in Terminal')
   })
 
   it('opens a terminal in the folder and shows Properties', () => {
-    const { container, win } = openFiles()
+    const { container, win } = openRafeyHome()
 
-    rightClick(item(win, '~/blog'))
+    rightClick(item(win, '/home/rafey/blog'))
     chooseMenuItem('Open in Terminal')
-    rightClick(item(win, '~/skills.txt'))
+    rightClick(item(win, '/home/rafey/skills.txt'))
     chooseMenuItem('Properties')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~/blog')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/blog')
     expect(windowsOf(container, 'properties')[0].getAttribute('aria-label')).toBe('skills.txt Properties')
   })
 
   it('opens a folder in a new Files window', () => {
     const { container, win } = openFiles()
-    rightClick(item(win, '~/Music'))
+    rightClick(item(win, '/home/visitor/Desktop'))
 
     chooseMenuItem('Open')
 
-    expect(windowsOf(container, 'files').map((files) => files.getAttribute('aria-label'))).toEqual(['Home', 'Music'])
+    expect(windowsOf(container, 'files').map((files) => files.getAttribute('aria-label'))).toEqual(['Home', 'Desktop'])
   })
 })
 
@@ -94,7 +102,7 @@ describe('Files background menu', () => {
     rightClick(body(win))
     chooseMenuItem('Properties')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~/Music')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/Music')
     expect(windowsOf(container, 'properties')[0].getAttribute('aria-label')).toBe('Music Properties')
   })
 
@@ -115,7 +123,7 @@ describe('Files background menu', () => {
 describe('Trash', () => {
   it('moves a created file into Trash and restores it to its folder', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '~/Documents/notes.txt': 'hello\n' }, trash: {} }),
+      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Documents/notes.txt': 'hello\n' }, trash: {} }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
     clickDock('Files')
@@ -123,55 +131,58 @@ describe('Trash', () => {
     const ui = within(win)
 
     goTo(ui, 'Documents')
-    rightClick(item(win, '~/Documents/notes.txt'))
+    rightClick(item(win, '/home/visitor/Documents/notes.txt'))
     expect(menuEntry('Move to Trash').disabled).toBe(false)
     chooseMenuItem('Move to Trash')
 
-    expect(item(win, '~/Documents/notes.txt')).toBeNull()
+    expect(item(win, '/home/visitor/Documents/notes.txt')).toBeNull()
     goTo(ui, 'Trash')
-    const trashed = trashItemPath('~/Documents/notes.txt')
+    const trashed = trashItemPath('/home/visitor/Documents/notes.txt')
     expect(item(win, trashed).textContent).toContain('notes.txt')
     rightClick(item(win, trashed))
     chooseMenuItem('Restore')
 
     goTo(ui, 'Documents')
-    expect(item(win, '~/Documents/notes.txt')).toBeTruthy()
+    expect(item(win, '/home/visitor/Documents/notes.txt')).toBeTruthy()
     expect(JSON.parse(disk.getItem('rafeyos-documents'))).toEqual({
-      files: { '~/Documents/notes.txt': 'hello\n' },
+      files: { '/home/visitor/Documents/notes.txt': 'hello\n' },
       trash: {},
     })
   })
 
   it('keeps the file in Trash when its original place is taken', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '~/bio.txt': 'nope\n' } }),
+      'rafeyos-documents': JSON.stringify({
+        files: { '/home/visitor/Desktop/a.txt': 'live\n' },
+        trash: { '/home/visitor/Desktop/a.txt': 'old\n' },
+      }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
     clickDock('Files')
     const win = windowsOf(container, 'files')[0]
 
     goTo(within(win), 'Trash')
-    const trashed = trashItemPath('~/bio.txt')
+    const trashed = trashItemPath('/home/visitor/Desktop/a.txt')
     rightClick(item(win, trashed))
     chooseMenuItem('Restore')
 
-    expect(screen.getByRole('status').textContent).toContain('already in Home')
+    expect(screen.getByRole('status').textContent).toContain('already in Desktop')
     expect(item(win, trashed)).toBeTruthy()
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['~/bio.txt']).toBe('nope\n')
+    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Desktop/a.txt']).toBe('old\n')
   })
 
   it('empties Trash from the folder and from a file inside it', () => {
     const disk = memoryStorage({
       'rafeyos-documents': JSON.stringify({
-        files: { '~/Desktop/keep.txt': 'stay\n' },
-        trash: { '~/Documents/notes.txt': 'gone\n' },
+        files: { '/home/visitor/Desktop/keep.txt': 'stay\n' },
+        trash: { '/home/visitor/Documents/notes.txt': 'gone\n' },
       }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
     clickDock('Files')
     const win = windowsOf(container, 'files')[0]
     const ui = within(win)
-    const trashed = trashItemPath('~/Documents/notes.txt')
+    const trashed = trashItemPath('/home/visitor/Documents/notes.txt')
 
     goTo(ui, 'Trash')
     rightClick(body(win))
@@ -182,14 +193,14 @@ describe('Trash', () => {
 
     expect(ui.getByText('Trash is Empty')).toBeTruthy()
     expect(JSON.parse(disk.getItem('rafeyos-documents'))).toEqual({
-      files: { '~/Desktop/keep.txt': 'stay\n' },
+      files: { '/home/visitor/Desktop/keep.txt': 'stay\n' },
       trash: {},
     })
   })
 
   it('empties Trash from the dock icon, and disables the command when the bin is empty', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '~/Desktop/old.txt': 'old\n' } }),
+      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '/home/visitor/Desktop/old.txt': 'old\n' } }),
     })
     const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
     const trashButton = () => within(dock()).getByRole('button', { name: 'Trash' })
@@ -211,18 +222,18 @@ describe('Trash', () => {
 
 describe('Files header menus', () => {
   it('switches views from View options', () => {
-    const { win, ui } = openFiles()
+    const { win, ui } = openRafeyHome()
 
     fireEvent.click(ui.getByRole('button', { name: 'View options' }))
     expect(menuLabels()).toEqual(['Grid', 'List', 'Sort by Name', 'Show Hidden Files'])
     expect(menuEntry('Sort by Name').disabled).toBe(true)
     expect(menuEntry('Show Hidden Files').disabled).toBe(true)
     chooseMenuItem('List')
-    expect(item(win, '~/projects').className).toContain('flr')
+    expect(item(win, '/home/rafey/projects').className).toContain('flr')
 
     fireEvent.click(ui.getByRole('button', { name: 'View options' }))
     chooseMenuItem('Grid')
-    expect(item(win, '~/projects').className).toContain('fitem')
+    expect(item(win, '/home/rafey/projects').className).toContain('fitem')
   })
 
   it('opens a new window at the same place from the main menu', () => {

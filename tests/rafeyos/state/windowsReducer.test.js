@@ -40,11 +40,11 @@ describe('open', () => {
   })
 
   it('defaults the title to the app id', () => {
-    expect(reduce(initialWindows, openEditor('~/bio.txt')).byId[1].title).toBe('editor')
+    expect(reduce(initialWindows, openEditor('/home/rafey/bio.txt')).byId[1].title).toBe('editor')
   })
 
   it('reuses a single-instance window with the same arg, focusing it', () => {
-    const state = reduce(initialWindows, openEditor('~/bio.txt'), openTerminal, openEditor('~/bio.txt'))
+    const state = reduce(initialWindows, openEditor('/home/rafey/bio.txt'), openTerminal, openEditor('/home/rafey/bio.txt'))
 
     expect(Object.keys(state.byId)).toHaveLength(2)
     expect(state.order).toEqual([2, 1])
@@ -52,7 +52,7 @@ describe('open', () => {
   })
 
   it('restores a minimized single-instance window instead of opening another', () => {
-    const state = reduce(initialWindows, openEditor('~/bio.txt'), { type: 'minimize', id: 1 }, openEditor('~/bio.txt'))
+    const state = reduce(initialWindows, openEditor('/home/rafey/bio.txt'), { type: 'minimize', id: 1 }, openEditor('/home/rafey/bio.txt'))
 
     expect(state.byId[1].minimized).toBe(false)
     expect(state.focusedId).toBe(1)
@@ -72,14 +72,14 @@ describe('open', () => {
   })
 
   it('opens a fresh window when the existing one is closing', () => {
-    const state = reduce(initialWindows, openEditor('~/bio.txt'), { type: 'requestClose', id: 1 }, openEditor('~/bio.txt'))
+    const state = reduce(initialWindows, openEditor('/home/rafey/bio.txt'), { type: 'requestClose', id: 1 }, openEditor('/home/rafey/bio.txt'))
 
-    expect(state.byId[2].key).toBe('editor:~/bio.txt')
+    expect(state.byId[2].key).toBe('editor:/home/rafey/bio.txt')
     expect(state.focusedId).toBe(2)
   })
 
   it('opens a different arg as its own window', () => {
-    const state = reduce(initialWindows, openEditor('~/bio.txt'), openEditor('~/skills.txt'))
+    const state = reduce(initialWindows, openEditor('/home/rafey/bio.txt'), openEditor('/home/rafey/skills.txt'))
 
     expect(state.order).toEqual([1, 2])
   })
@@ -228,17 +228,17 @@ describe('commitRect and setTitle', () => {
   })
 
   it('setTitle renames the window', () => {
-    const state = reduce(initialWindows, openTerminal, { type: 'setTitle', id: 1, title: 'visitor@rafey: ~/Music' })
+    const state = reduce(initialWindows, openTerminal, { type: 'setTitle', id: 1, title: 'visitor@rafey: /home/rafey/Music' })
 
-    expect(state.byId[1].title).toBe('visitor@rafey: ~/Music')
+    expect(state.byId[1].title).toBe('visitor@rafey: /home/rafey/Music')
   })
 
   it('setArg retargets a window and refuses a file another window has open', () => {
-    const moved = reduce(initialWindows, openEditor(''), { type: 'setArg', id: 1, arg: '~/Documents/notes.txt' })
+    const moved = reduce(initialWindows, openEditor(''), { type: 'setArg', id: 1, arg: '/home/visitor/Documents/notes.txt' })
 
-    expect(moved.byId[1]).toMatchObject({ arg: '~/Documents/notes.txt', key: 'editor:~/Documents/notes.txt' })
+    expect(moved.byId[1]).toMatchObject({ arg: '/home/visitor/Documents/notes.txt', key: 'editor:/home/visitor/Documents/notes.txt' })
 
-    const blocked = reduce(moved, openEditor(''), { type: 'setArg', id: 2, arg: '~/Documents/notes.txt' })
+    const blocked = reduce(moved, openEditor(''), { type: 'setArg', id: 2, arg: '/home/visitor/Documents/notes.txt' })
 
     expect(blocked.byId[2].arg).toBe('')
     expect(blocked.byId[2].key).toBe('editor:')

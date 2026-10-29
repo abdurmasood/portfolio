@@ -5,7 +5,7 @@ import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 
 const vfs = buildVfs(fixtureContent)
-const tab = (input, { cwd = '~', tabCount = 1 } = {}) =>
+const tab = (input, { cwd = '/home/rafey', tabCount = 1 } = {}) =>
   complete(input, { vfs, cwd, commands: COMPLETION_COMMANDS, tabCount })
 
 describe('complete', () => {
@@ -32,7 +32,7 @@ describe('complete', () => {
 
   it('completes inside a typed folder, keeping the prefix', () => {
     expect(tab('cat Music/st')).toEqual({ value: 'cat Music/story.txt ' })
-    expect(tab('cat ../bio', { cwd: '~/Music' })).toEqual({ value: 'cat ../bio.txt ' })
+    expect(tab('cat ../bio', { cwd: '/home/rafey/Music' })).toEqual({ value: 'cat ../bio.txt ' })
   })
 
   it('completes inside a folder', () => {
@@ -41,7 +41,7 @@ describe('complete', () => {
   })
 
   it('lists path matches relative to cwd on the second tab', () => {
-    expect(tab('cat s', { cwd: '~/Music', tabCount: 2 })).toEqual({ list: ['song.mp3', 'story.txt'] })
+    expect(tab('cat s', { cwd: '/home/rafey/Music', tabCount: 2 })).toEqual({ list: ['song.mp3', 'story.txt'] })
     expect(tab('ls b', { tabCount: 2 })).toEqual({ list: ['blog/', 'bio.txt'] })
   })
 

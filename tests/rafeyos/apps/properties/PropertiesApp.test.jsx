@@ -23,10 +23,10 @@ const openProperties = (path) => {
 describe('Properties', () => {
   it('shows a file, with no terminal button', () => {
     const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
+      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
     })
     const view = renderDesktop({ documents: createDocumentsStore(disk) })
-    rightClick(desktopIcon(view.container, '~/Desktop/note.txt'))
+    rightClick(desktopIcon(view.container, '/home/visitor/Desktop/note.txt'))
     chooseMenuItem('Properties')
     const [win] = windowsOf(view.container, 'properties')
     const ui = within(win)
@@ -42,11 +42,11 @@ describe('Properties', () => {
   })
 
   it('shows a folder, and opens a terminal there', () => {
-    const { container, win, ui } = openProperties('~')
+    const { container, win, ui } = openProperties('/home/visitor')
 
     expect(win.getAttribute('aria-label')).toBe('Home Properties')
     expect(rowsOf(win)).toEqual([
-      ['Size', sizeLabel(realVfs, '~')],
+      ['Size', sizeLabel(realVfs, '/home/visitor')],
       ['Type', 'Folder'],
       ['Parent Folder', '/home'],
     ])
@@ -56,9 +56,9 @@ describe('Properties', () => {
   })
 
   it('keeps one window per path and stays out of the dock', () => {
-    const { container } = openProperties('~')
+    const { container } = openProperties('/home/visitor')
 
-    rightClick(desktopIcon(container, '~'))
+    rightClick(desktopIcon(container, '/home/visitor'))
     chooseMenuItem('Properties')
 
     expect(windowsOf(container, 'properties')).toHaveLength(1)
@@ -68,16 +68,21 @@ describe('Properties', () => {
 
 describe('propertiesRows', () => {
   it('describes a plain file', () => {
-    expect(propertiesRows(realVfs, '~/Music/story.txt')).toEqual([
-      { label: 'Size', value: sizeLabel(realVfs, '~/Music/story.txt') },
+    expect(propertiesRows(realVfs, '/home/rafey/Music/story.txt')).toEqual([
+      { label: 'Size', value: sizeLabel(realVfs, '/home/rafey/Music/story.txt') },
       { label: 'Type', value: 'Plain text document' },
-      { label: 'Parent Folder', value: '/home/visitor/Music' },
+      { label: 'Parent Folder', value: '/home/rafey/Music' },
     ])
   })
 
+  it('leaves out the parent of the root', () => {
+    expect(propertiesRows(realVfs, '/').map((row) => row.label)).toEqual(['Size', 'Type'])
+    expect(propertiesRows(realVfs, '/home').find((row) => row.label === 'Parent Folder').value).toBe('/')
+  })
+
   it('names where a trashed file came from', () => {
-    const merged = mergeDocuments(realVfs, {}, { '~/Desktop/notes.txt': 'hello\n' })
-    const path = trashItemPath('~/Desktop/notes.txt')
+    const merged = mergeDocuments(realVfs, {}, { '/home/visitor/Desktop/notes.txt': 'hello\n' })
+    const path = trashItemPath('/home/visitor/Desktop/notes.txt')
 
     expect(propertiesRows(merged, path).find((row) => row.label === 'Original Location').value).toBe('/home/visitor/Desktop/notes.txt')
   })

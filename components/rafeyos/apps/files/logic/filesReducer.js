@@ -1,5 +1,6 @@
 // @ts-check
 import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 
 export const FILE_VIEWS = Object.freeze({ GRID: 'grid', LIST: 'list' })
 
@@ -53,7 +54,7 @@ export const FILES_ACTIONS = Object.freeze({
  * @param {readonly string[]} [selection]
  * @returns {Readonly<FilesState>}
  */
-export const initialFilesState = (path = '~', selection = []) =>
+export const initialFilesState = (path = HOME, selection = []) =>
   Object.freeze({ path, back: [], fwd: [], view: FILE_VIEWS.GRID, selection: [...selection], search: null })
 
 /** @type {FilesHandler<typeof FILES_ACTIONS.GO>} */
