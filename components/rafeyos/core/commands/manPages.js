@@ -320,6 +320,14 @@ const PAGES = Object.freeze({
     synopsis: ['uptime'],
     description: ['Print the current time, how long this shell has been running, the users and the load.'],
   },
+  neofetch: {
+    summary: 'A fast, highly customizable system info script',
+    synopsis: ['neofetch'],
+    description: [
+      "Show rafeyOS's logo beside the system: the OS from /etc/os-release and uname, how long the shell has run, the",
+      "desktop's style and accent, and the details on Settings → About. Piped, it prints plain text.",
+    ],
+  },
   hostname: { summary: "show the system's host name", synopsis: ['hostname'], description: ['Print the name of this host.'] },
   history: {
     summary: 'display the command history',

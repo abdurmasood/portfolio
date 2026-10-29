@@ -14,6 +14,8 @@
   /* ls: rafeyOS's terminal colours for folders and links */
   --term-dir: #729fcf;
   --term-link: #34e2e2;
+  /* neofetch's logo and labels: Ubuntu orange, as the homepage has no accent of its own */
+  --term-accent: #E95420;
 
   background-color: var(--term-bg);
   color: var(--term-fg);
@@ -179,6 +181,10 @@
 
 .terminal .lnk {
   color: var(--term-link);
+}
+
+.terminal .accent {
+  color: var(--term-accent);
 }
 
 .terminal .terminal-block {

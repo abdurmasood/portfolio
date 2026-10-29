@@ -6,6 +6,7 @@ import { filesCommands } from './builtins/files'
 import { fsCommands } from './builtins/fs'
 import { gsettingsCommands } from './builtins/gsettings'
 import { launchCommands } from './builtins/launch'
+import { neofetchCommands } from './builtins/neofetch'
 import { processCommands } from './builtins/process'
 import { systemCommands } from './builtins/system'
 import { textCommands } from './builtins/text'
@@ -34,6 +35,7 @@ export const COMMANDS = Object.freeze(
     ...filesCommands,
     ...gsettingsCommands,
     ...launchCommands,
+    ...neofetchCommands,
     ...processCommands,
     ...systemCommands,
     ...textCommands,

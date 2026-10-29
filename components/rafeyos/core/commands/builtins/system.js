@@ -49,8 +49,8 @@ const UNAME_SPEC = Object.freeze({
   flags: 'asnrmo',
   long: Object.freeze({ all: 'a', 'kernel-name': 's', nodename: 'n', 'kernel-release': 'r', machine: 'm', 'operating-system': 'o' }),
 })
-// In the order uname prints them, whatever order the flags came in
-const UNAME_FIELDS = Object.freeze([['s', 'Linux'], ['n', ENV.HOSTNAME], ['r', '6.8.0-rafey'], ['m', 'x86_64'], ['o', 'GNU/Linux']])
+// In the order uname prints them, whatever order the flags came in; neofetch reads the release and machine
+export const UNAME_FIELDS = Object.freeze([['s', 'Linux'], ['n', ENV.HOSTNAME], ['r', '6.8.0-rafey'], ['m', 'x86_64'], ['o', 'GNU/Linux']])
 
 /** @param {CommandContext} context @returns {CommandOutput} */
 const uname = ({ argv }) => {
@@ -135,6 +135,25 @@ const upFor = (minutes) => {
   const rest = minutes % MINUTES_PER_HOUR
   const dayPart = days ? `${days} ${days > 1 ? 'days' : 'day'}, ` : ''
   return dayPart + (hours ? `${pad(hours, 2, ' ')}:${pad(rest)}` : `${rest} min`)
+}
+
+const SECONDS_PER_MINUTE = 60
+
+/**
+ * How long the shell has run, the way neofetch words it: "42 secs", "3 mins", "1 hour, 5 mins", "2 days, 1 min".
+ * A field that is 0 is left out, and seconds show only under a minute.
+ * @param {number} seconds
+ */
+export const neofetchUptime = (seconds) => {
+  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE)
+  /** @type {[count: number, unit: string][]} */
+  const fields = [
+    [Math.floor(minutes / (MINUTES_PER_HOUR * HOURS_PER_DAY)), 'day'],
+    [Math.floor(minutes / MINUTES_PER_HOUR) % HOURS_PER_DAY, 'hour'],
+    [minutes % MINUTES_PER_HOUR, 'min'],
+  ]
+  const shown = fields.filter(([count]) => count > 0).map(([count, unit]) => `${count} ${unit}${count === 1 ? '' : 's'}`)
+  return shown.length ? shown.join(', ') : `${seconds} secs`
 }
 
 /** @param {CommandContext} context @returns {CommandOutput} */

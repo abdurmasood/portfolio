@@ -1,7 +1,7 @@
 'use client'
 
 // One line of the shell's structured output, drawn in the homepage terminal's own style
-import { ENTRY_KINDS, LINE_TYPES } from '@/components/rafeyos/core/commands/lines'
+import { ENTRY_KINDS, LINE_TYPES, fetchRows } from '@/components/rafeyos/core/commands/lines'
 import { tilde } from '@/components/rafeyos/core/vfs/paths'
 import { HOME_PANELS } from '@/components/home/shell/homeCommands'
 import { BlogArticle, BlogPicker } from '@/components/home/BlogOutput'
@@ -32,6 +32,20 @@ const LsLine = ({ entries }) => (
         {i > 0 && '  '}
         <span className={ENTRY_CLASS[entry.kind]}>{entry.name}</span>
       </span>
+    ))}
+  </div>
+)
+
+// neofetch's block: the logo and labels in the homepage's accent, Ubuntu orange
+const FetchLine = ({ line }) => (
+  <div className="fetch">
+    {fetchRows(line).map((row, i) => (
+      <div key={i}>
+        <span className="accent">{row.logo}</span>
+        {row.label !== undefined && <span className="accent">{row.label}</span>}
+        {row.label !== undefined && ': '}
+        {row.text}
+      </div>
     ))}
   </div>
 )
@@ -75,6 +89,7 @@ const RENDERERS = Object.freeze({
   [LINE_TYPES.LS]: ({ line }) => <LsLine entries={line.entries} />,
   [LINE_TYPES.PROMPT]: ({ line }) => <EchoedPrompt cwd={line.cwd} cmd={line.cmd} />,
   [LINE_TYPES.PANEL]: PanelLine,
+  [LINE_TYPES.FETCH]: FetchLine,
 })
 
 /**

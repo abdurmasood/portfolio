@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { LINE_TYPES, ENTRY_KINDS } from '@/components/rafeyos/core/commands/lines'
+import { LINE_TYPES, ENTRY_KINDS, fetchRows } from '@/components/rafeyos/core/commands/lines'
 import { tilde } from '@/components/rafeyos/core/vfs/paths'
 
 /** Ubuntu's bash prompt: green user@host, blue path. */
@@ -22,6 +22,20 @@ const LsLine = ({ entries }) => (
   </pre>
 )
 
+/** neofetch's block: the logo and labels in the desktop's accent. */
+const FetchLine = ({ line }) => (
+  <div className="fetch">
+    {fetchRows(line).map((row, i) => (
+      <pre key={i}>
+        <span className="ac">{row.logo}</span>
+        {row.label !== undefined && <span className="ac">{row.label}</span>}
+        {row.label !== undefined && ': '}
+        {row.text}
+      </pre>
+    ))}
+  </div>
+)
+
 const RENDERERS = Object.freeze({
   [LINE_TYPES.PRE]: ({ line }) => <pre>{line.text}</pre>,
   [LINE_TYPES.ERROR]: ({ line }) => <div className="er">{line.text}</div>,
@@ -40,6 +54,7 @@ const RENDERERS = Object.freeze({
       {line.cmd}
     </div>
   ),
+  [LINE_TYPES.FETCH]: FetchLine,
 })
 
 /** One structured output line as React elements (no HTML strings). */

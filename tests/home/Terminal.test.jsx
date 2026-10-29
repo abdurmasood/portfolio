@@ -274,3 +274,27 @@ describe('home terminal: panels', () => {
     expect(screen.queryByRole('list', { name: 'Projects' })).toBeNull()
   })
 })
+
+describe('home terminal: neofetch', () => {
+  it('neofetch_renders_on_home_with_accent_labels', () => {
+    const { container } = render(<Page />)
+
+    run('neofetch')
+
+    const block = lastRow(container)
+    const rows = [...block.children].map((row) => row.textContent)
+    expect(rows).toHaveLength(11)
+    expect(rows.slice(0, 3)).toEqual([
+      "   .-'''-.      visitor@rafey.ai",
+      '  /  .-.  \\     ----------------',
+      ' |  ( r )  |    OS: rafeyOS 24.04 LTS x86_64',
+    ])
+    expect(rows.at(-1)).toMatch(/^ {16}Memory: \d+ years$/)
+    // The logo and every label take the homepage's accent, Ubuntu orange
+    const accented = [...block.querySelectorAll('.accent')].map((span) => span.textContent.trimEnd()).filter(Boolean)
+    expect(accented).toEqual([
+      "   .-'''-.", '  /  .-.  \\', ' |  ( r )  |', 'OS', "  \\  '-'  /", 'Host', "   '-...-'", 'Kernel',
+      'Uptime', 'Shell', 'DE', 'Theme', 'CPU', 'Memory',
+    ])
+  })
+})

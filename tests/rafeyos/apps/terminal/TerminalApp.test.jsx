@@ -494,3 +494,20 @@ describe('ps and kill in the Terminal', () => {
     expect(windowsOf(container, 'terminal')).toHaveLength(0)
   })
 })
+
+describe('neofetch in the Terminal', () => {
+  it('neofetch_renders_with_labels_in_the_accent_colour', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, "gsettings set org.gnome.desktop.interface accent-color 'purple'; neofetch")
+
+    const block = log(win).lastElementChild
+    expect(block.textContent).toContain('Theme: Dark · Purple accent')
+    const accented = [...block.querySelectorAll('.ac')].map((span) => span.textContent.trimEnd()).filter(Boolean)
+    expect(accented).toEqual([
+      "   .-'''-.", '  /  .-.  \\', ' |  ( r )  |', 'OS', "  \\  '-'  /", 'Host', "   '-...-'", 'Kernel',
+      'Uptime', 'Shell', 'DE', 'Theme', 'CPU', 'Memory',
+    ])
+  })
+})
