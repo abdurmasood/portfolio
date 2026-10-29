@@ -8,6 +8,7 @@ import { MailIcon, TrashIcon } from './appIcons'
 const FOLDER_TAB_STOPS = ['color-mix(in srgb, var(--accent) 78%, #000)', 'color-mix(in srgb, var(--accent) 62%, #000)']
 const FOLDER_BODY_STOPS = ['color-mix(in srgb, var(--accent) 78%, #fff)', 'color-mix(in srgb, var(--accent) 92%, #000)']
 const FOLDER_GLYPH = { color: 'color-mix(in srgb, var(--accent) 52%, #000)' }
+const AUDIO_NOTE = { stroke: 'var(--accent)' }
 const PAGE_STOPS = ['#ffffff', '#e9e9e9']
 const FOLD_STOPS = ['#f2f2f2', '#cfcfcf']
 
@@ -86,7 +87,7 @@ const TextLines = () => (
 )
 
 const AudioNote = () => (
-  <g transform="translate(20 24) scale(1.5)" fill="none" stroke="#E95420" strokeWidth="1.8">
+  <g transform="translate(20 24) scale(1.5)" fill="none" strokeWidth="1.8" style={AUDIO_NOTE}>
     <path d="M6 12V3.5l7-1.5v9" />
     <circle cx="4.25" cy="12" r="1.75" />
     <circle cx="11.25" cy="11" r="1.75" />

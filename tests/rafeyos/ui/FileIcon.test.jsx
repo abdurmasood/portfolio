@@ -9,6 +9,7 @@ afterEach(cleanup)
 
 const vfs = buildVfs(buildContent())
 const textFile = Object.keys(vfs).find((path) => vfs[path].type === NODE_TYPES.TEXT)
+const audioFile = Object.keys(vfs).find((path) => vfs[path].type === NODE_TYPES.AUDIO)
 
 const gradientIds = (svg) => [...svg.querySelectorAll('linearGradient')].map((gradient) => gradient.id)
 const fillTargets = (svg) =>
@@ -52,5 +53,14 @@ describe('file icons', () => {
 
     expect(gradientIds(svg)).toHaveLength(2)
     expect(fillTargets(svg).every((id) => gradientIds(svg).includes(id))).toBe(true)
+  })
+
+  it('draws the audio note in the accent colour, so it follows a changed accent', () => {
+    const { container } = render(<FileIcon vfs={vfs} path={audioFile} />)
+
+    const note = container.querySelector('g[transform^="translate(20 24)"]')
+
+    expect(note.style.stroke).toBe('var(--accent)')
+    expect(container.innerHTML).not.toMatch(/#E95420/i)
   })
 })
