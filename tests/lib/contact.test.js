@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '@/lib/contact.js'
+import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, contactHtml, mailtoHref } from '@/lib/contact.js'
 
 describe('contact constants', () => {
   it('keeps the strings the home terminal used before extraction', () => {
@@ -38,5 +38,13 @@ describe('mailtoHref', () => {
     expect(href).toContain("i'm")
     expect(params.get('subject')).toBe(DEFAULT_MAIL.subject)
     expect(params.get('body')).toBe(DEFAULT_MAIL.body)
+  })
+})
+
+describe('contactHtml', () => {
+  it('is the contact block the home terminal printed before extraction', () => {
+    expect(contactHtml).toBe(
+      'email: abdurrafeym@gmail.com\nlinkedin: A. Rafey Masood\n\nUsage: open &lt;contact-option&gt; (e.g. open email)',
+    )
   })
 })

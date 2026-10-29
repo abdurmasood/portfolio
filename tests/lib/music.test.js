@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ARTIST_BLURB, computeLevels, computePeaks, formatTime, getFeaturedTrack } from '@/lib/music.js'
+import { ARTIST_BLURB, computeLevels, computePeaks, formatTime, getFeaturedTrack, musicUsage } from '@/lib/music.js'
 
 describe('featured track metadata', () => {
   it('carries the measured file size and duration', () => {
@@ -42,5 +42,20 @@ describe('computePeaks', () => {
     const samples = Float32Array.from([0.5, -0.5, 0.25, -0.25, 1, -1, 0, 0])
 
     expect(computePeaks(samples, 4)).toEqual(['▅', '▃', '█', '▁'])
+  })
+})
+
+describe('musicUsage', () => {
+  it('is the usage the home terminal printed before extraction, with the blurb dimmed', () => {
+    expect(musicUsage()).toBe(
+      [
+        'Usage: music &lt;command&gt;',
+        '',
+        '  story      his journey as a producer',
+        '  play       play Storms Ahead',
+        '',
+        "<span class='grey'>Rafey releases music as Ramé Sivano. He founded a record label and set up a recording studio in East London.</span>",
+      ].join('\n'),
+    )
   })
 })

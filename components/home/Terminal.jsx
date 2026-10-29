@@ -13,8 +13,8 @@ import { sessionStorageOrNull } from '@/lib/browserStorage';
 import { BlogArticle, BlogPicker } from './BlogOutput';
 import { getPostBySlug, getPublishedPosts } from '@/lib/posts';
 import { MusicPlayer, MusicStory } from './MusicOutput';
-import { getFeaturedTrack, ARTIST_BLURB } from '@/lib/music';
-import { EMAIL, LINKEDIN_URL, LINKEDIN_NAME, DEFAULT_MAIL, mailtoHref } from '@/lib/contact';
+import { getFeaturedTrack, musicUsage } from '@/lib/music';
+import { LINKEDIN_URL, DEFAULT_MAIL, contactHtml, mailtoHref } from '@/lib/contact';
 import { HOME_HELP_LINES, HELP_HINT } from '@/lib/help';
 import { ProjectPicker } from './ProjectsOutput';
 
@@ -34,18 +34,6 @@ const escapeHtml = (text) => text
   .replace(/'/g, '&#39;');
 
 const nextEntry = (entry) => ({ id: crypto.randomUUID(), ...entry });
-
-const musicUsage = () => {
-  const track = getFeaturedTrack();
-  return [
-    'Usage: music &lt;command&gt;',
-    '',
-    '  story      his journey as a producer',
-    `  play       play ${escapeHtml(track.title)}`,
-    '',
-    `<span class='grey'>${escapeHtml(ARTIST_BLURB)}</span>`,
-  ].join('\n');
-};
 
 const Terminal = () => {
   const router = useRouter();
@@ -278,10 +266,7 @@ const Terminal = () => {
 
           case 'contact':
           case 'Contact':
-            output = `email: ${EMAIL}
-linkedin: ${LINKEDIN_NAME}
-
-Usage: open &lt;contact-option&gt; (e.g. open email)`;
+            output = contactHtml;
             break;
 
           case 'open linkedin':
