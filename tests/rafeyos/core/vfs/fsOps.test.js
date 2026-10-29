@@ -277,4 +277,12 @@ describe('symlink', () => {
     expect(run(symlink, state, { target: 'x', path: '/home/rafey/l' })).toEqual(fails('EACCES', '/home/rafey/l'))
     expect(run(symlink, state, { target: '', path: `${H}/l` })).toEqual(fails('ENOENT', `${H}/l`))
   })
+
+  it("replace swaps the visitor's file or link for the new link, never a folder or a shipped file", () => {
+    const state = stateOf({ [`${H}/f`]: text('f'), [`${H}/l`]: link('old') })
+    expect(run(symlink, state, { target: 'x', path: `${H}/f`, replace: true }).state.nodes[`${H}/f`]).toEqual(link('x', NOW))
+    expect(run(symlink, state, { target: 'x', path: `${H}/l`, replace: true }).state.nodes[`${H}/l`]).toEqual(link('x', NOW))
+    expect(run(symlink, state, { target: 'x', path: `${H}/Documents`, replace: true })).toEqual(fails('EEXIST', `${H}/Documents`))
+    expect(run(symlink, state, { target: 'x', path: '/home/rafey/bio.txt', replace: true })).toEqual(fails('EACCES', '/home/rafey/bio.txt'))
+  })
 })

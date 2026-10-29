@@ -114,7 +114,18 @@ const ls = ({ argv, fs, cwd, now }) => {
   }
 }
 
-const cd = ({ argv, fs, cwd, env }) => {
+// The options Linux bash's cd takes; the folder it lands in is always the real one, so they change nothing here
+const CD_OPTION = /^-[LPe]+$/
+
+// cd's words after its leading options and a `--` that ends them
+const cdOperands = (argv) => {
+  const start = argv.findIndex((arg) => !CD_OPTION.test(arg))
+  if (start < 0) return []
+  return argv[start] === '--' ? argv.slice(start + 1) : argv.slice(start)
+}
+
+const cd = ({ argv: words, fs, cwd, env }) => {
+  const argv = cdOperands(words)
   if (argv.length > 1) return failure('bash: cd: too many arguments')
   const [arg] = argv
   if (arg === '-' && !env.OLDPWD) return failure('bash: cd: OLDPWD not set')

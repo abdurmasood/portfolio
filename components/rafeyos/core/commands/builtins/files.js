@@ -6,12 +6,13 @@ import { copy, mkdir, move, remove, symlink, touch } from '@/components/rafeyos/
 import { normalize, resolve } from '@/components/rafeyos/core/vfs/paths'
 import { errnoText } from '@/components/rafeyos/core/commands/errors'
 import { parseOptions } from '@/components/rafeyos/core/commands/options'
-import { baseName, folderAt, inside, missing, spelled, subtree, usage, why } from './fileInfo'
+import { baseName, folderAt, inside, missing, shellChildren, spelled, subtree, usage, why } from './fileInfo'
 
 /**
  * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
  * @import { FsOpError } from '@/components/rafeyos/core/vfs/fsOps'
  * @import { FsCommitResult } from '@/components/rafeyos/core/vfs/fsStore'
+ * @import { ShellErrno } from '@/components/rafeyos/core/commands/errors'
  * @import { ParsedOptions } from '@/components/rafeyos/core/commands/options'
  * @import { CommandContext, CommandOutput } from './result'
  */
@@ -133,6 +134,50 @@ const removedLines = ({ before, after }, root) =>
     .filter((path) => !after[path])
     .map((path) => `removed ${before[path].type === NODE_TYPES.DIR ? 'directory ' : ''}'${spelled(root, path)}'`)
 
+/** @param {string} typed @param {ShellErrno} errno */
+const cannotRemove = (typed, errno) => failed(`rm: cannot remove '${typed}': ${errnoText(errno)}`)
+
+/**
+ * `rm -r L/`: empties the folder L leads to. rmdir then refuses L itself, a link named with a slash, so the link and
+ * its folder both stay; a folder that kept something stays without a word of its own.
+ * @param {string} typed @param {string} folder the real folder @param {ParsedOptions['flags']} flags
+ * @param {Pick<CommandContext, 'fs'>} context
+ * @returns {Report}
+ */
+const rmThroughLink = (typed, folder, flags, { fs }) => {
+  const before = fs.vfs()
+  const root = { typed, real: folder }
+  const kept = shellChildren(before, folder).flatMap((child) => {
+    const result = fs.apply(remove, { path: child, recursive: true })
+    if (!result.ok) return [`rm: cannot remove '${spelled(root, child)}': ${why(result)}`]
+    return (result.errors ?? []).map((error) => `rm: cannot remove '${spelled(root, error.path)}': ${errnoText(error.errno)}`)
+  })
+  const removed = flags.v ? removedLines({ before, after: fs.vfs() }, root) : []
+  // -f lets rmdir's ENOTDIR pass, as it does a missing file
+  const refused = kept.length || flags.f ? [] : cannotRemove(typed, 'ENOTDIR').err
+  return { out: removed, err: [...kept, ...refused] }
+}
+
+/**
+ * An operand typed with a trailing slash over something that isn't a folder: the slash makes rm look through a link,
+ * and unlink and rmdir both refuse a non-folder named with one, so whatever is at the name stays.
+ * @param {string} typed @param {ParsedOptions['flags']} flags @param {Pick<CommandContext, 'fs' | 'cwd'>} context
+ * @returns {Report}
+ */
+const rmPastSlash = (typed, flags, context) => {
+  const vfs = context.fs.vfs()
+  const target = resolve(vfs, normalize(typed, context.cwd), { followLast: true })
+  const folder = target.ok && vfs[target.path].type === NODE_TYPES.DIR ? target.path : null
+  if (folder === null) {
+    const errno = target.ok ? 'ENOTDIR' : target.errno
+    // -f is silent about a name that isn't there or isn't a folder, as GNU's ignorable_missing is
+    return flags.f && (errno === 'ENOENT' || errno === 'ENOTDIR') ? printed() : cannotRemove(typed, errno)
+  }
+  if (flags.r || flags.R) return rmThroughLink(typed, folder, flags, context)
+  if (!flags.d) return cannotRemove(typed, 'EISDIR')
+  return cannotRemove(typed, shellChildren(vfs, folder).length ? 'ENOTEMPTY' : 'ENOTDIR')
+}
+
 /**
  * One rm operand.
  * @param {string} typed @param {ParsedOptions['flags']} flags @param {CommandContext} context
@@ -145,6 +190,7 @@ const rmOne = (typed, flags, { fs, cwd }) => {
   if (guard) return failed(...guard)
   const before = fs.vfs()
   const found = nodeAt(before, path)
+  if (found && found.node.type !== NODE_TYPES.DIR && typed.endsWith('/')) return rmPastSlash(typed, flags, { fs, cwd })
   if (!found && flags.f) return printed()
   const isFolder = found?.node.type === NODE_TYPES.DIR
   if (isFolder && !recursive && !flags.d) return failed(`rm: cannot remove '${typed}': Is a directory`)
@@ -200,7 +246,7 @@ const pairsFor = (name, parsed, { fs, cwd }) => {
 const cpRefusal = (refusal, { from, to, folder, destNode }) => {
   const kind = folder ? 'directory' : 'regular file'
   if ('reason' in refusal) {
-    return refusal.reason === 'full' ? `cp: error writing '${to}': ${why(refusal)}` : `cp: cannot create ${kind} '${to}': ${why(refusal)}`
+    return refusal.reason === 'full' && !folder ? `cp: error writing '${to}': ${why(refusal)}` : `cp: cannot create ${kind} '${to}': ${why(refusal)}`
   }
   if (refusal.errno === 'ENOENT' && destNode) return `cp: not writing through dangling symlink '${to}'`
   if (refusal.errno === 'ELOOP') return `cp: cannot stat '${to}': ${why(refusal)}`
@@ -305,18 +351,12 @@ const hardLink = ({ from, to }, { fs, cwd }) => {
 }
 
 /**
- * One symbolic link; with -f a file already at the name goes first.
+ * One symbolic link; with -f it replaces a file already at the name in the same write.
  * @param {Pair} pair @param {ParsedOptions['flags']} flags @param {CommandContext} context
  * @returns {string | null} the error, if any
  */
 const softLink = ({ from, to }, flags, { fs, cwd }) => {
-  const path = normalize(to, cwd)
-  const existing = nodeAt(fs.vfs(), path)
-  if (flags.f && existing && existing.node.type !== NODE_TYPES.DIR) {
-    const removed = fs.apply(remove, { path })
-    if (!removed.ok) return `ln: cannot remove '${to}': ${why(removed)}`
-  }
-  const result = fs.apply(symlink, { target: from, path })
+  const result = fs.apply(symlink, { target: from, path: normalize(to, cwd), replace: Boolean(flags.f) })
   return result.ok ? null : `ln: failed to create symbolic link '${to}': ${why(result)}`
 }
 

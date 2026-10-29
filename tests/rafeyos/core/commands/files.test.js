@@ -150,6 +150,25 @@ describe('cd and pwd', () => {
   it('cd refuses two folders', () => {
     expect(last(['cd /etc /tmp'])).toMatchObject({ lines: [{ type: 'error', text: 'bash: cd: too many arguments' }], code: 1 })
   })
+
+  it.each([
+    ['cd --', HOME],
+    ['cd -- /etc', '/etc'],
+    ['cd -P /etc', '/etc'],
+    ['cd -L /etc', '/etc'],
+    ['cd -LP -- /etc', '/etc'],
+  ])('%s takes the options bash takes', (line, cwd) => {
+    expect(last(['cd /tmp', line])).toMatchObject({ lines: [], cwd, code: 0 })
+  })
+})
+
+describe('Review Focus 3', () => {
+  it.each([
+    ['touch a.txt && echo *.txt', ['a.txt']],
+    ['mkdir -p a/b && echo hi > a/b/c && cat a/b/c', ['hi']],
+  ])('%s', (line, lines) => {
+    expect(shown(last([line]))).toEqual(lines)
+  })
 })
 
 describe('mkdir', () => {
@@ -277,6 +296,38 @@ describe('rm', () => {
   it('removes a link, not what it points at', () => {
     expect(shown(last(['ln -s /etc/hostname p && rm p && cat /etc/hostname']))).toEqual(['rafey.ai'])
   })
+
+  it('looks through a link typed with a slash and keeps the link', () => {
+    const { run, fs } = session()
+    run('mkdir d; touch d/x; ln -s d L')
+
+    expect(run('rm L/')).toMatchObject({ lines: [{ type: 'error', text: "rm: cannot remove 'L/': Is a directory" }], code: 1 })
+    expect(fs.vfs()[`${HOME}/L`].type).toBe('symlink')
+    expect(shown(run('rm -rv L/; echo $?'))).toEqual(["rm: cannot remove 'L/': Not a directory", "removed 'L/x'", '1'])
+    expect(fs.vfs()[`${HOME}/L`].type).toBe('symlink')
+    expect(fs.vfs()[`${HOME}/d`].type).toBe('dir')
+    expect(fs.vfs()[`${HOME}/d/x`]).toBeUndefined()
+  })
+
+  it.each([
+    ['touch f; rm f/', "rm: cannot remove 'f/': Not a directory"],
+    ['touch f; ln -s f L; rm L/', "rm: cannot remove 'L/': Not a directory"],
+    ['ln -s nope L; rm L/', "rm: cannot remove 'L/': No such file or directory"],
+    ['mkdir d; ln -s d L; rm -d L/', "rm: cannot remove 'L/': Not a directory"],
+    ['mkdir d; touch d/x; ln -s d L; rm -d L/', "rm: cannot remove 'L/': Directory not empty"],
+    ['ln -s /home/rafey/projects L; rm -r L/', "rm: cannot remove 'L/alpha-project.txt': Permission denied"],
+  ])('%s', (line, error) => {
+    expect(last([line]).lines[0]).toEqual({ type: 'error', text: error })
+  })
+
+  it('-f passes a slash after something that is not a folder in silence', () => {
+    const { run, fs } = session()
+    run('touch f; mkdir d; ln -s d L; ln -s nope N')
+
+    expect(run('rm -f f/ N/ && rm -rf L/')).toMatchObject({ lines: [], code: 0 })
+    expect(fs.vfs()[`${HOME}/f`]).toBeDefined()
+    expect(fs.vfs()[`${HOME}/L`].type).toBe('symlink')
+  })
 })
 
 describe('cp', () => {
@@ -374,6 +425,12 @@ describe('cp', () => {
     const disk = refusingWrites(fsDisk({ [`${HOME}/a.txt`]: 'a\n' }), quotaError())
 
     expect(shown(last(['cp a.txt b.txt; echo $?'], { disk }))).toEqual(["cp: error writing 'b.txt': No space left on device", '1'])
+  })
+
+  it('full storage refuses a folder copy as a folder it cannot create', () => {
+    const disk = refusingWrites(fsDisk(), quotaError())
+
+    expect(shown(last(['cp -r Documents D2'], { disk }))).toEqual(["cp: cannot create directory 'D2': No space left on device"])
   })
 })
 
@@ -509,6 +566,31 @@ describe('ln', () => {
 
     expect(run('ln -sf y p')).toMatchObject({ lines: [], code: 0 })
     expect(fs.vfs()[`${HOME}/p`].target).toBe('y')
+  })
+
+  it('-f swaps a file for the link in one write', () => {
+    let writes = 0
+    const disk = fsDisk({ [`${HOME}/p`]: 'old\n' })
+    const oneWrite = {
+      ...disk,
+      setItem: (key, value) => {
+        writes += 1
+        if (writes > 1) throw quotaError()
+        disk.setItem(key, value)
+      },
+    }
+    const { run, fs } = session({ disk: oneWrite })
+
+    expect(run('ln -sf y p')).toMatchObject({ lines: [], code: 0 })
+    expect(fs.vfs()[`${HOME}/p`].target).toBe('y')
+  })
+
+  it('-f keeps the file when the link cannot be written', () => {
+    const { run, fs } = session({ disk: refusingWrites(fsDisk({ [`${HOME}/p`]: 'old\n' }), quotaError()) })
+
+    expect(shown(run('ln -sf y p'))).toEqual(["ln: failed to create symbolic link 'p': No space left on device"])
+    expect(fs.vfs()[`${HOME}/p`].text).toBe('old\n')
+    expect(shown(run('ln -sf y /home/rafey/bio.txt'))).toEqual(["ln: failed to create symbolic link '/home/rafey/bio.txt': Permission denied"])
   })
 
   it('works with relative targets and links in the middle of a path', () => {

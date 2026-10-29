@@ -393,18 +393,19 @@ export const copy = (vfs, state, { from, to, recursive = false }, now) => {
 }
 
 /**
- * ln -s: a link at `path` holding `target` exactly as typed. The target need not exist.
+ * ln -s: a link at `path` holding `target` exactly as typed. The target need not exist. With `replace` (ln -sf) a
+ * file or link already at `path` gives way in the same change, as GNU renames a fresh link over it.
  * @param {Vfs} vfs
  * @param {FsState} state
- * @param {{ target: string, path: string }} args
+ * @param {{ target: string, path: string, replace?: boolean }} args
  * @param {number} now
  * @returns {FsOpResult}
  */
-export const symlink = (vfs, state, { target, path }, now) => {
+export const symlink = (vfs, state, { target, path, replace = false }, now) => {
   const spot = locate(vfs, path)
   if (!spot.ok) return fail(spot.errno, path)
   if (!target) return fail('ENOENT', path)
-  if (spot.node) return fail('EEXIST', path)
+  if (spot.node && (!replace || isDirNode(spot.node))) return fail('EEXIST', path)
   const refused = cannotWrite(state, spot, path)
   if (refused) return refused
   return done(withNodes(state, { ...state.nodes, [spot.path]: symlinkNode(target, now) }))
