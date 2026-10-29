@@ -5,7 +5,7 @@
 // Every `path` argument is absolute and normalised (paths.normalize); an error names it as the caller spelled it.
 import { HOME, NODE_TYPES, TMP } from './buildVfs'
 import { COPY, MAX_NAME, copyNode, dirNode, symlinkNode, textNode, withFile, withNodes, without } from './fsState'
-import { MAX_HOPS, joinPath, normalize, parentOf, resolve } from './paths'
+import { MAX_HOPS, joinPath, parentOf, resolve } from './paths'
 
 /** @import { Vfs, VfsNode } from './buildVfs' */
 /** @import { FsNode, FsState } from './fsState' */
@@ -69,6 +69,22 @@ const locate = (vfs, path) => {
 }
 
 /**
+ * Where a link's target lands. Its folder is found the way resolve finds it, so a `..` after a linked folder climbs
+ * from where that link led, not up the target as written; a target that names a folder (`d/..`) resolves whole.
+ * @param {Vfs} vfs
+ * @param {string} target as the link holds it
+ * @param {string} folder the link's real folder
+ * @returns {Located}
+ */
+const targetSpot = (vfs, target, folder) => {
+  const raw = target.startsWith('/') ? target : joinPath(folder, target)
+  const name = nameOf(raw)
+  if (name && name !== '.' && name !== '..') return locate(vfs, raw)
+  const whole = resolve(vfs, raw, { followLast: true })
+  return whole.ok ? locate(vfs, whole.path) : whole
+}
+
+/**
  * Where a write lands: a link at the last name is followed, a dangling one to the file it would create.
  * @param {Vfs} vfs
  * @param {string} path
@@ -78,7 +94,7 @@ const writeSpot = (vfs, path) => {
   let spot = locate(vfs, path)
   for (let hops = 0; spot.ok && spot.node?.type === NODE_TYPES.SYMLINK; hops += 1) {
     if (hops === MAX_HOPS) return { ok: false, errno: 'ELOOP' }
-    spot = locate(vfs, normalize(spot.node.target, spot.parent))
+    spot = targetSpot(vfs, spot.node.target, spot.parent)
   }
   return spot
 }
@@ -339,6 +355,21 @@ const copySource = (vfs, from, recursive) => {
 }
 
 /**
+ * Where a copy lands. A file is written through a link there, as open(2) does, but never through a dangling one
+ * (ENOENT), as GNU cp refuses to. A folder, or a link copied as a link, takes the destination's own name.
+ * @param {Vfs} vfs
+ * @param {string} to
+ * @param {VfsNode} source the node being copied
+ * @returns {Located}
+ */
+const copyDest = (vfs, to, source) => {
+  const dest = locate(vfs, to)
+  if (!dest.ok || dest.node?.type !== NODE_TYPES.SYMLINK || isDirNode(source) || source.type === NODE_TYPES.SYMLINK) return dest
+  const reached = resolve(vfs, dest.path, { followLast: true })
+  return reached.ok ? locate(vfs, reached.path) : reached
+}
+
+/**
  * cp to the exact destination, overwriting the visitor's file there. Copying into a folder is the command's to work out.
  * @param {Vfs} vfs
  * @param {FsState} state
@@ -350,7 +381,7 @@ export const copy = (vfs, state, { from, to, recursive = false }, now) => {
   const source = copySource(vfs, from, recursive)
   if (!source.ok) return fail(source.errno, from)
   if (isDirNode(source.node) && !recursive) return fail('EISDIR', from)
-  const dest = locate(vfs, to)
+  const dest = copyDest(vfs, to, source.node)
   if (!dest.ok) return fail(dest.errno, to)
   if (dest.path === source.path) return fail('EINVAL', to)
   const refused = placeRefusal(vfs, state, { source, dest }, to)

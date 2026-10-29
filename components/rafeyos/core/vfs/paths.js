@@ -72,7 +72,7 @@ const segmentsFor = (arg, cwd) => {
 }
 
 // `..` never climbs above /
-const normalise = (segments) =>
+const collapseSegments = (segments) =>
   segments.reduce((out, segment) => {
     if (!segment || segment === '.') return out
     if (segment === '..') return out.slice(0, -1)
@@ -81,7 +81,7 @@ const normalise = (segments) =>
 
 // Trash is its own root, so `..` stops there rather than leaving it
 const joinSegments = (segments) =>
-  segments[0] === TRASH ? [TRASH, ...normalise(segments.slice(1))].join('/') : ROOT + normalise(segments).join('/')
+  segments[0] === TRASH ? [TRASH, ...collapseSegments(segments.slice(1))].join('/') : ROOT + collapseSegments(segments).join('/')
 
 /**
  * The absolute path an argument names, whether or not it exists: what a command creates or redirects into.

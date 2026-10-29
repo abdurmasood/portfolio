@@ -41,9 +41,10 @@ export const sizeOf = (vfs, path) => {
   return node.type === 'audio' ? node.sizeBytes : encoder.encode(node.text || '').length
 }
 
+/** A file's bytes, or a folder's item count; dotfiles aren't counted, as Files doesn't show them. */
 export const sizeLabel = (vfs, path) => {
   if (!isDir(vfs, path)) return humanBytes(sizeOf(vfs, path))
-  const count = children(vfs, realPath(vfs, path)).length
+  const count = children(vfs, realPath(vfs, path)).filter((child) => !isHidden(child)).length
   return `${count} item${count === 1 ? '' : 's'}`
 }
 
@@ -107,17 +108,22 @@ const modeOf = (path, node) => {
 const linkCount = (vfs, path) =>
   2 + Object.keys(vfs).filter((key) => key !== path && parentOf(key) === path && vfs[key].type === 'dir').length
 
-/**
- * What `ls -l` and `stat` print for a path, without following a link at the end of it, or null when nothing is there.
- * A link's size is its target's length, as on Linux.
- * @returns {{ type: string, mode: string, owner: string, group: string, size: number, mtime: number, nlink: number, target?: string } | null}
- */
-export const statOf = (vfs, path) => {
+// The facts for a real path: one whose links on the way are already followed
+const factsAt = (vfs, path) => {
   const node = vfs[path]
-  if (!node) return null
   const owner = ownerOf(path)
   const facts = { type: node.type, mode: modeOf(path, node), owner, group: owner, mtime: node.mtime }
   if (node.type === 'dir') return { ...facts, size: DIR_SIZE, nlink: linkCount(vfs, path) }
   if (node.type === 'symlink') return { ...facts, size: encoder.encode(node.target).length, nlink: 1, target: node.target }
   return { ...facts, size: sizeOf(vfs, path), nlink: 1 }
+}
+
+/**
+ * What `ls -l` and `stat` print for a path, following links on the way but not one at the end of it, or null when
+ * nothing is there. A link's size is its target's length, as on Linux.
+ * @returns {{ type: string, mode: string, owner: string, group: string, size: number, mtime: number, nlink: number, target?: string } | null}
+ */
+export const statOf = (vfs, path) => {
+  const spot = resolve(vfs, path)
+  return spot.ok ? factsAt(vfs, spot.path) : null
 }

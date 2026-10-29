@@ -176,6 +176,7 @@ describe('statOf', () => {
     ['/usr/local/bin', { ...dir, mode: 'drwxr-xr-x', owner: 'rafey', group: 'rafey', nlink: 2 }],
     ['/usr/local/bin/bio', { type: 'text', mode: '-rwxr-xr-x', owner: 'rafey', group: 'rafey', size: 36, ...shipped }],
     ['/usr/bin/ls', { type: 'text', mode: '-rwxr-xr-x', owner: 'root', group: 'root', size: 24, ...shipped }],
+    ['/bin/ls', { type: 'text', mode: '-rwxr-xr-x', owner: 'root', group: 'root', size: 24, ...shipped }],
     ['/bin', { type: 'symlink', mode: 'lrwxrwxrwx', owner: 'root', group: 'root', size: 8, target: '/usr/bin', ...shipped }],
     ['/etc/passwd', { type: 'text', mode: '-rw-r--r--', owner: 'root', group: 'root', size: 124, ...shipped }],
     ['/', { ...dir, mode: 'drwxr-xr-x', owner: 'root', group: 'root', nlink: 6 }],
@@ -201,6 +202,13 @@ describe('hidden files', () => {
     expect(isHidden('/home/visitor/notes.txt')).toBe(false)
     expect(isHidden('/home/visitor/a.b')).toBe(false)
     expect(isHidden('/')).toBe(false)
+  })
+
+  it('a folder counts only the items Files shows', () => {
+    const tree = visitorTree()
+
+    expect(sizeLabel(tree, '/home/visitor')).toBe('5 items')
+    expect(sizeLabel(tree, '/home/visitor/Desktop')).toBe('0 items')
   })
 
   it('search and recent documents skip dotfiles', () => {

@@ -194,6 +194,7 @@ const pairsFor = (name, parsed, { fs, cwd }) => {
 
 /**
  * Why a copy failed, in cp's words. cpOne has already checked the source, so the refusal is about the destination.
+ * cp stats the destination through links first, so a loop there is always 'cannot stat'.
  * @param {Refusal} refusal @param {Pair & { folder: boolean, destNode: boolean }} job
  */
 const cpRefusal = (refusal, { from, to, folder, destNode }) => {
@@ -201,6 +202,8 @@ const cpRefusal = (refusal, { from, to, folder, destNode }) => {
   if ('reason' in refusal) {
     return refusal.reason === 'full' ? `cp: error writing '${to}': ${why(refusal)}` : `cp: cannot create ${kind} '${to}': ${why(refusal)}`
   }
+  if (refusal.errno === 'ENOENT' && destNode) return `cp: not writing through dangling symlink '${to}'`
+  if (refusal.errno === 'ELOOP') return `cp: cannot stat '${to}': ${why(refusal)}`
   if (refusal.errno === 'EINVAL') return folder ? `cp: cannot copy a directory, '${from}', into itself, '${to}'` : `cp: '${from}' and '${to}' are the same file`
   if (refusal.errno === 'EISDIR') return `cp: cannot overwrite directory '${to}' with non-directory`
   if (refusal.errno === 'ENOTDIR' && destNode) return `cp: cannot overwrite non-directory '${to}' with directory '${from}'`
@@ -231,7 +234,9 @@ const cpOne = ({ from, to }, flags, { fs, cwd }) => {
   const folder = vfs[source.path].type === NODE_TYPES.DIR
   if (folder && !recursive) return failed(`cp: -r not specified; omitting directory '${from}'`)
   const destNode = nodeAt(vfs, toPath) !== null
-  if (flags.n && destNode) return printed()
+  // -n asks what cp would stat: a file copied as a file looks through a link at the destination.
+  const asFile = !folder && vfs[source.path].type !== NODE_TYPES.SYMLINK
+  if (flags.n && (asFile ? resolve(vfs, toPath, { followLast: true }).ok : destNode)) return printed()
   const result = fs.apply(copy, { from: fromPath, to: toPath, recursive })
   if (!result.ok) return failed(cpRefusal(result, { from, to, folder, destNode }))
   const clashes = (result.errors ?? []).map((error) => cpClash(error, { from, to, toPath }))

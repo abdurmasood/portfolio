@@ -307,6 +307,38 @@ describe('cp', () => {
     expect(shown(run('cp -r d e && ls e | cat'))).toEqual(['d\nx'])
   })
 
+  it('writes through a link at the destination, keeping the link', () => {
+    const { run } = session()
+    run('echo x > x; echo old > real.txt; ln -s real.txt l')
+
+    expect(shown(run('cp x l; cat real.txt'))).toEqual(['x'])
+    expect(shown(run('stat l'))[0].split('\n')[0]).toBe('  File: l -> real.txt')
+  })
+
+  it.each([
+    ['cp x r', "cp: cannot create regular file 'r': Permission denied"],
+    ['cp x gone', "cp: not writing through dangling symlink 'gone'"],
+    ['cp -r x gone', "cp: not writing through dangling symlink 'gone'"],
+    ['cp x loop', "cp: cannot stat 'loop': Too many levels of symbolic links"],
+    ['cp x loop/y', "cp: cannot stat 'loop/y': Too many levels of symbolic links"],
+    ['cp -r x loop', "cp: cannot stat 'loop': Too many levels of symbolic links"],
+    ['cp -r d loop/y', "cp: cannot stat 'loop/y': Too many levels of symbolic links"],
+    ['cp -n x gone', "cp: not writing through dangling symlink 'gone'"],
+    ['cp real.txt l', "cp: 'real.txt' and 'l' are the same file"],
+  ])('refuses a destination link it cannot write through: %s', (line, error) => {
+    const setup = 'echo x > x; echo old > real.txt; mkdir d; ln -s real.txt l; ln -s /home/rafey/bio.txt r; ln -s new.txt gone; ln -s loop loop'
+
+    expect(last([setup, line])).toMatchObject({ lines: [{ type: 'error', text: error }], code: 1 })
+  })
+
+  it('-n keeps what a live destination link points to', () => {
+    const { run } = session()
+    run('echo x > x; echo old > real.txt; ln -s real.txt l')
+
+    expect(run('cp -n x l')).toMatchObject({ lines: [], code: 0 })
+    expect(shown(run('cat real.txt'))).toEqual(['old'])
+  })
+
   it('-n keeps what is there, -v names each copy', () => {
     const { run } = session()
     run('echo a > a.txt; echo b > b.txt; mkdir d; touch d/x')

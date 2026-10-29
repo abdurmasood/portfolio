@@ -89,6 +89,23 @@ describe('writeFile and touch', () => {
     expect(run(writeFile, state, { path: `${H}/r/x`, text: 'x' })).toEqual(fails('EACCES', `${H}/r/x`))
   })
 
+  it('writes through a link whose target climbs out of a linked folder where reads land', () => {
+    const state = stateOf({ [`${H}/Documents/sub`]: dir(), [`${H}/d`]: link('Documents/sub'), [`${H}/w`]: link('d/../new.txt') })
+    const vfs = mergeState(base, state)
+    const written = run(writeFile, state, { path: `${H}/w`, text: 'n' }).state
+
+    expect(resolve(vfs, `${H}/w`, { followLast: true })).toEqual({ ok: false, errno: 'ENOENT' })
+    expect(written.nodes[`${H}/Documents/new.txt`]).toEqual(text('n', NOW))
+    expect(written.nodes[`${H}/new.txt`]).toBeUndefined()
+    expect(resolve(mergeState(base, written), `${H}/w`, { followLast: true })).toEqual({ ok: true, path: `${H}/Documents/new.txt` })
+  })
+
+  it('resolves a link target that names a folder whole, so a missing folder before `..` is ENOENT', () => {
+    const state = stateOf({ [`${H}/d`]: link('Documents/..'), [`${H}/n`]: link('nope/..') })
+    expect(run(writeFile, state, { path: `${H}/d`, text: 'x' })).toEqual(fails('EISDIR', `${H}/d`))
+    expect(run(writeFile, state, { path: `${H}/n`, text: 'x' })).toEqual(fails('ENOENT', `${H}/n`))
+  })
+
   it('replaces a copy with text, appending to what it read as', () => {
     const state = stateOf({ [`${H}/song.mp3`]: { type: 'copy', from: SONG, mtime: 1 } })
     expect(run(writeFile, state, { path: `${H}/song.mp3`, text: 'x', append: true }).state.nodes[`${H}/song.mp3`]).toEqual(text('x', NOW))
@@ -188,6 +205,23 @@ describe('copy', () => {
     expect(run(copy, state, { from: '/home/rafey/bio.txt', to: '/home/rafey/b.txt' })).toEqual(fails('EACCES', '/home/rafey/b.txt'))
     expect(run(copy, state, { from: `${H}/nope`, to: `${H}/b` })).toEqual(fails('ENOENT', `${H}/nope`))
     expect(run(copy, state, { from: `${H}/mine.txt`, to: `${H}/Desktop` })).toEqual(fails('EISDIR', `${H}/Desktop`))
+  })
+
+  it('writes a file through a link at the destination and refuses a dangling one', () => {
+    const state = stateOf({
+      [`${H}/x`]: text('x'), [`${H}/real.txt`]: text('old'), [`${H}/l`]: link('real.txt'),
+      [`${H}/r`]: link('/home/rafey/bio.txt'), [`${H}/gone`]: link('new.txt'), [`${H}/loop`]: link('loop'),
+    })
+    const through = run(copy, state, { from: `${H}/x`, to: `${H}/l` }).state.nodes
+    expect(through[`${H}/real.txt`]).toEqual(text('x', NOW))
+    expect(through[`${H}/l`]).toEqual(link('real.txt'))
+    expect(run(copy, state, { from: `${H}/x`, to: `${H}/l`, recursive: true }).state.nodes[`${H}/real.txt`]).toEqual(text('x', NOW))
+    expect(run(copy, state, { from: `${H}/x`, to: `${H}/r` })).toEqual(fails('EACCES', `${H}/r`))
+    expect(run(copy, state, { from: `${H}/x`, to: `${H}/gone` })).toEqual(fails('ENOENT', `${H}/gone`))
+    expect(run(copy, state, { from: `${H}/x`, to: `${H}/loop` })).toEqual(fails('ELOOP', `${H}/loop`))
+    expect(run(copy, state, { from: `${H}/real.txt`, to: `${H}/l` })).toEqual(fails('EINVAL', `${H}/l`))
+    // cp -r copies a link as a link, so the one at the destination is replaced, not written through
+    expect(run(copy, state, { from: `${H}/r`, to: `${H}/l`, recursive: true }).state.nodes[`${H}/l`]).toEqual(link('/home/rafey/bio.txt', NOW))
   })
 
   it('copies folders only when recursive, never into themselves', () => {
