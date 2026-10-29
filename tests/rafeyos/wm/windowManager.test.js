@@ -135,6 +135,29 @@ describe('window manager', () => {
     expect(next).toHaveBeenCalledTimes(1)
   })
 
+  it('lists live windows by id with the next id, for ps', () => {
+    const { wm } = setup()
+    wm.openApp('terminal')
+    wm.openApp('files')
+    wm.openApp('editor')
+    wm.minimize(2)
+    wm.close(1)
+
+    expect(wm.list()).toEqual({ windows: [{ id: 2, appId: 'files' }, { id: 3, appId: 'editor' }], nextId: 4 })
+  })
+
+  it('force-closes past a guard and drops it', () => {
+    const { wm, state } = setup()
+    const guard = vi.fn(() => false)
+    wm.openApp('files')
+    wm.setCloseGuard(1, guard)
+
+    wm.forceClose(1)
+
+    expect(guard).not.toHaveBeenCalled()
+    expect(state().byId[1].phase).toBe('closing')
+  })
+
   it('passes launch options to the new window', () => {
     const { wm, state } = setup()
 

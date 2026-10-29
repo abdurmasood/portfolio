@@ -159,6 +159,14 @@ const startRafeyOS = () => screenOnly([pre(STARTING_ROS)], [{ type: HOME_EFFECTS
 
 const newSession = () => screenOnly([pre('logout')], [{ type: HOME_EFFECTS.NEW_SESSION }])
 
+// The homepage's one process is its own bash (PID 1000), so the only kill that lands starts a fresh session, without
+// exit's `logout`; any other PID is the engine's "No such process"
+const kill = (context) => {
+  const output = engine(context)
+  const effects = (output.effects ?? []).map((effect) => (effect.type === EFFECTS.KILL ? { type: HOME_EFFECTS.NEW_SESSION } : effect))
+  return { ...output, effects }
+}
+
 const OVERRIDES = {
   help,
   bio: (context) => onScreen(context, [html(bioDescription())]),
@@ -183,6 +191,7 @@ const OVERRIDES = {
   startx: startRafeyOS,
   exit: newSession,
   logout: newSession,
+  kill,
 }
 
 /** The homepage's registry for exec(): rafeyOS's command names. Only the overrides get --help here; COMMANDS has it. */

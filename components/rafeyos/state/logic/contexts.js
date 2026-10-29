@@ -24,6 +24,8 @@ import { createContext, useContext } from 'react'
  *   minimize: (id: number) => void,
  *   restore: (id: number) => void,
  *   close: (id: number, next?: () => void) => void,
+ *   forceClose: (id: number) => void,
+ *   list: () => { windows: { id: number, appId: AppId }[], nextId: number },
  *   unsnap: (id: number, rect?: Rect) => void,
  *   commitRect: (id: number, rect: Rect) => void,
  *   openApp: OpenApp,

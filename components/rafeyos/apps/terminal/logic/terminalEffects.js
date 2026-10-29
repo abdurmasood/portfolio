@@ -1,6 +1,7 @@
 // @ts-check
 // Runs exec()'s effect descriptors. Pure apart from the injected handlers, so it's testable alone.
 import { EFFECTS } from '@/components/rafeyos/core/commands/exec'
+import { windowOfPid } from '@/components/rafeyos/core/commands/builtins/process'
 import { dim } from '@/components/rafeyos/core/commands/lines'
 import { handlerFor, isAudio, isWebLink, unavailableNote } from '@/components/rafeyos/core/catalog/apps'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
@@ -17,7 +18,7 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
  * window's own history after `history -c`.
  * @typedef {{
  *   vfs: Vfs,
- *   windowManager: Pick<WindowManager, 'openApp' | 'openPath'>,
+ *   windowManager: Pick<WindowManager, 'openApp' | 'openPath' | 'close' | 'forceClose'>,
  *   openExternal: (href: string) => void,
  *   openLink: () => void,
  *   play: () => void,
@@ -88,6 +89,11 @@ const runEffect = (effect, handlers) => {
       return null
     case EFFECTS.CLEAR_HISTORY:
       handlers.clearHistory()
+      return null
+    // The terminal's own PID closes it like exit, but kill prints no `logout`
+    case EFFECTS.KILL:
+      if (effect.force) handlers.windowManager.forceClose(windowOfPid(effect.pid))
+      else handlers.windowManager.close(windowOfPid(effect.pid))
       return null
     default:
       throw new Error(`Unknown terminal effect: ${effect.type}`)

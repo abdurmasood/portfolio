@@ -141,6 +141,23 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
     else closeGuards.delete(id)
   }
 
+  // Past the guard, as the Editor closes itself once its file is gone: `kill -9` asks nothing
+  /** @param {number} id */
+  const forceClose = (id) => {
+    setCloseGuard(id, null)
+    close(id)
+  }
+
+  /** The windows still open (minimized counts), by ascending id, and the id the next one gets: what `ps` lists. */
+  const list = () => {
+    const state = getState()
+    const windows = Object.values(state.byId)
+      .filter((win) => win.phase !== WINDOW_PHASES.CLOSING)
+      .sort((a, b) => a.id - b.id)
+      .map(({ id, appId }) => ({ id, appId }))
+    return { windows, nextId: state.nextId }
+  }
+
   /** @param {number} id */
   const remove = (id) => {
     openOrigins.delete(id)
@@ -165,6 +182,8 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
   return Object.freeze({
     ...commands,
     close,
+    forceClose,
+    list,
     openApp,
     openPath,
     snap,

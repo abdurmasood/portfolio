@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import {
+  clickDock,
   desktopIcon,
   fsDisk,
   fsStoreOn,
@@ -413,5 +414,83 @@ describe('gsettings in the Terminal', () => {
 
     expect(root(container).style.getPropertyValue('--accent')).toBe('#7764D8')
     expect(container.querySelector('.dock').className).toBe('dock right')
+  })
+})
+
+describe('ps and kill in the Terminal', () => {
+  const saveDialog = () => screen.queryByRole('dialog', { name: 'Save changes' })
+
+  it('ps_lists_bash_nautilus_editor_and_itself', () => {
+    const { container } = renderDesktop()
+    clickDock('Files')
+    clickDock('Text Editor')
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'ps')
+
+    expect(log(win).lastElementChild.textContent).toBe(
+      [
+        '    PID TTY          TIME CMD',
+        '   1001 ?        00:00:00 nautilus',
+        '   1002 ?        00:00:00 gnome-text-editor',
+        '   1003 pts/0    00:00:00 bash',
+        '   1004 pts/0    00:00:00 ps',
+      ].join('\n'),
+    )
+  })
+
+  it('ps_lists_terminals_as_bash_on_pts_by_id', () => {
+    const { container } = renderDesktop()
+    const { win } = openTerminal(container)
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    const second = windowsOf(container, 'terminal')[1]
+
+    typeCommand(within(second).getByLabelText('Terminal input'), 'ps')
+
+    expect(log(second).lastElementChild.textContent).toBe(
+      [
+        '    PID TTY          TIME CMD',
+        '   1001 pts/0    00:00:00 bash',
+        '   1002 pts/1    00:00:00 bash',
+        '   1003 pts/1    00:00:00 ps',
+      ].join('\n'),
+    )
+  })
+
+  it('kill_closes_the_files_window', () => {
+    const { container } = renderDesktop()
+    clickDock('Files')
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'kill 1001')
+
+    expect(windowsOf(container, 'files')).toHaveLength(0)
+    expect(windowsOf(container, 'terminal')).toHaveLength(1)
+  })
+
+  it('kill_on_a_changed_editor_asks_to_save_and_kill_9_does_not', () => {
+    const { container } = renderDesktop()
+    clickDock('Text Editor')
+    const [editor] = windowsOf(container, 'editor')
+    fireEvent.change(within(editor).getByLabelText('Untitled'), { target: { value: 'keep me' } })
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'kill 1001')
+    expect(saveDialog()).not.toBeNull()
+    expect(windowsOf(container, 'editor')).toEqual([editor])
+    fireEvent.click(within(saveDialog()).getByRole('button', { name: 'Cancel' }))
+
+    typeCommand(input, 'kill -9 1001')
+    expect(windowsOf(container, 'editor')).toHaveLength(0)
+    expect(saveDialog()).toBeNull()
+  })
+
+  it('kill_own_bash_closes_the_terminal', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'kill 1001')
+
+    expect(windowsOf(container, 'terminal')).toHaveLength(0)
   })
 })

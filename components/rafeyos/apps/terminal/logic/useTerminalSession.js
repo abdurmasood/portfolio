@@ -7,6 +7,7 @@ import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
 import { settingsView } from '@/components/rafeyos/core/settings/settingsView'
+import { windowProcesses } from '@/components/rafeyos/core/commands/builtins/process'
 import { applyTerminalEffects } from './terminalEffects'
 import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 
@@ -59,6 +60,19 @@ const useShellContext = () => {
   )
 }
 
+/** What the window's effects run through: the desktop's windows and services, with exit closing this window. */
+const useEffectHandlers = (windowId) => {
+  const windowManager = useWindowManager()
+  const { openExternal } = useServices()
+  const logout = useDelayedLogout()
+  const openLink = useOpenLinkDialog()
+  const { play } = useMusicControls()
+  return useMemo(
+    () => ({ windowManager, openExternal, openLink, play, logout, closeSelf: () => windowManager.close(windowId) }),
+    [windowManager, openExternal, openLink, play, logout, windowId],
+  )
+}
+
 /**
  * One terminal window's shell: its folder, variables and last exit code, the output log, and running lines through
  * exec() + effects.
@@ -67,11 +81,7 @@ const useShellContext = () => {
 export const useTerminalSession = ({ windowId, initialCwd }) => {
   const { vfs } = useVfs()
   const context = useShellContext()
-  const windowManager = useWindowManager()
-  const { openExternal } = useServices()
-  const logout = useDelayedLogout()
-  const openLink = useOpenLinkDialog()
-  const { play } = useMusicControls()
+  const handlers = useEffectHandlers(windowId)
   const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : START_DIR))
   // When this window's shell started: uptime counts from it
   const [startedAt] = useState(() => context.now())
@@ -80,16 +90,14 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   // This window's lines since it opened or last ran `history -c`: what `history` lists when the file can't be written
   const ownLines = useRef([])
   const log = useLog()
-  const handlers = useMemo(
-    () => ({ windowManager, openExternal, openLink, play, logout, closeSelf: () => windowManager.close(windowId) }),
-    [windowManager, openExternal, openLink, play, logout, windowId],
-  )
   const { append } = log
   // Tells the caller whether the line ran `history -c`, so the ↑ list can forget too
   const run = useCallback((raw) => {
     const before = shell.current
     const history = record(context.fs, raw, ownLines)
-    const result = exec(raw, { ...context, cwd: before.cwd, env: before.env, lastCode: before.lastCode, history, startedAt })
+    // The windows open as the line starts: ones it opens show on the next ps
+    const processes = windowProcesses(handlers.windowManager.list(), windowId)
+    const result = exec(raw, { ...context, cwd: before.cwd, env: before.env, lastCode: before.lastCode, history, startedAt, processes })
     shell.current = { cwd: result.cwd, env: result.env, lastCode: result.code }
     let historyCleared = false
     const clearHistory = () => {
@@ -102,7 +110,7 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
     const echoed = clear ? [] : [prompt(before.cwd, raw)]
     append([...echoed, ...result.lines, ...notes], { clearFirst: clear })
     return { historyCleared }
-  }, [context, startedAt, handlers, append])
+  }, [context, startedAt, handlers, append, windowId])
   // Ctrl+C at the prompt: the abandoned line is echoed with ^C and $? becomes 130
   const interrupt = useCallback((input) => {
     shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }

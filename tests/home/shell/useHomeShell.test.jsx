@@ -193,6 +193,28 @@ describe('useHomeShell: keys and sessions', () => {
     expect(historyLines(sharedVfs())).toEqual(['cd ~/Documents', 'exit'])
   })
 
+  it('ps_on_home_shows_bash_and_ps', () => {
+    const view = load()
+
+    run(view, 'ps')
+
+    expect(lastLine(view)).toEqual(pre('    PID TTY          TIME CMD\n   1000 pts/0    00:00:00 bash\n   1001 pts/0    00:00:00 ps'))
+  })
+
+  it('kill_1000_on_home_starts_a_fresh_session', () => {
+    vi.useFakeTimers()
+    const view = load()
+    run(view, 'cd ~/Documents')
+
+    run(view, 'kill 1000')
+    expect(lastLine(view)).toEqual(prompt(`${HOME}/Documents`, 'kill 1000'))
+    run(view, 'kill 1001')
+    expect(lastLine(view)).toMatchObject({ type: LINE_TYPES.ERROR, text: 'bash: kill: (1001) - No such process' })
+    act(() => vi.advanceTimersByTime(300))
+
+    expect(view.result.current).toMatchObject({ entries: [], cwd: START_DIR, started: false })
+  })
+
   it('a new session never starts once the terminal is gone', () => {
     vi.useFakeTimers()
     const view = load()

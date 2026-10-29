@@ -4,7 +4,7 @@ import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 const handlers = (overrides = {}) => ({
   vfs: realVfs,
-  windowManager: { openApp: vi.fn(() => true), openPath: vi.fn(() => true) },
+  windowManager: { openApp: vi.fn(() => true), openPath: vi.fn(() => true), close: vi.fn(), forceClose: vi.fn() },
   openExternal: vi.fn(),
   openLink: vi.fn(),
   play: vi.fn(),
@@ -38,6 +38,16 @@ describe('terminal effects', () => {
     expect(deps.openExternal).toHaveBeenCalledWith('/projects')
     expect(deps.closeSelf).toHaveBeenCalled()
     expect(deps.logout).toHaveBeenCalled()
+  })
+
+  it('kills a window by closing it, past its guard for KILL', () => {
+    const deps = handlers()
+
+    const outcome = applyTerminalEffects([{ type: 'kill', pid: 1003, force: false }, { type: 'kill', pid: 1004, force: true }], deps)
+
+    expect(outcome).toEqual({ notes: [], clear: false })
+    expect(deps.windowManager.close).toHaveBeenCalledWith(3)
+    expect(deps.windowManager.forceClose).toHaveBeenCalledWith(4)
   })
 
   it('notes apps and file types that have no UI yet', () => {

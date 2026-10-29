@@ -363,6 +363,28 @@ const PAGES = Object.freeze({
       "VALUE is GVariant text, such as 'prefer-dark', 48 or true. Run list-recursively to see every key.",
     ],
   },
+  ps: {
+    summary: 'report a snapshot of the current processes',
+    synopsis: ['ps [-e | -A | aux]'],
+    description: [
+      "List the processes running: one for each open window, named as Ubuntu names its app, and each terminal's bash.",
+      'A PID is 1000 plus the window\'s number. Every option lists the same processes.',
+    ],
+    options: [['-e, -A', 'select all processes']],
+  },
+  kill: {
+    summary: 'send a signal to a process',
+    synopsis: ['kill [-s SIGSPEC | -n SIGNUM | -SIGSPEC] PID...', 'kill -l [SIGSPEC]'],
+    description: [
+      'Close the window each PID names, as its close button does: a changed file asks to be saved first.',
+      'KILL (9) closes it without asking. Killing your own bash closes the terminal.',
+    ],
+    options: [
+      ['-s SIGSPEC', 'send the signal named SIGSPEC'],
+      ['-n SIGNUM', 'send the signal numbered SIGNUM'],
+      ['-l', 'list the signal names, or name the signals given'],
+    ],
+  },
 })
 
 /** @param {string} name @returns {Page | null} */

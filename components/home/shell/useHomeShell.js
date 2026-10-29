@@ -6,6 +6,7 @@ import { useTerminal } from '@/components/home/TerminalProvider'
 import { HOME_COMMANDS, HOME_EFFECTS } from '@/components/home/shell/homeCommands'
 import { EFFECTS, ENV, exec } from '@/components/rafeyos/core/commands/exec'
 import { HISTORY_FILE, recordHistory } from '@/components/rafeyos/core/commands/history'
+import { LONE_SHELL } from '@/components/rafeyos/core/commands/builtins/process'
 import { LINE_TYPES, dim, pre, prompt } from '@/components/rafeyos/core/commands/lines'
 import { sharedSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 import { settingsView } from '@/components/rafeyos/core/settings/settingsView'
@@ -198,7 +199,7 @@ export const useHomeShell = ({ handlers }) => {
   const run = (raw) => {
     const history = record(shellFs, raw, ownLines)
     const before = desktopState(fs)
-    const result = exec(raw, { fs: shellFs, cwd, env, lastCode: terminal.lastCode, content, history, startedAt, settings, commands: HOME_COMMANDS })
+    const result = exec(raw, { fs: shellFs, cwd, env, lastCode: terminal.lastCode, content, history, startedAt, settings, processes: LONE_SHELL, commands: HOME_COMMANDS })
     const { clear, historyCleared } = runEffects(result.effects, { ...handlers, newSession })
     if (historyCleared) ownLines.current = []
     const hint = changedDesktop(before, desktopState(fs)) ? [dim(VISIBLE_IN_RAFEYOS)] : []

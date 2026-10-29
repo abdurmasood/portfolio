@@ -41,6 +41,7 @@ export const EFFECTS = Object.freeze({
   CLEAR_HISTORY: 'clearHistory',
   CLOSE_SELF: 'closeSelf',
   LOGOUT: 'logout',
+  KILL: 'kill',
 })
 
 /**
@@ -51,6 +52,7 @@ export const EFFECTS = Object.freeze({
  *   | { type: typeof EFFECTS.OPEN_EXTERNAL, href: string }
  *   | { type: typeof EFFECTS.PLAY | typeof EFFECTS.CLEAR | typeof EFFECTS.CLEAR_HISTORY | typeof EFFECTS.CLOSE_SELF }
  *   | { type: typeof EFFECTS.LOGOUT }
+ *   | { type: typeof EFFECTS.KILL, pid: number, force: boolean }
  * } Effect
  */
 
@@ -58,7 +60,11 @@ export const EFFECTS = Object.freeze({
  * What a command is run with. `argv` holds its arguments after expansion, its name not included; `stdin` is null
  * when nothing is piped in; `tty` is true when its stdout goes straight to the screen; `startedAt` is when the shell
  * started; `history` is the window's own lines when the history file couldn't record this one, and empty otherwise;
- * `settings` is the visitor's saved appearance, absent where the terminal has none.
+ * `settings` is the visitor's saved appearance, absent where the terminal has none; `processes` is what ps lists,
+ * the terminal's own shell alone when not given.
+ * @typedef {{ pid: number, tty: string, cmd: string }} Proc
+ * @typedef {{ list: readonly Proc[], self: number, next: number }} Processes `self` is the caller's shell; `next` is
+ *   the PID the next process gets, which is ps's own
  * @typedef {{
  *   argv: string[],
  *   name: string,
@@ -72,6 +78,7 @@ export const EFFECTS = Object.freeze({
  *   now: () => Date,
  *   startedAt: Date,
  *   settings?: SettingsView,
+ *   processes?: Processes,
  * }} CommandContext
  */
 
