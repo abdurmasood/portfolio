@@ -110,7 +110,7 @@ export const ProjectsApp = ({ windowId, init }) => {
           title={title}
           subtitle={project ? `${index + 1} of ${projects.length}` : null}
         />
-        <div className="scroll" style={{ overflow: 'hidden' }}>
+        <div className="scroll pane" style={{ overflow: 'hidden' }}>
           {project ? <ProjectStage project={project} /> : <div className="empty">No projects</div>}
         </div>
       </div>

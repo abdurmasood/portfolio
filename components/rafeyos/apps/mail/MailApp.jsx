@@ -76,7 +76,7 @@ export const MailApp = ({ windowId }) => {
       <Field label="Subject" htmlFor={subjectId}>
         <input id={subjectId} value={subject} onChange={(event) => setSubject(event.target.value)} />
       </Field>
-      <div className="mbody">
+      <div className="mbody pane">
         <textarea aria-label="Message" value={body} onChange={(event) => setBody(event.target.value)} />
       </div>
     </>
