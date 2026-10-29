@@ -4,6 +4,7 @@ import { filesCommands } from './builtins/files'
 import { fsCommands } from './builtins/fs'
 import { launchCommands } from './builtins/launch'
 import { systemCommands } from './builtins/system'
+import { textCommands } from './builtins/text'
 
 export { EFFECTS } from './builtins/result'
 export { ENV } from './run'
@@ -15,6 +16,7 @@ export const COMMANDS = Object.freeze({
   ...filesCommands,
   ...launchCommands,
   ...systemCommands,
+  ...textCommands,
 })
 
 // What tab completes for the first word; startx is deliberately hidden
