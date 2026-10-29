@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { exec, COMMANDS, COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
-import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
+import { fixtureContent, realContent, realVfs, visitorVfs } from '@/tests/rafeyos/helpers/testVfs'
 
-const vfs = buildVfs(fixtureContent)
+const vfs = visitorVfs(fixtureContent)
 const run = (raw, cwd = '/home/rafey', content = fixtureContent) => exec(raw, { vfs: content === fixtureContent ? vfs : realVfs, cwd, content })
 const texts = (out) => out.lines.map((line) => line.text)
 

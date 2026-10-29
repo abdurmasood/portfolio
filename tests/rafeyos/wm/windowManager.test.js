@@ -3,7 +3,7 @@ import { createWindowManager } from '@/components/rafeyos/wm/logic/windowManager
 import { initialWindows, windowsReducer } from '@/components/rafeyos/state/logic/windowsReducer'
 import { SNAP_MODES } from '@/components/rafeyos/core/geometry'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { mergeDocuments } from '@/components/rafeyos/core/vfs/documents'
+import { mergeState, saveFile, seedState } from '@/components/rafeyos/core/vfs/fsState'
 
 const layout = { area: { x: 54, y: 28, w: 970, h: 740 }, compact: false }
 
@@ -70,7 +70,7 @@ describe('window manager', () => {
       getVfs: () => vfs,
     })
 
-    vfs = mergeDocuments(realVfs, { 'notes.txt': 'hello\n' })
+    vfs = mergeState(realVfs, saveFile(seedState(0), '/home/visitor/Documents', 'notes', 'hello\n', 0).state)
 
     expect(wm.openPath('/home/visitor/Documents/notes.txt')).toBe(true)
     expect(state.byId[1].arg).toBe('/home/visitor/Documents/notes.txt')

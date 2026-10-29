@@ -9,6 +9,7 @@ import { createContext, useContext } from 'react'
  * @import { Rect, SnapMode } from '@/components/rafeyos/core/geometry'
  * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
  * @import { Content } from '@/components/rafeyos/core/vfs/content'
+ * @import { FsFailure } from '@/components/rafeyos/core/vfs/fsState'
  * @import { ShellAction, ShellState } from './shellReducer'
  * @import { WindowAction, WindowsState } from './windowsReducer'
  * @import { SettingsAction, SettingsState } from './settingsReducer'
@@ -36,6 +37,19 @@ import { createContext, useContext } from 'react'
  *   openOrigin: (id: number) => Rect | null,
  *   snapPreview: Readonly<{ get: () => string | null, set: (mode: string | null) => void, subscribe: (listener: () => void) => () => void }>,
  * }>} WindowManager
+ */
+
+/**
+ * What RafeyOSRoot provides: the merged tree and the visitor's file operations, which go through the fs store.
+ * @typedef {{ ok: false, reason: FsFailure | 'full' | 'blocked' }} VfsFailure
+ * @typedef {Readonly<{
+ *   vfs: Vfs,
+ *   content: Content,
+ *   saveDocument: (folder: string, name: string, text: string) => { ok: true, name: string, path: string } | VfsFailure,
+ *   trashDocument: (path: string) => { ok: true } | VfsFailure,
+ *   restoreDocument: (path: string) => { ok: true, path: string } | VfsFailure,
+ *   emptyTrashDocument: () => { ok: true } | VfsFailure,
+ * }>} VfsApi
  */
 
 const named = (name) => {
@@ -71,7 +85,7 @@ const useRequired = (context) => {
 
 /** @returns {ReturnType<typeof import('@/components/rafeyos/core/services/createServices').createServices>} */
 export const useServices = () => useRequired(ServicesContext)
-/** @returns {{ vfs: Vfs, content: Content, saveDocument: Function, trashDocument: Function, restoreDocument: Function, emptyTrashDocument: Function }} */
+/** @returns {VfsApi} */
 export const useVfs = () => useRequired(VfsContext)
 export const useSessionDispatch = () => useRequired(SessionDispatchContext)
 /** @returns {WindowsState} */

@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
-import { desktopIcon, memoryStorage, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
+import { desktopIcon, fsDisk, fsStoreOn, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 
 // jsdom has no layout: give icons the box their inline position implies
 const ICON_BOX = { w: 90, h: 80 }
@@ -21,10 +20,8 @@ afterEach(() => {
 const at = (element) => ({ x: parseFloat(element.style.left), y: parseFloat(element.style.top) })
 
 const desktopWithNote = () => {
-  const disk = memoryStorage({
-    'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
-  })
-  return renderDesktop({ documents: createDocumentsStore(disk) })
+  const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+  return renderDesktop({ fs: fsStoreOn(disk) })
 }
 
 const drag = (element, from, to, options = {}) => {

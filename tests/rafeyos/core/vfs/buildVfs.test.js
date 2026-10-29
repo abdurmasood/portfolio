@@ -13,7 +13,7 @@ describe('buildVfs', () => {
       '/home/rafey/contact', '/home/rafey/contact/email.desktop', '/home/rafey/contact/linkedin.desktop',
       '/home/rafey/projects', '/home/rafey/projects/alpha-project.txt', '/home/rafey/projects/beta.txt',
       '/home/rafey/bio.txt', '/home/rafey/skills.txt', '/home/rafey/README.txt',
-      '/home/visitor', '/home/visitor/Desktop', '/home/visitor/Documents',
+      '/home/visitor',
       '/usr', '/usr/local', '/usr/local/bin',
       '/usr/local/bin/bio', '/usr/local/bin/projects', '/usr/local/bin/blog', '/usr/local/bin/music',
       '/usr/local/bin/contact', '/usr/local/bin/skills', '/usr/local/bin/help', '/usr/local/bin/os',
@@ -67,7 +67,8 @@ describe('buildVfs', () => {
     expect(vfs['/home/rafey/contact/linkedin.desktop'].text).toContain('URL=https://linkedin.example/me')
     expect(vfs['/home/rafey/README.txt']).toEqual(expect.objectContaining({ type: 'text', text: 'README\n' }))
     expect(vfs['/home/rafey/README.txt'].small).toBeUndefined()
-    expect(vfs['/home/visitor/Documents']).toMatchObject({ type: 'dir', name: 'Documents' })
+    // The visitor's folders come from fsState's seed, not the shipped tree
+    expect(vfs['/home/visitor/Documents']).toBeUndefined()
   })
 
   it('freezes the map and every node', () => {

@@ -5,6 +5,10 @@ import {
   chooseMenuItem,
   clickDock,
   desktopIcon,
+  fsDisk,
+  fsFiles,
+  fsStoreOn,
+  fsTrash,
   rightClick,
   headerTitle,
   memoryStorage,
@@ -17,7 +21,7 @@ import {
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { textDocuments } from '@/components/rafeyos/core/vfs/queries'
-import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 import { documentLabel } from '@/components/rafeyos/apps/editor/logic/editorMenus'
 
 afterEach(cleanup)
@@ -154,14 +158,15 @@ describe('Text Editor', () => {
 
   it('saves a named file into Documents, where Files and cat can read it', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
 
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'hello\n' } })
     saveAs(ui, 'notes')
 
     expect(ui.getByLabelText('notes.txt').value).toBe('hello\n')
     expect(headerTitle(windowsOf(container, 'editor')[0])).toBe('notes.txt')
-    expect(disk.getItem('rafeyos-documents')).toBe(JSON.stringify({ files: { '/home/visitor/Documents/notes.txt': 'hello\n' }, trash: {} }))
+    expect(fsFiles(disk)).toEqual({ '/home/visitor/Documents/notes.txt': 'hello\n' })
+    expect(fsTrash(disk)).toEqual({})
 
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
@@ -178,13 +183,12 @@ describe('Text Editor', () => {
 
   it('reopens a saved file after a refresh and edits it in place', () => {
     const disk = memoryStorage()
-    const documents = createDocumentsStore(disk)
-    const first = openUntitled({ documents })
+    const first = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(first.ui, 'Untitled'), { target: { value: 'hello\n' } })
     saveAs(first.ui, 'notes')
     first.unmount()
 
-    const { container } = renderDesktop({ documents })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
     fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Documents'))
@@ -200,7 +204,7 @@ describe('Text Editor', () => {
     fireEvent.click(within(editor).getByRole('button', { name: 'Main Menu' }))
     chooseMenuItem('Save')
     expect(headerTitle(editor)).toBe('notes.txt')
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['/home/visitor/Documents/notes.txt']).toBe('hello again\n')
+    expect(fsFiles(disk)['/home/visitor/Documents/notes.txt']).toBe('hello again\n')
   })
 
   it('asks before replacing a file, and refuses when that file is already open', () => {
@@ -250,7 +254,7 @@ describe('Text Editor', () => {
 
   it('saves from the close prompt', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'from close' } })
 
     fireEvent.click(ui.getByRole('button', { name: 'Close' }))
@@ -259,11 +263,11 @@ describe('Text Editor', () => {
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save' })).getByRole('button', { name: 'Save' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['/home/visitor/Documents/later.txt']).toBe('from close')
+    expect(fsFiles(disk)['/home/visitor/Documents/later.txt']).toBe('from close')
   })
 
   it('rejects a bad name and reports a blocked write', () => {
-    const blocked = openUntitled({ documents: { load: () => ({}), save: () => false } })
+    const blocked = openUntitled({ fs: fsStoreOn(null) })
     fireEvent.change(field(blocked.ui, 'Untitled'), { target: { value: 'hello' } })
     saveAs(blocked.ui, 'a/b')
 
@@ -365,22 +369,20 @@ describe('Text Editor', () => {
 
   it('saves a name Rafey uses into the visitor\'s Home, leaving his file alone', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'mine' } })
     saveAs(ui, 'bio', 'Home')
 
     expect(ui.queryByRole('dialog', { name: "Can't replace" })).toBeNull()
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files).toEqual({ '/home/visitor/bio.txt': 'mine' })
+    expect(fsFiles(disk)).toEqual({ '/home/visitor/bio.txt': 'mine' })
     const { input } = openTerminal(container)
     typeCommand(input, 'cat bio.txt')
     expect(windowsOf(container, 'terminal')[0].querySelector('.tlog').textContent).toContain(realContent.bio.trim().slice(0, 20))
   })
 
   it('opens a trashed file read-only, with Trash as its folder', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '/home/visitor/Desktop/notes.txt': 'gone\n' } }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({}, { '/home/visitor/Desktop/notes.txt': 'gone\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
 
     clickDock('Files')
     const files = windowsOf(container, 'files')[0]
@@ -398,7 +400,7 @@ describe('Text Editor', () => {
 
   it('closes a clean editor when its file is moved to Trash', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'hello\n' } })
     saveAs(ui, 'notes')
 
@@ -409,12 +411,12 @@ describe('Text Editor', () => {
     chooseMenuItem('Move to Trash')
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Documents/notes.txt']).toBe('hello\n')
+    expect(fsTrash(disk)['/home/visitor/Documents/notes.txt']).toBe('hello\n')
   })
 
   it('leaves a dirty file alone when the trash prompt is cancelled', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'hello\n' } })
     saveAs(ui, 'notes')
     fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'dirty\n' } })
@@ -427,13 +429,13 @@ describe('Text Editor', () => {
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Cancel' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(1)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).files['/home/visitor/Documents/notes.txt']).toBe('hello\n')
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash).toEqual({})
+    expect(fsFiles(disk)['/home/visitor/Documents/notes.txt']).toBe('hello\n')
+    expect(fsTrash(disk)).toEqual({})
   })
 
   it('trashes the last saved text when dirty changes are discarded', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'hello\n' } })
     saveAs(ui, 'notes')
     fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'dirty\n' } })
@@ -446,12 +448,12 @@ describe('Text Editor', () => {
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Discard' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Documents/notes.txt']).toBe('hello\n')
+    expect(fsTrash(disk)['/home/visitor/Documents/notes.txt']).toBe('hello\n')
   })
 
   it('saves dirty text and then moves the file to Trash', () => {
     const disk = memoryStorage()
-    const { container, ui } = openUntitled({ documents: createDocumentsStore(disk) })
+    const { container, ui } = openUntitled({ fs: fsStoreOn(disk) })
     fireEvent.change(field(ui, 'Untitled'), { target: { value: 'hello\n' } })
     saveAs(ui, 'notes')
     fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'dirty\n' } })
@@ -464,6 +466,6 @@ describe('Text Editor', () => {
     fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Save' }))
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Documents/notes.txt']).toBe('dirty\n')
+    expect(fsTrash(disk)['/home/visitor/Documents/notes.txt']).toBe('dirty\n')
   })
 })

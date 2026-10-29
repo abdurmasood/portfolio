@@ -5,15 +5,18 @@ import {
   chooseMenuItem,
   clickDock,
   dock,
+  fsDisk,
+  fsFiles,
+  fsStoreOn,
+  fsTrash,
   goToRafeyHome,
-  memoryStorage,
   menuEntry,
   menuLabels,
   renderDesktop,
   rightClick,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
 
@@ -122,10 +125,8 @@ describe('Files background menu', () => {
 
 describe('Trash', () => {
   it('moves a created file into Trash and restores it to its folder', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Documents/notes.txt': 'hello\n' }, trash: {} }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({ '/home/visitor/Documents/notes.txt': 'hello\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
     clickDock('Files')
     const win = windowsOf(container, 'files')[0]
     const ui = within(win)
@@ -144,20 +145,13 @@ describe('Trash', () => {
 
     goTo(ui, 'Documents')
     expect(item(win, '/home/visitor/Documents/notes.txt')).toBeTruthy()
-    expect(JSON.parse(disk.getItem('rafeyos-documents'))).toEqual({
-      files: { '/home/visitor/Documents/notes.txt': 'hello\n' },
-      trash: {},
-    })
+    expect(fsFiles(disk)).toEqual({ '/home/visitor/Documents/notes.txt': 'hello\n' })
+    expect(fsTrash(disk)).toEqual({})
   })
 
   it('keeps the file in Trash when its original place is taken', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({
-        files: { '/home/visitor/Desktop/a.txt': 'live\n' },
-        trash: { '/home/visitor/Desktop/a.txt': 'old\n' },
-      }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({ '/home/visitor/Desktop/a.txt': 'live\n' }, { '/home/visitor/Desktop/a.txt': 'old\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
     clickDock('Files')
     const win = windowsOf(container, 'files')[0]
 
@@ -168,17 +162,12 @@ describe('Trash', () => {
 
     expect(screen.getByRole('status').textContent).toContain('already in Desktop')
     expect(item(win, trashed)).toBeTruthy()
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Desktop/a.txt']).toBe('old\n')
+    expect(fsTrash(disk)['/home/visitor/Desktop/a.txt']).toBe('old\n')
   })
 
   it('empties Trash from the folder and from a file inside it', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({
-        files: { '/home/visitor/Desktop/keep.txt': 'stay\n' },
-        trash: { '/home/visitor/Documents/notes.txt': 'gone\n' },
-      }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({ '/home/visitor/Desktop/keep.txt': 'stay\n' }, { '/home/visitor/Documents/notes.txt': 'gone\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
     clickDock('Files')
     const win = windowsOf(container, 'files')[0]
     const ui = within(win)
@@ -192,23 +181,19 @@ describe('Trash', () => {
     chooseMenuItem('Empty Trash')
 
     expect(ui.getByText('Trash is Empty')).toBeTruthy()
-    expect(JSON.parse(disk.getItem('rafeyos-documents'))).toEqual({
-      files: { '/home/visitor/Desktop/keep.txt': 'stay\n' },
-      trash: {},
-    })
+    expect(fsFiles(disk)).toEqual({ '/home/visitor/Desktop/keep.txt': 'stay\n' })
+    expect(fsTrash(disk)).toEqual({})
   })
 
   it('empties Trash from the dock icon, and disables the command when the bin is empty', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: {}, trash: { '/home/visitor/Desktop/old.txt': 'old\n' } }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({}, { '/home/visitor/Desktop/old.txt': 'old\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
     const trashButton = () => within(dock()).getByRole('button', { name: 'Trash' })
 
     rightClick(trashButton())
     chooseMenuItem('Empty Trash')
 
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash).toEqual({})
+    expect(fsTrash(disk)).toEqual({})
     rightClick(trashButton())
     expect(menuEntry('Empty Trash').disabled).toBe(true)
 

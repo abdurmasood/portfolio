@@ -1,18 +1,16 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, dock, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { chooseMenuItem, clickDock, dock, fsDisk, fsStoreOn, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
 
 const icon = (container, path) => container.querySelector(`.dicon[data-path="${path}"]`)
 
 const desktopWithNote = () => {
-  const disk = memoryStorage({
-    'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
-  })
-  return renderDesktop({ documents: createDocumentsStore(disk) })
+  const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+  return renderDesktop({ fs: fsStoreOn(disk) })
 }
 
 describe('desktop', () => {
@@ -141,10 +139,8 @@ describe('dock', () => {
   })
 
   it('puts a sheet in the dock bin while Trash holds a file', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
     const paper = () => within(dock()).getByRole('button', { name: 'Trash' }).querySelector('[data-paper]')
 
     expect(paper()).toBeNull()

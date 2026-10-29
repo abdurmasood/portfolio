@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { parentOf, joinPath, realPath, resolvePath, tilde, absPath } from '@/components/rafeyos/core/vfs/paths'
-import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
-import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
+import { fixtureContent, visitorVfs } from '@/tests/rafeyos/helpers/testVfs'
 
-const vfs = buildVfs(fixtureContent)
+const vfs = visitorVfs(fixtureContent)
 
 describe('parentOf', () => {
   it('returns the parent, or null for roots', () => {

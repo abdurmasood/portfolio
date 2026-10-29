@@ -167,9 +167,8 @@ const entriesFor = (content) => [
   [ROOT, { type: 'dir' }],
   ['/home', { type: 'dir' }],
   ...rafeyNodes(content),
+  // Its Desktop, Documents and Downloads are the visitor's, seeded by fsState
   [HOME, { type: 'dir' }],
-  [`${HOME}/Desktop`, { type: 'dir' }],
-  [`${HOME}/Documents`, { type: 'dir' }],
   ...systemNodes(),
   [TRASH, { type: 'dir', name: 'Trash' }],
 ]

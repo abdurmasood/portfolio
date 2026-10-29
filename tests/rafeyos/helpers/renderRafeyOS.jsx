@@ -5,7 +5,8 @@ import { vi } from 'vitest'
 import { RafeyOSRoot } from '@/components/rafeyos/RafeyOSRoot'
 import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
 import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
-import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
+import { FS_KEY, createFsStore } from '@/components/rafeyos/core/vfs/fsStore'
+import { seedState, serializeState } from '@/components/rafeyos/core/vfs/fsState'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))
@@ -23,10 +24,35 @@ export const FIXED_NOW = new Date(2026, 9, 17, 21, 4)
 // A rising ramp, so the waveform's bars get taller from left to right
 export const FAKE_SAMPLES = Float32Array.from({ length: 4800 }, (_, i) => i / 4800)
 
+/** The visitor's store on `disk` (a memoryStorage, or null for blocked storage), at the fixed time. */
+export const fsStoreOn = (disk) => createFsStore({ storage: disk, now: () => FIXED_NOW.getTime() })
+
+/** A memoryStorage already holding the seeded folders plus these files and trash entries (path -> text). */
+export const fsDisk = (files = {}, trash = {}) => {
+  const mtime = FIXED_NOW.getTime()
+  const seed = seedState(mtime)
+  const nodes = { ...seed.nodes }
+  Object.entries(files).forEach(([path, text]) => {
+    nodes[path] = { type: 'text', text, mtime }
+  })
+  const trashed = Object.fromEntries(Object.entries(trash).map(([path, text]) => [path, { text, mtime }]))
+  return memoryStorage({ [FS_KEY]: serializeState({ ...seed, nodes, trash: trashed }) })
+}
+
+const storedState = (disk) => JSON.parse(disk.getItem(FS_KEY))
+
+/** The visitor's files written to `disk`, as path -> text. */
+export const fsFiles = (disk) =>
+  Object.fromEntries(Object.entries(storedState(disk).nodes).flatMap(([path, node]) => (node.type === 'text' ? [[path, node.text]] : [])))
+
+/** The trash written to `disk`, as original path -> text. */
+export const fsTrash = (disk) =>
+  Object.fromEntries(Object.entries(storedState(disk).trash).map(([path, entry]) => [path, entry.text]))
+
 export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),
   storage: memoryStorage(),
-  documents: createDocumentsStore(memoryStorage()),
+  fs: fsStoreOn(memoryStorage()),
   now: () => FIXED_NOW,
   openExternal: vi.fn(),
   clipboard: { writeText: vi.fn(() => Promise.resolve()) },

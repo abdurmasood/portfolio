@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createServices } from '@/components/rafeyos/core/services/createServices'
 import { localStorageOrNull, sessionStorageOrNull } from '@/lib/browserStorage'
-import { DOCUMENTS_KEY } from '@/components/rafeyos/core/vfs/documents'
+import { FS_KEY, LEGACY_KEY } from '@/components/rafeyos/core/vfs/fsStore'
 
 const fakeWindow = (overrides = {}) => ({
   sessionStorage: { getItem: () => null },
@@ -25,15 +25,24 @@ describe('services', () => {
     expect(services.prefersDark()).toBe(false)
     expect(services.now()).toBeInstanceOf(Date)
     expect(services.storage).toBe(win.sessionStorage)
-    expect(services.documents.load()).toEqual({ files: {}, trash: {} })
+    expect(Object.keys(services.fs.getState().nodes)).toEqual(['/home/visitor/Desktop', '/home/visitor/Documents', '/home/visitor/Downloads'])
   })
 
-  it('saves documents in localStorage', () => {
-    const win = fakeWindow({ localStorage: { getItem: () => null, setItem: vi.fn() } })
+  it('saves documents in localStorage, migrating the old key, through one store per window', () => {
+    const legacy = JSON.stringify({ files: { 'old.txt': 'old\n' }, trash: {} })
+    const localStorage = { getItem: vi.fn((key) => (key === LEGACY_KEY ? legacy : null)), setItem: vi.fn(), removeItem: vi.fn() }
+    const win = fakeWindow({ localStorage })
     const services = createServices({ router: { push: vi.fn() }, win })
 
-    expect(services.documents.save({ 'notes.txt': 'hello\n' })).toBe(true)
-    expect(win.localStorage.setItem).toHaveBeenCalledWith(DOCUMENTS_KEY, JSON.stringify({ 'notes.txt': 'hello\n' }))
+    expect(services.fs.saveFile('/home/visitor/Documents', 'notes', 'hello\n')).toMatchObject({ ok: true, path: '/home/visitor/Documents/notes.txt' })
+    const [key, value] = localStorage.setItem.mock.calls[0]
+    expect(key).toBe(FS_KEY)
+    expect(JSON.parse(value).nodes).toMatchObject({
+      '/home/visitor/Documents/old.txt': { type: 'text', text: 'old\n' },
+      '/home/visitor/Documents/notes.txt': { type: 'text', text: 'hello\n' },
+    })
+    expect(localStorage.removeItem).toHaveBeenCalledWith(LEGACY_KEY)
+    expect(createServices({ router: { push: vi.fn() }, win }).fs).toBe(services.fs)
   })
 
   it('copies through the window clipboard', async () => {

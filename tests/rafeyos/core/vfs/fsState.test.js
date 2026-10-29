@@ -306,9 +306,11 @@ describe('mergeState', () => {
   })
 
   it('never covers a shipped node', () => {
-    const vfs = mergeState(realVfs, seedState(1))
-    expect(vfs['/home/visitor/Desktop']).toBe(realVfs['/home/visitor/Desktop'])
+    // The shipped tree no longer has a visitor folder, so one is planted to prove the shipped node wins
+    const shipped = Object.freeze({ path: '/home/visitor/Desktop', name: 'Desktop', type: 'dir' })
+    const vfs = mergeState(Object.freeze({ ...realVfs, [shipped.path]: shipped }), seedState(1))
+    expect(vfs['/home/visitor/Desktop']).toBe(shipped)
     expect(vfs['/home/rafey/bio.txt']).toBe(realVfs['/home/rafey/bio.txt'])
-    expect(realVfs['/home/visitor/Downloads']).toBeUndefined()
+    expect(vfs['/home/visitor/Downloads']).toEqual({ path: '/home/visitor/Downloads', name: 'Downloads', type: 'dir', mtime: 1 })
   })
 })

@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, within } from '@testing-library/react'
-import { chooseMenuItem, desktopIcon, memoryStorage, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { chooseMenuItem, desktopIcon, fsDisk, fsStoreOn, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { propertiesRows } from '@/components/rafeyos/apps/properties/logic/propertiesRows'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { sizeLabel } from '@/components/rafeyos/core/vfs/queries'
-import { createDocumentsStore, mergeDocuments, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { mergeState, seedState } from '@/components/rafeyos/core/vfs/fsState'
 
 afterEach(cleanup)
 
@@ -22,10 +23,8 @@ const openProperties = (path) => {
 
 describe('Properties', () => {
   it('shows a file, with no terminal button', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
-    })
-    const view = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+    const view = renderDesktop({ fs: fsStoreOn(disk) })
     rightClick(desktopIcon(view.container, '/home/visitor/Desktop/note.txt'))
     chooseMenuItem('Properties')
     const [win] = windowsOf(view.container, 'properties')
@@ -46,7 +45,7 @@ describe('Properties', () => {
 
     expect(win.getAttribute('aria-label')).toBe('Home Properties')
     expect(rowsOf(win)).toEqual([
-      ['Size', sizeLabel(realVfs, '/home/visitor')],
+      ['Size', '3 items'],
       ['Type', 'Folder'],
       ['Parent Folder', '/home'],
     ])
@@ -81,7 +80,7 @@ describe('propertiesRows', () => {
   })
 
   it('names where a trashed file came from', () => {
-    const merged = mergeDocuments(realVfs, {}, { '/home/visitor/Desktop/notes.txt': 'hello\n' })
+    const merged = mergeState(realVfs, { ...seedState(0), trash: { '/home/visitor/Desktop/notes.txt': { text: 'hello\n', mtime: 0 } } })
     const path = trashItemPath('/home/visitor/Desktop/notes.txt')
 
     expect(propertiesRows(merged, path).find((row) => row.label === 'Original Location').value).toBe('/home/visitor/Desktop/notes.txt')

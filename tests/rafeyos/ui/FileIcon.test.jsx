@@ -2,12 +2,12 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
-import { HOME, NODE_TYPES, buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
-import { buildContent } from '@/components/rafeyos/core/vfs/content'
+import { HOME, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { visitorVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 afterEach(cleanup)
 
-const vfs = buildVfs(buildContent())
+const vfs = visitorVfs()
 const textFile = Object.keys(vfs).find((path) => vfs[path].type === NODE_TYPES.TEXT)
 const audioFile = Object.keys(vfs).find((path) => vfs[path].type === NODE_TYPES.AUDIO)
 

@@ -4,7 +4,9 @@ import { cleanup, fireEvent, screen } from '@testing-library/react'
 import {
   chooseMenuItem,
   desktopIcon,
-  memoryStorage,
+  fsDisk,
+  fsStoreOn,
+  fsTrash,
   menuEntry,
   menuLabels,
   openMenu,
@@ -12,17 +14,14 @@ import {
   rightClick,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
 
 const wallpaper = () => screen.getByTestId('wallpaper')
 
 const desktopWithNote = () => {
-  const disk = memoryStorage({
-    'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
-  })
-  return renderDesktop({ documents: createDocumentsStore(disk) })
+  const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+  return renderDesktop({ fs: fsStoreOn(disk) })
 }
 const FILE_ACTIONS = ['Open', 'Open With…', 'Cut', 'Copy', 'Rename…', 'Move to Trash']
 const DISABLED_FILE_ACTIONS = ['Open With…', 'Cut', 'Copy', 'Rename…', 'Move to Trash']
@@ -145,15 +144,13 @@ describe('desktop icon menu', () => {
   })
 
   it('moves a file created on the desktop into Trash', () => {
-    const disk = memoryStorage({
-      'rafeyos-documents': JSON.stringify({ files: { '/home/visitor/Desktop/note.txt': 'desk\n' }, trash: {} }),
-    })
-    const { container } = renderDesktop({ documents: createDocumentsStore(disk) })
+    const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
 
     rightClick(desktopIcon(container, '/home/visitor/Desktop/note.txt'))
     chooseMenuItem('Move to Trash')
 
     expect(desktopIcon(container, '/home/visitor/Desktop/note.txt')).toBeNull()
-    expect(JSON.parse(disk.getItem('rafeyos-documents')).trash['/home/visitor/Desktop/note.txt']).toBe('desk\n')
+    expect(fsTrash(disk)['/home/visitor/Desktop/note.txt']).toBe('desk\n')
   })
 })

@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from '@/components/rafeyos/core/vfs/queries'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
-import { mergeDocuments, trashItemPath } from '@/components/rafeyos/core/vfs/documents'
-import { fixtureContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
+import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { mergeState, seedState } from '@/components/rafeyos/core/vfs/fsState'
+import { fixtureContent, realVfs, visitorVfs } from '@/tests/rafeyos/helpers/testVfs'
 
-const vfs = buildVfs(fixtureContent)
+const vfs = visitorVfs(fixtureContent)
 
 describe('children', () => {
   it('lists folders first, then files, ignoring case', () => {
@@ -17,7 +18,7 @@ describe('children', () => {
   it('lists the root and the visitor home', () => {
     expect(children(realVfs, '/')).toEqual(['/etc', '/home', '/tmp', '/usr'])
     expect(children(vfs, '/home')).toEqual(['/home/rafey', '/home/visitor'])
-    expect(children(vfs, '/home/visitor')).toEqual(['/home/visitor/Desktop', '/home/visitor/Documents'])
+    expect(children(vfs, '/home/visitor')).toEqual(['/home/visitor/Desktop', '/home/visitor/Documents', '/home/visitor/Downloads'])
   })
 
   it('returns an empty list for empty folders and files', () => {
@@ -105,7 +106,7 @@ describe('textDocuments', () => {
   })
 
   it('skips a file sitting in Trash', () => {
-    const merged = mergeDocuments(realVfs, {}, { '/home/visitor/Desktop/notes.txt': 'hello\n' })
+    const merged = mergeState(realVfs, { ...seedState(0), trash: { '/home/visitor/Desktop/notes.txt': { text: 'hello\n', mtime: 0 } } })
 
     expect(textDocuments(merged)).not.toContain(trashItemPath('/home/visitor/Desktop/notes.txt'))
     expect(textDocuments(merged)).toContain('/home/rafey/bio.txt')
