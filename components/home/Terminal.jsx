@@ -7,7 +7,7 @@ import { useTerminal } from './TerminalProvider';
 import LoadingBar from './LoadingBar';
 import { loadProjects } from '@/lib/loadProjects';
 import { loadRafeyOS } from '@/lib/loadRafeyOS';
-import { forgetDesktop } from '@/components/rafeyos/session/logic/sessionStore';
+import { forgetDesktop, rememberHandoff } from '@/components/rafeyos/session/logic/sessionStore';
 import { sessionStorageOrNull } from '@/lib/browserStorage';
 import { HomeLine } from '@/components/home/HomeLine';
 import { HOME_COMMANDS } from '@/components/home/shell/homeCommands';
@@ -54,12 +54,14 @@ const usePageHandlers = (setShowLoadingBar) => {
         router.push('/projects');
       }, PROJECTS_3D_DELAY_MS);
     },
-    // Clearing the session flag makes the command always boot; only a refresh inside rafeyOS skips it
-    handoff: () => {
+    // Clearing the session flag makes the command always boot; only a refresh inside rafeyOS skips it.
+    // The window to open is kept only as the route starts, so an unmount that cancels it leaves nothing behind.
+    handoff: ({ open }) => {
       forgetDesktop(sessionStorageOrNull());
       loadRafeyOS();
       clearTimeout(rafeyosTimeoutRef.current);
       rafeyosTimeoutRef.current = setTimeout(() => {
+        rememberHandoff(sessionStorageOrNull(), open);
         router.push('/os');
       }, RAFEYOS_ROUTE_DELAY_MS);
     },
