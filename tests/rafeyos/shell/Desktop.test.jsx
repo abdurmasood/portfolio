@@ -22,6 +22,14 @@ describe('desktop', () => {
     expect(names).toEqual(['Home'])
   })
 
+  it('desktop hides dotfiles', () => {
+    const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n', '/home/visitor/Desktop/.hidden': 'x\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+
+    expect([...container.querySelectorAll('.dicon .nm')].map((node) => node.textContent)).toEqual(['Home', 'note.txt'])
+    expect(icon(container, '/home/visitor/Desktop/.hidden')).toBeNull()
+  })
+
   it('opens Home in Files on double click', () => {
     const { container } = renderDesktop()
 

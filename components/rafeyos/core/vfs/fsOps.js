@@ -137,7 +137,7 @@ export const mkdir = (vfs, state, { path, parents = false }, now) => {
     const made = makeDir(tree, current, prefix, now)
     if (!made.ok) return made
     current = made.state
-    tree = { ...tree, [made.path]: Object.freeze({ path: made.path, name: nameOf(made.path), type: NODE_TYPES.DIR }) }
+    tree = { ...tree, [made.path]: Object.freeze({ path: made.path, name: nameOf(made.path), type: NODE_TYPES.DIR, mtime: now }) }
   }
   return done(current)
 }

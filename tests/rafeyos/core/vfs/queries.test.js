@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { children, isDir, displayName, sizeOf, sizeLabel, kindOf, search, textDocuments } from '@/components/rafeyos/core/vfs/queries'
-import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
+import { children, isDir, isHidden, displayName, sizeOf, sizeLabel, kindOf, search, statOf, textDocuments } from '@/components/rafeyos/core/vfs/queries'
+import { buildVfs, SHIPPED_MTIME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
-import { mergeState, seedState } from '@/components/rafeyos/core/vfs/fsState'
+import { dirNode, mergeState, seedState, symlinkNode, textNode, withNodes } from '@/components/rafeyos/core/vfs/fsState'
 import { fixtureContent, realVfs, visitorVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 const vfs = visitorVfs(fixtureContent)
@@ -16,7 +16,7 @@ describe('children', () => {
   })
 
   it('lists the root and the visitor home', () => {
-    expect(children(realVfs, '/')).toEqual(['/etc', '/home', '/tmp', '/usr'])
+    expect(children(realVfs, '/')).toEqual(['/bin', '/etc', '/home', '/tmp', '/usr'])
     expect(children(vfs, '/home')).toEqual(['/home/rafey', '/home/visitor'])
     expect(children(vfs, '/home/visitor')).toEqual(['/home/visitor/Desktop', '/home/visitor/Documents', '/home/visitor/Downloads'])
   })
@@ -114,5 +114,74 @@ describe('textDocuments', () => {
 
   it('leaves system files out', () => {
     expect(textDocuments(realVfs).filter((path) => path.startsWith('/etc') || path.startsWith('/usr'))).toEqual([])
+  })
+})
+
+const VISITOR_TIME = Date.UTC(2026, 9, 29, 14, 5)
+
+/** The fixture tree plus a visitor file, a relative link to it, a dotfile, a hidden folder and a file in /tmp. */
+const visitorTree = () => {
+  const seed = seedState(0)
+  return mergeState(buildVfs(fixtureContent), withNodes(seed, {
+    ...seed.nodes,
+    '/home/visitor/notes.txt': textNode('hi\n', VISITOR_TIME),
+    '/home/visitor/link': symlinkNode('notes.txt', VISITOR_TIME),
+    '/home/visitor/.profile': textNode('# bio\n', VISITOR_TIME),
+    '/home/visitor/.config': dirNode(VISITOR_TIME),
+    '/home/visitor/.config/bio.txt': textNode('bio\n', VISITOR_TIME),
+    '/home/visitor/Desktop/.secret.txt': textNode('bio\n', VISITOR_TIME),
+    '/tmp/x': textNode('', VISITOR_TIME),
+  }))
+}
+
+describe('statOf', () => {
+  const tree = visitorTree()
+  const shipped = { mtime: SHIPPED_MTIME, nlink: 1 }
+  const dir = { type: 'dir', size: 4096, mtime: SHIPPED_MTIME }
+
+  it.each([
+    ['/home/rafey/bio.txt', { type: 'text', mode: '-rw-r--r--', owner: 'rafey', group: 'rafey', size: 9, ...shipped }],
+    ['/home/rafey/Music/song.mp3', { type: 'audio', mode: '-rw-r--r--', owner: 'rafey', group: 'rafey', size: 2500000, ...shipped }],
+    ['/home/rafey', { ...dir, mode: 'drwxr-xr-x', owner: 'rafey', group: 'rafey', nlink: 6 }],
+    ['/home/rafey/blog', { ...dir, mode: 'drwxr-xr-x', owner: 'rafey', group: 'rafey', nlink: 2 }],
+    ['/usr/local/bin', { ...dir, mode: 'drwxr-xr-x', owner: 'rafey', group: 'rafey', nlink: 2 }],
+    ['/usr/local/bin/bio', { type: 'text', mode: '-rwxr-xr-x', owner: 'rafey', group: 'rafey', size: 36, ...shipped }],
+    ['/usr/bin/ls', { type: 'text', mode: '-rwxr-xr-x', owner: 'root', group: 'root', size: 24, ...shipped }],
+    ['/bin', { type: 'symlink', mode: 'lrwxrwxrwx', owner: 'root', group: 'root', size: 8, target: '/usr/bin', ...shipped }],
+    ['/etc/passwd', { type: 'text', mode: '-rw-r--r--', owner: 'root', group: 'root', size: 124, ...shipped }],
+    ['/', { ...dir, mode: 'drwxr-xr-x', owner: 'root', group: 'root', nlink: 6 }],
+    ['/tmp', { ...dir, mode: 'drwxrwxrwt', owner: 'root', group: 'root', nlink: 2 }],
+    ['/tmp/x', { type: 'text', mode: '-rw-r--r--', owner: 'visitor', group: 'visitor', size: 0, mtime: VISITOR_TIME, nlink: 1 }],
+    ['/home/visitor', { ...dir, mode: 'drwxr-xr-x', owner: 'visitor', group: 'visitor', nlink: 6 }],
+    ['/home/visitor/Desktop', { ...dir, mode: 'drwxr-xr-x', owner: 'visitor', group: 'visitor', mtime: 0, nlink: 2 }],
+    ['/home/visitor/notes.txt', { type: 'text', mode: '-rw-r--r--', owner: 'visitor', group: 'visitor', size: 3, mtime: VISITOR_TIME, nlink: 1 }],
+    ['/home/visitor/link', { type: 'symlink', mode: 'lrwxrwxrwx', owner: 'visitor', group: 'visitor', size: 9, target: 'notes.txt', mtime: VISITOR_TIME, nlink: 1 }],
+  ])('stat of shipped visitor tmp bin nodes and home itself: %s', (path, facts) => {
+    expect(statOf(tree, path)).toEqual(facts)
+  })
+
+  it('is null for a path that does not exist', () => {
+    expect(statOf(tree, '/home/visitor/nope')).toBeNull()
+  })
+})
+
+describe('hidden files', () => {
+  it('a name starting with a dot is hidden', () => {
+    expect(isHidden('/home/visitor/.profile')).toBe(true)
+    expect(isHidden('/home/visitor/.config')).toBe(true)
+    expect(isHidden('/home/visitor/notes.txt')).toBe(false)
+    expect(isHidden('/home/visitor/a.b')).toBe(false)
+    expect(isHidden('/')).toBe(false)
+  })
+
+  it('search and recent documents skip dotfiles', () => {
+    const tree = visitorTree()
+
+    expect(search(tree, 'bio')).toEqual(['/home/rafey/bio.txt'])
+    expect(search(tree, 'profile')).toEqual([])
+    expect(search(tree, 'config')).toEqual([])
+    expect(search(tree, 'notes')).toEqual(['/home/visitor/notes.txt'])
+    expect(textDocuments(tree)).toContain('/home/visitor/notes.txt')
+    expect(textDocuments(tree).filter((path) => path.includes('/.'))).toEqual([])
   })
 })

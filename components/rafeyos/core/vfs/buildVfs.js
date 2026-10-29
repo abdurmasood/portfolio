@@ -32,13 +32,13 @@ export const NODE_TYPES = Object.freeze({
  */
 
 /**
- * A vfs entry; narrow on `type` to reach its fields.
- * @typedef {Readonly<NodeFields & { path: string, name: string }>} VfsNode
+ * A vfs entry; narrow on `type` to reach its fields. `mtime` is epoch milliseconds.
+ * @typedef {Readonly<NodeFields & { path: string, name: string, mtime: number }>} VfsNode
  */
 
 /** @typedef {Readonly<Record<string, VfsNode>>} Vfs path -> node */
 
-/** @typedef {[path: string, fields: NodeFields | (DirFields & { name: string })]} Entry */
+/** @typedef {[path: string, fields: NodeFields | (DirFields & { name: string }), mtime?: number]} Entry the shipped mtime unless one is given */
 
 export const ROOT = '/'
 /** The visitor's home: ~ in the shell, Home in Files. */
@@ -48,11 +48,22 @@ export const RAFEY_HOME = '/home/rafey'
 export const START_DIR = RAFEY_HOME
 export const TMP = '/tmp'
 export const BIN = '/usr/local/bin'
+/** The system commands' stubs; /bin links here. */
+export const USR_BIN = '/usr/bin'
+/** When every shipped file but a blog post was last changed: a fixed build date, so listings never drift. */
+export const SHIPPED_MTIME = Date.UTC(2026, 9, 1)
 /** A GUI place outside the tree, so its path stays relative. */
 export const TRASH = 'trash'
 
-// The commands the shell knows, shipped as stubs so `ls /usr/local/bin` lists them
+// Rafey's portfolio commands, shipped as stubs so `ls /usr/local/bin` lists them
 const COMMANDS = Object.freeze(['bio', 'projects', 'blog', 'music', 'contact', 'skills', 'help', 'os'])
+
+/** Every other command the shell runs, stubbed in /usr/bin as Ubuntu ships them. Bash builtins like cd stay out. */
+export const SYSTEM_COMMANDS = Object.freeze([
+  'ls', 'pwd', 'mkdir', 'rmdir', 'touch', 'rm', 'cp', 'mv', 'cat', 'tree', 'find', 'ln', 'stat', 'echo', 'head', 'tail', 'wc', 'grep', 'sort', 'uniq',
+  'less', 'whoami', 'uname', 'date', 'uptime', 'hostname', 'clear', 'which', 'man', 'env', 'true', 'false', 'sudo', 'xdg-open', 'gio',
+  'nautilus', 'gedit', 'gnome-text-editor', 'nano', 'vim', 'vi', 'rafeyos', 'startx',
+])
 
 const OS_RELEASE = 'PRETTY_NAME="rafeyOS 24.04 LTS"\nNAME="rafeyOS"\nVERSION_ID="24.04"\nID=rafeyos\n'
 const PASSWD =
@@ -134,7 +145,12 @@ const rafeyNodes = (content) => [
   [RAFEY_HOME, { type: 'dir' }],
   ...musicNodes(content.music),
   [rafeyPath('blog'), { type: 'dir' }],
-  ...content.posts.map(/** @returns {Entry} */ (post) => [rafeyPath(`blog/${post.slug}.md`), { type: 'text', text: postText(post) }]),
+  ...content.posts.map(/** @returns {Entry} */ (post) => [
+    rafeyPath(`blog/${post.slug}.md`),
+    { type: 'text', text: postText(post) },
+    // "2023-05-15" parses as UTC midnight
+    Date.parse(post.date),
+  ]),
   ...contactNodes(content.contact),
   [rafeyPath('projects'), { type: 'dir' }],
   ...content.projects.map(/** @returns {Entry} */ (project) => [
@@ -152,6 +168,10 @@ const systemNodes = () => [
   ['/usr/local', { type: 'dir' }],
   [BIN, { type: 'dir' }],
   ...COMMANDS.map(/** @returns {Entry} */ (name) => [`${BIN}/${name}`, { type: 'text', text: `#!/bin/sh\n# rafey.ai portfolio: ${name}\n` }]),
+  [USR_BIN, { type: 'dir' }],
+  ...SYSTEM_COMMANDS.map(/** @returns {Entry} */ (name) => [`${USR_BIN}/${name}`, { type: 'text', text: `#!/bin/sh\n# rafeyOS: ${name}\n` }]),
+  // Absolute, as Ubuntu's merged /usr ships it, so `ls /` reads bin etc home tmp usr
+  ['/bin', { type: 'symlink', target: USR_BIN }],
   ['/etc', { type: 'dir' }],
   ['/etc/hostname', { type: 'text', text: 'rafey.ai\n' }],
   ['/etc/os-release', { type: 'text', text: OS_RELEASE }],
@@ -180,8 +200,8 @@ const entriesFor = (content) => [
 export const buildVfs = (content) => {
   /** @type {Record<string, VfsNode>} */
   const vfs = {}
-  entriesFor(content).forEach(([path, node]) => {
-    vfs[path] = Object.freeze({ path, name: nameOf(path), ...node })
+  entriesFor(content).forEach(([path, node, mtime = SHIPPED_MTIME]) => {
+    vfs[path] = Object.freeze({ path, name: nameOf(path), mtime, ...node })
   })
   return Object.freeze(vfs)
 }

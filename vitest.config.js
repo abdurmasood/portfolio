@@ -15,6 +15,7 @@ export default defineConfig({
     environment: 'node',
     include: ['**/*.test.{js,jsx}'],
     exclude: ['node_modules/**', '.next/**'],
+    setupFiles: ['./tests/setup/tz.js'],
     coverage: {
       provider: 'v8',
       // Scoped to modules added or extracted for rafeyOS

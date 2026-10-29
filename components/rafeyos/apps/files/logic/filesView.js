@@ -1,7 +1,7 @@
 // What a Files window shows for its reducer state. Pure, so the components stay thin.
 import { HOME, RAFEY_HOME, ROOT, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
 import { joinPath } from '@/components/rafeyos/core/vfs/paths'
-import { children, displayName, isDir, kindOf, search, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
+import { children, displayName, isDir, isHidden, kindOf, search, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 
 export const RECENT = 'recent'
 export const STARRED = 'starred'
@@ -32,11 +32,11 @@ export const locationLabel = (vfs, path) => PLACES[path]?.label ?? displayName(v
 
 export const windowTitle = (vfs, { path, search: query }) => (query === null ? locationLabel(vfs, path) : 'Search')
 
-/** Recent stays empty until files can be opened (P2); nothing can be starred yet. */
+/** Recent stays empty until files can be opened (P2); nothing can be starred yet. Dotfiles stay hidden. */
 export const listItems = (vfs, { path, search: query }) => {
   if (query !== null) return search(vfs, query)
   if (path === RECENT || path === STARRED) return []
-  return children(vfs, path)
+  return children(vfs, path).filter((child) => !isHidden(child))
 }
 
 /** @returns {{ icon: string, title: string, body: string }} */

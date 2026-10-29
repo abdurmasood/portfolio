@@ -1,4 +1,4 @@
-import { HOME, RAFEY_HOME } from './buildVfs'
+import { BIN, HOME, RAFEY_HOME, TMP, USR_BIN } from './buildVfs'
 import { parentOf, realPath } from './paths'
 import { humanBytes } from './format'
 
@@ -45,10 +45,16 @@ export const kindOf = (vfs, path) => {
   return KIND[node.type]
 }
 
-// Strictly inside one of the two homes: system files, the homes themselves and trash stay out
-const inHomes = (path) => path.startsWith(`${HOME}/`) || path.startsWith(`${RAFEY_HOME}/`)
+/** A dotfile: hidden in Files, on the desktop, in search and in Editor → Open, as Ubuntu hides them by default. */
+export const isHidden = (path) => path.slice(path.lastIndexOf('/') + 1).startsWith('.')
 
-/** Case-insensitive name search across both homes; skips links. */
+// Anywhere below a dot folder counts too: the GUI never indexes what it doesn't show
+const isOrInHidden = (path) => path.split('/').some((segment) => segment.startsWith('.'))
+
+// Strictly inside one of the two homes and not hidden: system files, the homes themselves, trash and dotfiles stay out
+const inHomes = (path) => (path.startsWith(`${HOME}/`) || path.startsWith(`${RAFEY_HOME}/`)) && !isOrInHidden(path)
+
+/** Case-insensitive name search across both homes; skips links and dotfiles. */
 export const search = (vfs, query) => {
   const needle = query.trim().toLowerCase()
   if (!needle) return []
@@ -57,5 +63,44 @@ export const search = (vfs, query) => {
   )
 }
 
-/** Every live text file in both homes, in vfs order: the editor's "Recent Documents". Trash stays out. */
+/** Every live text file in both homes, in vfs order: the editor's "Recent Documents". Trash and dotfiles stay out. */
 export const textDocuments = (vfs) => Object.keys(vfs).filter((path) => inHomes(path) && vfs[path].type === 'text')
+
+const DIR_SIZE = 4096
+const MODE = Object.freeze({ dir: 'drwxr-xr-x', file: '-rw-r--r--', symlink: 'lrwxrwxrwx', stub: '-rwxr-xr-x', sticky: 'drwxrwxrwt' })
+
+const isAtOrUnder = (path, root) => path === root || path.startsWith(`${root}/`)
+
+// The visitor owns their home and whatever they put in /tmp; Rafey owns his home and his commands; root the rest
+const ownerOf = (path) => {
+  if (isAtOrUnder(path, HOME) || path.startsWith(`${TMP}/`)) return 'visitor'
+  if (isAtOrUnder(path, RAFEY_HOME) || isAtOrUnder(path, BIN)) return 'rafey'
+  return 'root'
+}
+
+const modeOf = (path, node) => {
+  if (path === TMP) return MODE.sticky
+  if (node.type === 'dir') return MODE.dir
+  if (node.type === 'symlink') return MODE.symlink
+  const parent = parentOf(path)
+  return parent === BIN || parent === USR_BIN ? MODE.stub : MODE.file
+}
+
+// A folder's links: its name in its parent, its own "." and each subfolder's ".."
+const linkCount = (vfs, path) =>
+  2 + Object.keys(vfs).filter((key) => key !== path && parentOf(key) === path && vfs[key].type === 'dir').length
+
+/**
+ * What `ls -l` and `stat` print for a path, without following a link at the end of it, or null when nothing is there.
+ * A link's size is its target's length, as on Linux.
+ * @returns {{ type: string, mode: string, owner: string, group: string, size: number, mtime: number, nlink: number, target?: string } | null}
+ */
+export const statOf = (vfs, path) => {
+  const node = vfs[path]
+  if (!node) return null
+  const owner = ownerOf(path)
+  const facts = { type: node.type, mode: modeOf(path, node), owner, group: owner, mtime: node.mtime }
+  if (node.type === 'dir') return { ...facts, size: DIR_SIZE, nlink: linkCount(vfs, path) }
+  if (node.type === 'symlink') return { ...facts, size: encoder.encode(node.target).length, nlink: 1, target: node.target }
+  return { ...facts, size: sizeOf(vfs, path), nlink: 1 }
+}

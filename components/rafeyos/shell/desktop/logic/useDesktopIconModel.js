@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useLayout, useSettings, useVfs } from '@/components/rafeyos/state/logic/contexts'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { joinPath } from '@/components/rafeyos/core/vfs/paths'
-import { children } from '@/components/rafeyos/core/vfs/queries'
+import { children, isHidden } from '@/components/rafeyos/core/vfs/queries'
 import { iconLayout } from './iconLayout'
 
 export const DESKTOP = joinPath(HOME, 'Desktop')
@@ -22,7 +22,10 @@ export const useDesktopIconModel = () => {
   const [dragged, setDragged] = useState({ corner, placed: NONE_PLACED })
   if (dragged.corner !== corner) setDragged({ corner, placed: NONE_PLACED })
   const placed = dragged.corner === corner ? dragged.placed : NONE_PLACED
-  const paths = useMemo(() => [...(showHome ? [HOME] : []), ...children(vfs, DESKTOP)], [vfs, showHome])
+  const paths = useMemo(
+    () => [...(showHome ? [HOME] : []), ...children(vfs, DESKTOP).filter((path) => !isHidden(path))],
+    [vfs, showHome],
+  )
   const positions = useMemo(
     () => iconLayout(paths, area, corner).map((position) => ({ ...position, ...placed[position.path] })),
     [paths, area, corner, placed],

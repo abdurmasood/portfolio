@@ -46,7 +46,7 @@ describe('Files app', () => {
     expect(names).toContain('bio.txt')
 
     fireEvent.click(within(win.querySelector('.pathbar')).getByRole('button', { name: '/' }))
-    expect([...win.querySelectorAll('.fitem .nm')].map((node) => node.textContent)).toEqual(['etc', 'home', 'tmp', 'usr'])
+    expect([...win.querySelectorAll('.fitem .nm')].map((node) => node.textContent)).toEqual(['bin', 'etc', 'home', 'tmp', 'usr'])
   })
 
   it('navigates into projects on double click and back again', () => {

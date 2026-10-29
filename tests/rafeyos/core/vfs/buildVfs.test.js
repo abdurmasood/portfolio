@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { buildVfs, HOME, RAFEY_HOME, ROOT, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { buildVfs, HOME, RAFEY_HOME, ROOT, SHIPPED_MTIME, SYSTEM_COMMANDS, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
+import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 describe('buildVfs', () => {
@@ -17,6 +18,7 @@ describe('buildVfs', () => {
       '/usr', '/usr/local', '/usr/local/bin',
       '/usr/local/bin/bio', '/usr/local/bin/projects', '/usr/local/bin/blog', '/usr/local/bin/music',
       '/usr/local/bin/contact', '/usr/local/bin/skills', '/usr/local/bin/help', '/usr/local/bin/os',
+      '/usr/bin', ...SYSTEM_COMMANDS.map((name) => `/usr/bin/${name}`), '/bin',
       '/etc', '/etc/hostname', '/etc/os-release', '/etc/passwd',
       '/tmp', 'trash',
     ])
@@ -43,6 +45,43 @@ describe('buildVfs', () => {
     ])
     commands.forEach((path) => expect(vfs[path]).toMatchObject({ type: 'text', text: expect.stringMatching(/^#!\/bin\/sh\n/) }))
     expect(vfs['/tmp']).toMatchObject({ type: 'dir', name: 'tmp' })
+  })
+
+  it('usr local bin holds exactly the portfolio commands', () => {
+    const vfs = buildVfs(fixtureContent)
+
+    expect(Object.keys(vfs).filter((path) => path.startsWith('/usr/local/bin/')).sort()).toEqual([
+      '/usr/local/bin/bio', '/usr/local/bin/blog', '/usr/local/bin/contact', '/usr/local/bin/help',
+      '/usr/local/bin/music', '/usr/local/bin/os', '/usr/local/bin/projects', '/usr/local/bin/skills',
+    ])
+  })
+
+  it('bin links to usr bin', () => {
+    const vfs = buildVfs(fixtureContent)
+    const stubs = Object.keys(vfs).filter((path) => path.startsWith('/usr/bin/'))
+
+    expect(SYSTEM_COMMANDS).toEqual([
+      'ls', 'pwd', 'mkdir', 'rmdir', 'touch', 'rm', 'cp', 'mv', 'cat', 'tree', 'find', 'ln', 'stat', 'echo', 'head', 'tail', 'wc', 'grep', 'sort', 'uniq',
+      'less', 'whoami', 'uname', 'date', 'uptime', 'hostname', 'clear', 'which', 'man', 'env', 'true', 'false', 'sudo', 'xdg-open', 'gio',
+      'nautilus', 'gedit', 'gnome-text-editor', 'nano', 'vim', 'vi', 'rafeyos', 'startx',
+    ])
+    expect(vfs['/bin']).toMatchObject({ type: 'symlink', target: '/usr/bin', name: 'bin' })
+    expect(vfs['/usr/bin']).toMatchObject({ type: 'dir', name: 'bin' })
+    expect(stubs).toEqual(SYSTEM_COMMANDS.map((name) => `/usr/bin/${name}`))
+    stubs.forEach((path) => expect(vfs[path]).toMatchObject({ type: 'text', text: expect.stringMatching(/^#!\/bin\/sh\n/) }))
+    expect(realPath(vfs, '/bin/ls')).toBe('/usr/bin/ls')
+  })
+
+  it('posts carry their date as mtime', () => {
+    const vfs = buildVfs(fixtureContent)
+    const post = '/home/rafey/blog/first-post.md'
+
+    expect(SHIPPED_MTIME).toBe(Date.UTC(2026, 9, 1))
+    expect(vfs[post].mtime).toBe(Date.UTC(2024, 0, 1))
+    Object.values(vfs)
+      .filter((node) => node.path !== post)
+      .forEach((node) => expect(node.mtime).toBe(SHIPPED_MTIME))
+    expect(realVfs['/home/rafey/blog/cursor-ai-a-secret-weapon.md'].mtime).toBe(Date.UTC(2023, 4, 15))
   })
 
   it('writes project files with an underline, description and optional case study', () => {

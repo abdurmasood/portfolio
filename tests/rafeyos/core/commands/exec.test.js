@@ -184,7 +184,7 @@ describe('fs commands', () => {
   })
 
   it('ls / lists the system folders, and .. climbs from Rafey\'s home to the visitor\'s', () => {
-    expect(run('ls /').lines[0].entries.map((e) => e.name)).toEqual(['etc', 'home', 'tmp', 'usr'])
+    expect(run('ls /').lines[0].entries.map((e) => e.name)).toEqual(['bin', 'etc', 'home', 'tmp', 'usr'])
     expect(run('cd ../visitor').cwd).toBe('/home/visitor')
   })
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyState, floatbarText, listItems, locationLabel, pathSegments, typeLabel, windowTitle } from '@/components/rafeyos/apps/files/logic/filesView'
 import { initialFilesState } from '@/components/rafeyos/apps/files/logic/filesReducer'
+import { dirNode, mergeState, seedState, textNode, withNodes } from '@/components/rafeyos/core/vfs/fsState'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 const at = (path, search = null) => ({ ...initialFilesState(path), search })
@@ -21,6 +22,24 @@ describe('files view', () => {
     expect(listItems(realVfs, at('/home/visitor', 'story'))).toEqual(['/home/rafey/Music/story.txt'])
     expect(listItems(realVfs, at('recent'))).toEqual([])
     expect(listItems(realVfs, at('starred'))).toEqual([])
+  })
+
+  it('files and desktop hide dotfiles', () => {
+    const seed = seedState(0)
+    const vfs = mergeState(realVfs, withNodes(seed, {
+      ...seed.nodes,
+      '/home/visitor/.profile': textNode('x\n', 0),
+      '/home/visitor/.config': dirNode(0),
+      '/home/visitor/.config/settings.txt': textNode('x\n', 0),
+      '/home/visitor/story.txt': textNode('x\n', 0),
+    }))
+
+    expect(listItems(vfs, at('/home/visitor'))).toEqual([
+      '/home/visitor/Desktop', '/home/visitor/Documents', '/home/visitor/Downloads', '/home/visitor/story.txt',
+    ])
+    // Inside a hidden folder its ordinary files still show, as Nautilus does once you are there
+    expect(listItems(vfs, at('/home/visitor/.config'))).toEqual(['/home/visitor/.config/settings.txt'])
+    expect(listItems(vfs, at('/home/visitor', 'settings'))).toEqual([])
   })
 
   it('picks the empty state for where the window is', () => {
