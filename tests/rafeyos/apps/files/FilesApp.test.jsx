@@ -38,6 +38,7 @@ describe('Files app', () => {
 
     fireEvent.click(within(ui.getByRole('navigation', { name: 'Places' })).getByText('projects'))
     expect([...win.querySelectorAll('.pathbar button')].map((button) => button.textContent)).toEqual(['/', 'home', 'rafey', 'projects'])
+    expect(win.querySelector('.pathbar').textContent).toBe('/home/rafey/projects')
 
     fireEvent.click(within(win.querySelector('.pathbar')).getByText('rafey'))
     const names = [...win.querySelectorAll('.fitem .nm')].map((node) => node.textContent)
@@ -66,6 +67,7 @@ describe('Files app', () => {
   it('navigates from the pathbar and the sidebar', () => {
     const { win, ui } = openFiles()
     fireEvent.doubleClick(item(win, '/home/visitor/Desktop'))
+    expect(win.querySelector('.pathbar').textContent).toBe('Home/Desktop')
 
     fireEvent.click(within(win.querySelector('.pathbar')).getByText('Home'))
     expect(currentLocation(win)).toBe('Home')

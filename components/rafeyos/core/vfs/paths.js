@@ -41,8 +41,8 @@ export const resolvePath = (vfs, arg, cwd) => {
   if (!arg || arg === '~') return HOME
   const segments = segmentsFor(arg, cwd)
   if (!segments) return null
-  const joined = normalise(segments).join('/')
-  const path = segments[0] === TRASH ? joined : ROOT + joined
+  // Trash is its own root, so `..` stops there rather than leaving it
+  const path = segments[0] === TRASH ? [TRASH, ...normalise(segments.slice(1))].join('/') : ROOT + normalise(segments).join('/')
   return vfs[path] ? path : null
 }
 

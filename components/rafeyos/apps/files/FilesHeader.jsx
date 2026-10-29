@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef } from 'react'
 import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
-import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { HOME, ROOT } from '@/components/rafeyos/core/vfs/buildVfs'
 import { FILE_VIEWS, FILES_ACTIONS } from './logic/filesReducer'
 import { PLACES, locationLabel, pathSegments } from './logic/filesView'
 import { NO_DRAG_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
@@ -23,7 +23,7 @@ const Pathbar = ({ vfs, path, onGo }) => {
     <div className="pathbar" {...NO_DRAG_PROPS} aria-label="Location">
       {segments.map((segment, i) => (
         <Fragment key={segment}>
-          {i > 0 && <span className="sl">/</span>}
+          {i > 0 && segments[i - 1] !== ROOT && <span className="sl">/</span>}
           <button type="button" className={i === segments.length - 1 ? 'cur' : undefined} onClick={() => onGo(segment)}>
             {segment === HOME && <Sym name="home" />}
             <span>{locationLabel(vfs, segment)}</span>

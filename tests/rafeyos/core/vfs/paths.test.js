@@ -45,6 +45,9 @@ describe('resolvePath', () => {
     ['../../../../home/rafey/blog', '/home/rafey/Music', '/home/rafey/blog'],
     ['.', 'trash', 'trash'],
     ['/home/rafey', 'trash', '/home/rafey'],
+    ['..', 'trash', 'trash'],
+    ['../..', 'trash', 'trash'],
+    ['..', 'trash/x', 'trash'],
   ])('resolves %j from %s to %s', (arg, cwd, expected) => {
     expect(resolvePath(vfs, arg, cwd)).toBe(expected)
   })
