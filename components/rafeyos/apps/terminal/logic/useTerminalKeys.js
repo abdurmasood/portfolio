@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { complete } from '@/components/rafeyos/core/commands/complete'
+import { historyLines } from '@/components/rafeyos/core/commands/history'
 import { COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
 import { pre, prompt } from '@/components/rafeyos/core/commands/lines'
 
@@ -7,13 +8,17 @@ import { pre, prompt } from '@/components/rafeyos/core/commands/lines'
 export const STARTER_COMMAND = 'help'
 const ACCEPTS_STARTER = new Set(['Tab', 'ArrowRight', 'Enter'])
 
-/** Bash-style history: ↑ walks back, ↓ forward, past the newest clears the line. */
-const useHistory = () => {
-  const items = useRef([])
-  const index = useRef(0)
+/**
+ * Bash-style history: ↑ walks back, ↓ forward, past the newest clears the line. It walks ~/.bash_history as it was
+ * when the window opened, then this window's own lines; other windows' later lines show only in `history`.
+ */
+const useHistory = (vfs) => {
+  const [snapshot] = useState(() => historyLines(vfs))
+  const items = useRef(snapshot)
+  const index = useRef(snapshot.length)
   return {
     push: (command) => {
-      if (command.trim()) items.current.push(command)
+      if (command.trim()) items.current = [...items.current, command]
       index.current = items.current.length
     },
     older: () => (index.current > 0 ? items.current[--index.current] : null),
@@ -30,7 +35,7 @@ const useHistory = () => {
  * @returns {{ onKeyDown: Function, onChange: Function, started: boolean, runStarter: Function }}
  */
 export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
-  const history = useHistory()
+  const history = useHistory(vfs)
   const tabCount = useRef(0)
   const [started, setStarted] = useState(false)
   const submit = (command) => {

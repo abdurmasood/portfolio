@@ -35,13 +35,16 @@ import { tokenize } from './tokenize'
  *   content: Content,
  *   history?: readonly string[],
  *   now?: () => Date,
- * }} ExecContext `env` is the window's own variables (PWD, OLDPWD); `lastCode` is $? before the line
+ *   startedAt?: Date,
+ * }} ExecContext `env` is the window's own variables (PWD, OLDPWD); `lastCode` is $? before the line; `startedAt`
+ *   is when the window's shell started (uptime counts from it), the line's start when not given
  * @typedef {{ lines: Line[], effects: Effect[], cwd: string, env: Record<string, string>, code: number }} ExecResult
  * @typedef {{
  *   fs: ShellFs,
  *   content: Content,
  *   history: readonly string[],
  *   now: () => Date,
+ *   startedAt: Date,
  *   registry: Registry,
  *   cwd: string,
  *   env: Variables,
@@ -187,8 +190,8 @@ const runCommand = (command, { stdin, last }, shell) => {
   const [name, ...args] = argv
   if (!Object.hasOwn(shell.registry, name)) return refused([`bash: ${name}: command not found`], NOT_FOUND)
   const tty = last && !opened.sink
-  const { fs, content, history, now, cwd } = shell
-  const output = shell.registry[name]({ argv: args, name, stdin, tty, cwd, env: variablesOf(shell), fs, content, history, now })
+  const { fs, content, history, now, startedAt, cwd } = shell
+  const output = shell.registry[name]({ argv: args, name, stdin, tty, cwd, env: variablesOf(shell), fs, content, history, now, startedAt })
   const ran = ranFrom(output, tty)
   return opened.sink ? writeOut(opened.sink, ran, name, shell) : ran
 }
@@ -237,9 +240,9 @@ export const runLine = (raw, context, registry) => {
   if (!tokens.ok) return finished({ ...start, code: SYNTAX_ERROR }, [error(tokens.message)], [])
   const syntax = buildSyntax(tokens.tokens)
   if (!syntax.ok) return finished({ ...start, code: syntax.code }, [error(syntax.message)], [])
-  const { fs, content, history = [], now = () => new Date() } = context
+  const { fs, content, history = [], now = () => new Date(), startedAt = now() } = context
   /** @type {Shell} */
-  let shell = { fs, content, history, now, registry, ...start }
+  let shell = { fs, content, history, now, startedAt, registry, ...start }
   /** @type {Line[]} */
   let lines = []
   /** @type {Effect[]} */

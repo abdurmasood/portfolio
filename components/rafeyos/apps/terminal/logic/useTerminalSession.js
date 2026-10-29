@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMusicControls, useServices, useSessionDispatch, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { exec } from '@/components/rafeyos/core/commands/exec'
+import { recordHistory } from '@/components/rafeyos/core/commands/history'
 import { prompt } from '@/components/rafeyos/core/commands/lines'
 import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
@@ -50,6 +51,8 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   const openLink = useOpenLinkDialog()
   const { play } = useMusicControls()
   const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : START_DIR))
+  // When this window's shell started: uptime counts from it
+  const [startedAt] = useState(() => now())
   // Read and written within one keypress, so a ref rather than state
   const shell = useRef({ cwd, env: { PWD: cwd }, lastCode: 0 })
   const log = useLog()
@@ -60,14 +63,16 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   const { append } = log
   const run = useCallback((raw) => {
     const before = shell.current
-    const result = exec(raw, { fs: shellFs, cwd: before.cwd, env: before.env, lastCode: before.lastCode, content, now })
+    // Recorded before it runs, so `history` lists the line itself; a write that fails leaves it out, silently
+    if (raw.trim()) shellFs.apply(recordHistory, { line: raw })
+    const result = exec(raw, { fs: shellFs, cwd: before.cwd, env: before.env, lastCode: before.lastCode, content, now, startedAt })
     shell.current = { cwd: result.cwd, env: result.env, lastCode: result.code }
     // Read after exec, so a file the line just made can be opened by it
     const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, vfs: shellFs.vfs() })
     setCwd(result.cwd)
     const echoed = clear ? [] : [prompt(before.cwd, raw)]
     append([...echoed, ...result.lines, ...notes], { clearFirst: clear })
-  }, [shellFs, content, now, handlers, append])
+  }, [shellFs, content, now, startedAt, handlers, append])
   // Ctrl+C at the prompt: the abandoned line is echoed with ^C and $? becomes 130
   const interrupt = useCallback((input) => {
     shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }

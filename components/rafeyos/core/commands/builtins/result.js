@@ -53,7 +53,8 @@ export const EFFECTS = Object.freeze({
 
 /**
  * What a command is run with. `argv` holds its arguments after expansion, its name not included; `stdin` is null
- * when nothing is piped in; `tty` is true when its stdout goes straight to the screen.
+ * when nothing is piped in; `tty` is true when its stdout goes straight to the screen; `startedAt` is when the shell
+ * started.
  * @typedef {{
  *   argv: string[],
  *   name: string,
@@ -65,6 +66,7 @@ export const EFFECTS = Object.freeze({
  *   content: Content,
  *   history: readonly string[],
  *   now: () => Date,
+ *   startedAt: Date,
  * }} CommandContext
  */
 

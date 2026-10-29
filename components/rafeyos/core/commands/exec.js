@@ -1,4 +1,5 @@
 import { runLine } from './run'
+import { asksForHelp, helpText } from './manPages'
 import { contentCommands } from './builtins/content'
 import { filesCommands } from './builtins/files'
 import { fsCommands } from './builtins/fs'
@@ -9,15 +10,30 @@ import { textCommands } from './builtins/text'
 export { EFFECTS } from './builtins/result'
 export { ENV } from './run'
 
+/**
+ * Every command takes `--help` (echo aside): it prints the synopsis and options from its man page instead of running.
+ * @param {Record<string, import('./builtins/result').Handler>} commands
+ */
+const withHelp = (commands) =>
+  Object.fromEntries(
+    Object.entries(commands).map(([name, handler]) => {
+      const help = helpText(name)
+      if (help === null) return [name, handler]
+      return [name, (context) => (asksForHelp(name, context.argv) ? { stdout: `${help}\n` } : handler(context))]
+    }),
+  )
+
 /** Every command the shell knows, by its exact (case-sensitive) name. */
-export const COMMANDS = Object.freeze({
-  ...contentCommands,
-  ...fsCommands,
-  ...filesCommands,
-  ...launchCommands,
-  ...systemCommands,
-  ...textCommands,
-})
+export const COMMANDS = Object.freeze(
+  withHelp({
+    ...contentCommands,
+    ...fsCommands,
+    ...filesCommands,
+    ...launchCommands,
+    ...systemCommands,
+    ...textCommands,
+  }),
+)
 
 // What tab completes for the first word; startx is deliberately hidden
 export const COMPLETION_COMMANDS = Object.freeze([

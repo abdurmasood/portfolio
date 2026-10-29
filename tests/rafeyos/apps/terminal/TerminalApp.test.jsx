@@ -5,7 +5,10 @@ import {
   desktopIcon,
   fsDisk,
   fsStoreOn,
+  memoryStorage,
   openTerminal,
+  quotaError,
+  refusingWrites,
   renderDesktop,
   settle,
   typeCommand,
@@ -261,6 +264,63 @@ describe('Terminal app', () => {
     typeCommand(input, 'mkdir ~/Desktop/notes')
 
     expect(desktopIcon(container, '/home/visitor/Desktop/notes')).not.toBeNull()
+  })
+
+  it('history_survives_a_remount_through_bash_history', () => {
+    const disk = memoryStorage()
+    const first = renderDesktop({ fs: fsStoreOn(disk) })
+    typeCommand(openTerminal(first.container).input, 'whoami')
+    first.unmount()
+
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('whoami')
+
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  whoami\n    2  history')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('whoami')
+  })
+
+  it('history_in_one_window_shows_lines_from_another', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    const second = windowsOf(container, 'terminal')[1]
+    const secondInput = within(second).getByLabelText('Terminal input')
+
+    typeCommand(input, 'whoami')
+    typeCommand(secondInput, 'history')
+
+    expect(log(second).lastElementChild.textContent).toBe('    1  whoami\n    2  history')
+    // ↑ walks the window's own lines, not the other window's
+    fireEvent.change(secondInput, { target: { value: '' } })
+    fireEvent.keyDown(secondInput, { key: 'ArrowUp' })
+    fireEvent.keyDown(secondInput, { key: 'ArrowUp' })
+    expect(secondInput.value).toBe('history')
+  })
+
+  it('a failed history write is silent and ↑ still recalls the line', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(memoryStorage(), quotaError())) })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'whoami')
+
+    expect(log(win).lastElementChild.textContent).toBe('visitor')
+    expect(log(win).querySelector('.er')).toBeNull()
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('whoami')
+  })
+
+  it('uptime counts from when the terminal opened', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'uptime')
+
+    expect(log(win).lastElementChild.textContent).toBe(' 21:04:00 up 0 min,  1 user,  load average: 0.00, 0.00, 0.00')
   })
 
   it('rm in the terminal removes the desktop icon', () => {
