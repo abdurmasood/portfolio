@@ -140,6 +140,18 @@ describe('settings store', () => {
     expect(storeOn(disk).getState()).toEqual({})
   })
 
+  it('reset with a key forgets only that setting', () => {
+    const disk = memoryStorage({ [SETTINGS_KEY]: saved({ accent: '#0073E5', style: 'light' }) })
+    const store = storeOn(disk)
+    const before = store.getState()
+
+    expect(store.reset('wall')).toEqual({ ok: true, state: before })
+    expect(store.reset('style')).toEqual({ ok: true, state: { accent: '#0073E5' } })
+
+    expect(storeOn(disk).getState()).toEqual({ accent: '#0073E5' })
+    expect(() => store.reset('wifi')).toThrow('Not a saved setting: wifi')
+  })
+
   it('reset still forgets for this session when storage is full', () => {
     const disk = refusingWrites(memoryStorage({ [SETTINGS_KEY]: saved({ accent: '#0073E5' }) }), quotaError())
     const store = storeOn(disk)

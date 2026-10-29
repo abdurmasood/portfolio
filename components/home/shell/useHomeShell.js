@@ -7,6 +7,8 @@ import { HOME_COMMANDS, HOME_EFFECTS } from '@/components/home/shell/homeCommand
 import { EFFECTS, ENV, exec } from '@/components/rafeyos/core/commands/exec'
 import { HISTORY_FILE, recordHistory } from '@/components/rafeyos/core/commands/history'
 import { LINE_TYPES, dim, pre, prompt } from '@/components/rafeyos/core/commands/lines'
+import { sharedSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
+import { settingsView } from '@/components/rafeyos/core/settings/settingsView'
 import { START_DIR, buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { homeChanged, mergeState } from '@/components/rafeyos/core/vfs/fsState'
@@ -26,6 +28,8 @@ const INTERRUPTED_CODE = 130
 const NEW_SESSION_DELAY_MS = 300
 // A double Tab's matches, spaced as the homepage always has
 const MATCH_SEPARATOR = '    '
+
+const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)'
 
 // The saved folder changes only when this page saves it; the store's own subscription re-checks it still exists
 const noSubscription = () => () => {}
@@ -98,13 +102,24 @@ const lastForeground = (entries) =>
 
 const toEntries = (lines) => lines.map((line) => ({ id: crypto.randomUUID(), line }))
 
+/** Whether the visitor's system prefers dark, as rafeyOS reads it: dark where it can't tell. */
+const osPrefersDark = () => globalThis.window?.matchMedia?.(DARK_SCHEME_QUERY).matches ?? true
+
+/** What the desktop shows: the visitor's files and saved settings, as they are now. */
+const desktopState = (fs) => ({ files: fs.store.getState(), settings: fs.settings.getState() })
+
+/** Whether a line changed something rafeyOS shows, so it earns the hint. Neither /tmp nor the history file counts. */
+const changedDesktop = (before, after) =>
+  homeChanged(before.files, after.files, { ignore: [HISTORY_FILE] }) || before.settings !== after.settings
+
 /** The shared store (none on the server, so a store of its own there), read live so other tabs' writes show. */
 const useHomeFs = () => {
   const [fs] = useState(() => {
     const content = buildContent()
     const base = buildVfs(content)
     const store = sharedFsStore(globalThis.window)
-    return { content, base, store, shellFs: createShellFs({ base, store }) }
+    const settings = settingsView({ store: sharedSettingsStore(globalThis.window), prefersDark: osPrefersDark })
+    return { content, base, store, settings, shellFs: createShellFs({ base, store }) }
   })
   const state = useSyncExternalStore(fs.store.subscribe, fs.store.getState, fs.store.getState)
   const vfs = useMemo(() => mergeState(fs.base, state), [fs.base, state])
@@ -165,7 +180,8 @@ const useScreen = ({ terminal, cwd, setForegroundId }) => {
  */
 export const useHomeShell = ({ handlers }) => {
   const terminal = useTerminal()
-  const { content, store, shellFs, vfs } = useHomeFs()
+  const fs = useHomeFs()
+  const { content, settings, shellFs, vfs } = fs
   const restoredCwd = useSyncExternalStore(noSubscription, () => savedCwd(vfs), () => START_DIR)
   const cwd = terminal.cwd ?? restoredCwd
   // Local, not in the provider: a picker or player never resumes after navigating away and back
@@ -181,11 +197,11 @@ export const useHomeShell = ({ handlers }) => {
   // Tells the caller whether the line ran `history -c`, so the ↑ list can forget too
   const run = (raw) => {
     const history = record(shellFs, raw, ownLines)
-    const before = store.getState()
-    const result = exec(raw, { fs: shellFs, cwd, env, lastCode: terminal.lastCode, content, history, startedAt, commands: HOME_COMMANDS })
+    const before = desktopState(fs)
+    const result = exec(raw, { fs: shellFs, cwd, env, lastCode: terminal.lastCode, content, history, startedAt, settings, commands: HOME_COMMANDS })
     const { clear, historyCleared } = runEffects(result.effects, { ...handlers, newSession })
     if (historyCleared) ownLines.current = []
-    const hint = homeChanged(before, store.getState(), { ignore: [HISTORY_FILE] }) ? [dim(VISIBLE_IN_RAFEYOS)] : []
+    const hint = changedDesktop(before, desktopState(fs)) ? [dim(VISIBLE_IN_RAFEYOS)] : []
     const echoed = clear ? [] : [prompt(cwd, raw)]
     setForegroundId(lastForeground(append([...echoed, ...result.lines, ...hint], { clearFirst: clear })))
     terminal.setCwd(result.cwd)

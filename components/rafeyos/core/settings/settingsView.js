@@ -33,7 +33,10 @@ export const settingsView = ({ store, prefersDark }) => {
     get: (key) => effective()[key],
     /** @param {SavedKey} key @param {unknown} value */
     set: (key, value) => store.set(key, value),
-    reset: () => store.reset(),
+    /** @param {SavedKey} [key] */
+    reset: (key) => store.reset(key),
+    /** What is saved, as the store holds it: a key is absent while it follows its default. */
+    getState: () => store.getState(),
     effective,
   })
 }

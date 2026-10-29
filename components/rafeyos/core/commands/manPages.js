@@ -348,6 +348,21 @@ const PAGES = Object.freeze({
   },
   exit: { summary: 'exit the shell', synopsis: ['exit'], description: ['Close this terminal window.'] },
   logout: { summary: 'leave rafeyOS', synopsis: ['logout'], description: ['Leave rafeyOS and return to the rafey.ai terminal.'] },
+  gsettings: {
+    summary: 'GSettings configuration tool',
+    synopsis: [
+      'gsettings get SCHEMA KEY',
+      'gsettings set SCHEMA KEY VALUE',
+      'gsettings reset SCHEMA KEY',
+      'gsettings list-schemas',
+      'gsettings list-keys SCHEMA',
+      'gsettings list-recursively [SCHEMA]',
+    ],
+    description: [
+      "Read and change the desktop's saved appearance: the style, accent, wallpaper, dock and desktop icons.",
+      "VALUE is GVariant text, such as 'prefer-dark', 48 or true. Run list-recursively to see every key.",
+    ],
+  },
 })
 
 /** @param {string} name @returns {Page | null} */

@@ -6,6 +6,7 @@
  * @import { AppId } from '@/components/rafeyos/core/catalog/apps'
  * @import { Content } from '@/components/rafeyos/core/vfs/content'
  * @import { ShellFs } from '@/components/rafeyos/core/vfs/shellFs'
+ * @import { SettingsView } from '@/components/rafeyos/core/settings/settingsView'
  */
 
 /**
@@ -56,7 +57,8 @@ export const EFFECTS = Object.freeze({
 /**
  * What a command is run with. `argv` holds its arguments after expansion, its name not included; `stdin` is null
  * when nothing is piped in; `tty` is true when its stdout goes straight to the screen; `startedAt` is when the shell
- * started; `history` is the window's own lines when the history file couldn't record this one, and empty otherwise.
+ * started; `history` is the window's own lines when the history file couldn't record this one, and empty otherwise;
+ * `settings` is the visitor's saved appearance, absent where the terminal has none.
  * @typedef {{
  *   argv: string[],
  *   name: string,
@@ -69,6 +71,7 @@ export const EFFECTS = Object.freeze({
  *   history: readonly string[],
  *   now: () => Date,
  *   startedAt: Date,
+ *   settings?: SettingsView,
  * }} CommandContext
  */
 

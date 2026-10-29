@@ -170,8 +170,15 @@ export const createSettingsStore = ({ storage, win }) => {
       if (!isSavable(key, value)) throw new RangeError(`Invalid value for setting ${key}: ${value}`)
       return write((values) => (values[key] === value ? values : { ...values, [key]: value }))
     },
-    /** Forgets every saved setting, so each is its default again and the style follows the OS. */
-    reset: () => write(() => NOTHING_SAVED),
+    /**
+     * Forgets `key`, or every saved setting without one, so each is its default again and the style follows the OS.
+     * @param {SavedKey} [key]
+     */
+    reset: (key) => {
+      if (key === undefined) return write(() => NOTHING_SAVED)
+      if (!SAVED_KEYS.includes(key)) throw new Error(`Not a saved setting: ${key}`)
+      return write((values) => (key in values ? Object.fromEntries(Object.entries(values).filter(([saved]) => saved !== key)) : values))
+    },
   })
 }
 

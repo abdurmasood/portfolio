@@ -8,6 +8,7 @@ import { HISTORY_FILE, historyLines, recordHistory } from '@/components/rafeyos/
 import { LINE_TYPES, dim, pre, prompt } from '@/components/rafeyos/core/commands/lines'
 import { HOME, RAFEY_HOME, START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
 import { writeFile } from '@/components/rafeyos/core/vfs/fsOps'
+import { SETTINGS_KEY, sharedSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 import { announceWrite, otherTab, resetSharedStore, sharedVfs } from '@/tests/home/helpers/homeStore'
 
 const fakeHandlers = () => ({ newTab: vi.fn(), mailto: vi.fn(), projects3d: vi.fn(), handoff: vi.fn() })
@@ -55,6 +56,21 @@ describe('useHomeShell: one filesystem with rafeyOS', () => {
 
     expect(lines(view).filter((line) => line.text === VISIBLE_IN_RAFEYOS)).toHaveLength(1)
     expect(lastLine(view)).toEqual(dim(VISIBLE_IN_RAFEYOS))
+  })
+
+  it('gsettings_on_home_saves_and_prints_the_hint', () => {
+    const view = load()
+    const set = "gsettings set org.gnome.desktop.interface accent-color 'purple'"
+
+    run(view, 'gsettings get org.gnome.desktop.interface color-scheme')
+    expect(lastLine(view)).toEqual(pre("'default'"))
+    run(view, set)
+
+    expect(sharedSettingsStore(window).getState()).toEqual({ accent: '#7764D8' })
+    expect(JSON.parse(window.localStorage.getItem(SETTINGS_KEY))).toEqual({ v: 1, values: { accent: '#7764D8' } })
+    expect(lines(view).slice(-2)).toEqual([prompt(START_DIR, set), dim(VISIBLE_IN_RAFEYOS)])
+    run(view, set)
+    expect(lastLine(view)).toEqual(prompt(START_DIR, set))
   })
 
   it('a write in another tab shows up without a reload', () => {

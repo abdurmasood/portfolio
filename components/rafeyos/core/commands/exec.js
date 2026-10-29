@@ -4,6 +4,7 @@ import { asksForHelp, helpText } from './manPages'
 import { contentCommands } from './builtins/content'
 import { filesCommands } from './builtins/files'
 import { fsCommands } from './builtins/fs'
+import { gsettingsCommands } from './builtins/gsettings'
 import { launchCommands } from './builtins/launch'
 import { systemCommands } from './builtins/system'
 import { textCommands } from './builtins/text'
@@ -30,6 +31,7 @@ export const COMMANDS = Object.freeze(
     ...contentCommands,
     ...fsCommands,
     ...filesCommands,
+    ...gsettingsCommands,
     ...launchCommands,
     ...systemCommands,
     ...textCommands,

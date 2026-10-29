@@ -41,4 +41,15 @@ describe('settings view', () => {
 
     expect(view.effective()).toEqual({ ...APPEARANCE_DEFAULTS, style: 'light' })
   })
+
+  it('resets one key, and shows what is saved as the store holds it', () => {
+    const { view } = viewWith(false)
+    view.set('style', 'dark')
+    view.set('accent', '#0073E5')
+
+    view.reset('style')
+
+    expect(view.getState()).toEqual({ accent: '#0073E5' })
+    expect(view.get('style')).toBe('light')
+  })
 })

@@ -6,6 +6,7 @@ import { prompt } from '@/components/rafeyos/core/commands/lines'
 import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
+import { settingsView } from '@/components/rafeyos/core/settings/settingsView'
 import { applyTerminalEffects } from './terminalEffects'
 import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog'
 
@@ -48,21 +49,32 @@ const record = (shellFs, raw, ownLines) => {
 // What Ctrl+C leaves in $?: 128 + SIGINT
 const INTERRUPTED_CODE = 130
 
+/** What every line runs with besides the window's own state: the files, the content, the clock and the settings. */
+const useShellContext = () => {
+  const { content, shellFs } = useVfs()
+  const { now, settings: store, prefersDark } = useServices()
+  return useMemo(
+    () => ({ fs: shellFs, content, now, settings: settingsView({ store, prefersDark }) }),
+    [shellFs, content, now, store, prefersDark],
+  )
+}
+
 /**
  * One terminal window's shell: its folder, variables and last exit code, the output log, and running lines through
  * exec() + effects.
  * @param {{ windowId: number, initialCwd: string }} options
  */
 export const useTerminalSession = ({ windowId, initialCwd }) => {
-  const { vfs, content, shellFs } = useVfs()
+  const { vfs } = useVfs()
+  const context = useShellContext()
   const windowManager = useWindowManager()
-  const { openExternal, now } = useServices()
+  const { openExternal } = useServices()
   const logout = useDelayedLogout()
   const openLink = useOpenLinkDialog()
   const { play } = useMusicControls()
   const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : START_DIR))
   // When this window's shell started: uptime counts from it
-  const [startedAt] = useState(() => now())
+  const [startedAt] = useState(() => context.now())
   // Read and written within one keypress, so a ref rather than state
   const shell = useRef({ cwd, env: { PWD: cwd }, lastCode: 0 })
   // This window's lines since it opened or last ran `history -c`: what `history` lists when the file can't be written
@@ -76,8 +88,8 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   // Tells the caller whether the line ran `history -c`, so the ↑ list can forget too
   const run = useCallback((raw) => {
     const before = shell.current
-    const history = record(shellFs, raw, ownLines)
-    const result = exec(raw, { fs: shellFs, cwd: before.cwd, env: before.env, lastCode: before.lastCode, content, history, now, startedAt })
+    const history = record(context.fs, raw, ownLines)
+    const result = exec(raw, { ...context, cwd: before.cwd, env: before.env, lastCode: before.lastCode, history, startedAt })
     shell.current = { cwd: result.cwd, env: result.env, lastCode: result.code }
     let historyCleared = false
     const clearHistory = () => {
@@ -85,12 +97,12 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
       ownLines.current = []
     }
     // Read after exec, so a file the line just made can be opened by it
-    const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, clearHistory, vfs: shellFs.vfs() })
+    const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, clearHistory, vfs: context.fs.vfs() })
     setCwd(result.cwd)
     const echoed = clear ? [] : [prompt(before.cwd, raw)]
     append([...echoed, ...result.lines, ...notes], { clearFirst: clear })
     return { historyCleared }
-  }, [shellFs, content, now, startedAt, handlers, append])
+  }, [context, startedAt, handlers, append])
   // Ctrl+C at the prompt: the abandoned line is echoed with ^C and $? becomes 130
   const interrupt = useCallback((input) => {
     shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }

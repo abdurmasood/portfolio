@@ -387,3 +387,31 @@ describe('Terminal app', () => {
     expect(desktopIcon(container, '/home/visitor/Desktop/a.txt')).toBeNull()
   })
 })
+
+describe('gsettings in the Terminal', () => {
+  const root = (container) => container.querySelector('.rafeyos')
+
+  it('set_color_scheme_prefer_light_switches_the_desktop_to_light', () => {
+    const { container, services } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    expect(root(container).className).toBe('rafeyos')
+
+    typeCommand(input, "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'")
+
+    expect(root(container).className).toBe('rafeyos light')
+    expect(services.settings.getState()).toEqual({ style: 'light' })
+    typeCommand(input, 'gsettings get org.gnome.desktop.interface color-scheme')
+    expect(log(win).lastElementChild.textContent).toBe("'prefer-light'")
+  })
+
+  it('accent_color_set_changes_the_accent_css_var', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, "gsettings set org.gnome.desktop.interface accent-color 'purple'")
+    typeCommand(input, "gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'RIGHT'")
+
+    expect(root(container).style.getPropertyValue('--accent')).toBe('#7764D8')
+    expect(container.querySelector('.dock').className).toBe('dock right')
+  })
+})

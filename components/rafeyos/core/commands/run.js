@@ -17,6 +17,7 @@ import { tokenize } from './tokenize'
 /**
  * @import { Content } from '@/components/rafeyos/core/vfs/content'
  * @import { ShellFs } from '@/components/rafeyos/core/vfs/shellFs'
+ * @import { SettingsView } from '@/components/rafeyos/core/settings/settingsView'
  * @import { CommandOutput, Effect, Handler } from './builtins/result'
  * @import { ShellErrno } from './errors'
  * @import { ExpandContext } from './expand'
@@ -37,11 +38,13 @@ import { tokenize } from './tokenize'
  *   history?: readonly string[],
  *   now?: () => Date,
  *   startedAt?: Date,
+ *   settings?: SettingsView,
  *   commands?: Registry,
  * }} ExecContext `env` is the window's own variables (PWD, OLDPWD); `lastCode` is $? before the line; `startedAt`
  *   is when the window's shell started (uptime counts from it), the line's start when not given; `history` is the
  *   window's own lines, given only when the history file couldn't record this one; `commands` is the terminal's own
- *   registry, for exec() only (every command the shell knows when not given)
+ *   registry, for exec() only (every command the shell knows when not given); `settings` is the visitor's saved
+ *   appearance, for gsettings
  * @typedef {{ lines: Line[], effects: Effect[], cwd: string, env: Record<string, string>, code: number }} ExecResult
  * @typedef {{
  *   fs: ShellFs,
@@ -49,6 +52,7 @@ import { tokenize } from './tokenize'
  *   history: readonly string[],
  *   now: () => Date,
  *   startedAt: Date,
+ *   settings?: SettingsView,
  *   registry: Registry,
  *   cwd: string,
  *   env: Variables,
@@ -236,8 +240,8 @@ const runCommand = (command, { stdin, last }, shell) => {
   const [name, ...args] = argv
   if (!Object.hasOwn(shell.registry, name)) return refused([`bash: ${name}: command not found`], NOT_FOUND)
   const tty = last && !opened.sink
-  const { fs, content, history, now, startedAt, cwd } = shell
-  const output = shell.registry[name]({ argv: args, name, stdin, tty, cwd, env: variablesOf(shell), fs, content, history, now, startedAt })
+  const { fs, content, history, now, startedAt, settings, cwd } = shell
+  const output = shell.registry[name]({ argv: args, name, stdin, tty, cwd, env: variablesOf(shell), fs, content, history, now, startedAt, settings })
   const ran = ranFrom(output, tty)
   if (opened.full) return ran.stdout ? writeError(ran, name, 'ENOSPC') : { ...ran, stdout: '' }
   return opened.sink ? writeOut(opened.sink, ran, name, shell) : ran
@@ -288,9 +292,9 @@ export const runLine = (raw, context, registry) => {
   if (!tokens.ok) return finished({ ...start, code: SYNTAX_ERROR }, [error(tokens.message)], [])
   const syntax = buildSyntax(tokens.tokens)
   if (!syntax.ok) return finished({ ...start, code: syntax.code }, [error(syntax.message)], [])
-  const { fs, content, history = [], now = () => new Date(), startedAt = now() } = context
+  const { fs, content, history = [], now = () => new Date(), startedAt = now(), settings } = context
   /** @type {Shell} */
-  let shell = { fs, content, history, now, startedAt, registry, ...start }
+  let shell = { fs, content, history, now, startedAt, settings, registry, ...start }
   /** @type {Line[]} */
   let lines = []
   /** @type {Effect[]} */
