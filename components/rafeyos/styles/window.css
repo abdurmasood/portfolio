@@ -2,7 +2,9 @@
 /* windows */
 :where(.rafeyos) .win { position: absolute; display: flex; flex-direction: column; background: var(--win); border-radius: 10px; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 8px 26px rgba(0,0,0,.45); color: var(--fg); }
 .rafeyos.light .win { box-shadow: 0 0 0 1px rgba(0,0,0,.16), 0 8px 26px rgba(0,0,0,.25); }
+:where(.rafeyos:not(.light)) .win { border-radius: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(0,0,0,.6), 0 6px 16px rgba(0,0,0,.35), 0 30px 70px rgba(0,0,0,.55); }
 :where(.rafeyos) .win.backdrop { box-shadow: 0 0 0 1px rgba(0,0,0,.28), 0 3px 10px rgba(0,0,0,.3); }
+:where(.rafeyos:not(.light)) .win.backdrop { box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.35); }
 :where(.rafeyos) .win.max { border-radius: 0; }
 :where(.rafeyos) .win.anim { transition: left .2s ease, top .2s ease, width .2s ease, height .2s ease, border-radius .2s; }
 :where(.rafeyos) .wcontent { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: inherit; overflow: hidden; }
@@ -25,7 +27,7 @@
 :where(.rafeyos) .hb-start, :where(.rafeyos) .hb-end { display: flex; align-items: center; gap: 4px; min-width: 0; }
 :where(.rafeyos) .hb-end { justify-self: end; }
 :where(.rafeyos) .win.backdrop .hb { color: var(--fg2); }
-:where(.rafeyos) .flat { all: unset; height: 28px; min-width: 28px; padding: 0 7px; box-sizing: border-box; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; }
+:where(.rafeyos) .flat { all: unset; height: 28px; min-width: 28px; padding: 0 7px; box-sizing: border-box; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; transition: background-color .14s ease-out; }
 :where(.rafeyos) .flat:hover:not(:disabled) { background: var(--btn); }
 :where(.rafeyos) .flat:active:not(:disabled), :where(.rafeyos) .flat.on { background: var(--btnh); }
 :where(.rafeyos) .flat:disabled { opacity: .35; }
@@ -37,21 +39,32 @@
 :where(.rafeyos) .btn.pill { border-radius: 99px; }
 :where(.rafeyos) .btn svg { width: 14px; height: 14px; }
 :where(.rafeyos) .wctl { display: flex; gap: 8px; margin: 0 5px; flex: none; }
-:where(.rafeyos) .wctl button { all: unset; width: 20px; height: 20px; border-radius: 50%; background: var(--btn); display: grid; place-items: center; }
+:where(.rafeyos) .wctl button { all: unset; width: 20px; height: 20px; border-radius: 50%; background: var(--btn); display: grid; place-items: center; transition: background-color .14s ease-out; }
 :where(.rafeyos) .wctl button:hover { background: var(--btnh); }
+:where(.rafeyos:not(.light)) .wctl button { background: #26262a; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+:where(.rafeyos:not(.light)) .wctl button:hover { background: #303035; }
 :where(.rafeyos) .wctl svg { width: 13px; height: 13px; }
 :where(.rafeyos) .split { flex: 1; display: flex; min-height: 0; }
 :where(.rafeyos) .side { width: 184px; flex: none; background: var(--side); display: flex; flex-direction: column; min-height: 0; }
 :where(.rafeyos) .side .hb { background: var(--side); }
 :where(.rafeyos) .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--view); position: relative; }
+:where(.rafeyos:not(.light)) .main { background: transparent; }
 :where(.rafeyos) .slist { padding: 4px 0 8px; display: flex; flex-direction: column; gap: 2px; overflow: auto; }
-:where(.rafeyos) .srow { all: unset; display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; margin: 0 5px; border-radius: 6px; flex: none; }
-:where(.rafeyos) .srow:hover:not(:disabled) { background: var(--btn); }
+:where(.rafeyos) .srow { all: unset; display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; margin: 0 5px; border-radius: 6px; flex: none; transition: background-color .14s ease-out; }
+/* Selected rows keep --raise. Hover used to win on specificity and swap that gradient for a flat color, which pops. */
+:where(.rafeyos) .srow:hover:not(:disabled):not(.on) { background: var(--btn); }
 :where(.rafeyos) .srow.on { background: var(--btnh); }
+:where(.rafeyos:not(.light)) .srow.on { background: var(--raise); box-shadow: var(--raise-edge); }
+:where(.rafeyos:not(.light)) .srow.on svg { color: color-mix(in srgb, var(--accent) 75%, #fff); }
 :where(.rafeyos) .srow:disabled { opacity: .45; }
 :where(.rafeyos) .srow svg { width: 14px; height: 14px; flex: none; }
 :where(.rafeyos) .ssep { height: 1px; background: var(--line); margin: 6px 12px; flex: none; }
 :where(.rafeyos) .scroll { flex: 1; overflow: auto; min-height: 0; position: relative; }
+/* An app's content body: in dark it's a card inset from the frame, flush against a split view's sidebar */
+:where(.rafeyos:not(.light)) .pane { margin: 0 8px 8px; border-radius: 11px; background: var(--view); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35); }
+:where(.rafeyos:not(.light)) .split .pane { margin-left: 0; }
+/* Bodies that don't scroll themselves still need clipping to the card's corners */
+:where(.rafeyos:not(.light)) .editor.pane, :where(.rafeyos:not(.light)) .mbody.pane { overflow: hidden; }
 
 /* switches, boxed lists */
 :where(.rafeyos) .sw { all: unset; width: 38px; height: 22px; border-radius: 99px; background: var(--btnh); position: relative; flex: none; transition: background .15s; }
@@ -93,4 +106,6 @@
   :where(.rafeyos) .sbtoggle { display: inline-flex; }
   :where(.rafeyos) .split > .side { display: none; }
   :where(.rafeyos) .split.side-open > .side { display: flex; position: absolute; left: 0; top: 0; bottom: 0; z-index: 6; max-width: 80%; box-shadow: 0 0 24px rgba(0,0,0,.45); }
+  /* The sidebar is hidden, so the card needs its left inset back */
+  :where(.rafeyos:not(.light)) .split .pane { margin-left: 8px; }
 }
