@@ -19,6 +19,7 @@ import {
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
+import { FS_KEY } from '@/components/rafeyos/core/vfs/fsStore'
 
 afterEach(cleanup)
 
@@ -202,6 +203,22 @@ describe('Trash', () => {
     expect(item(win, '/home/visitor/Documents/notes.txt')).toBeTruthy()
     expect(fsFiles(disk)).toEqual({ '/home/visitor/Documents/notes.txt': 'hello\n' })
     expect(fsTrash(disk)).toEqual({})
+  })
+
+  it('stays quiet when another tab already moved the file to Trash, since storage did not fail', () => {
+    const disk = fsDisk({ '/home/visitor/Documents/notes.txt': 'hello\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+    // The other tab's write, before this tab has heard about it
+    disk.setItem(FS_KEY, fsDisk({}, { '/home/visitor/Documents/notes.txt': 'hello\n' }).getItem(FS_KEY))
+
+    goTo(within(win), 'Documents')
+    rightClick(item(win, '/home/visitor/Documents/notes.txt'))
+    chooseMenuItem('Move to Trash')
+
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(fsTrash(disk)).toEqual({ '/home/visitor/Documents/notes.txt': 'hello\n' })
   })
 
   it('says the storage is full when a restore or Empty Trash cannot be written, keeping the bin', () => {

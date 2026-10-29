@@ -9,3 +9,11 @@ const BLOCKED_BODY = 'This browser blocked saving the file.'
  * @returns {string}
  */
 export const reasonBody = (reason) => (reason === 'full' ? FULL_BODY : BLOCKED_BODY)
+
+/**
+ * Whether a failed write was the browser refusing to store it, rather than the files having changed
+ * under it (another tab trashed or emptied them first), which needs no message.
+ * @param {string} reason
+ * @returns {boolean}
+ */
+export const isStorageFailure = (reason) => reason === 'full' || reason === 'blocked'

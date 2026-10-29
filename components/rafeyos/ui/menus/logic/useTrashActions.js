@@ -7,11 +7,11 @@ import { parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { placeLabel } from '@/components/rafeyos/core/vfs/documents'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
-import { reasonBody } from '@/components/rafeyos/ui/menus/logic/storageFailure'
+import { isStorageFailure, reasonBody } from '@/components/rafeyos/ui/menus/logic/storageFailure'
 
-/** Tells the visitor a Trash change wasn't written; a successful one shows for itself. */
+/** Tells the visitor the browser refused a Trash change; a successful one shows for itself. */
 const reportFailure = (notify, title, result) => {
-  if (!result.ok) notify({ appId: APP.FILES, title, body: reasonBody(result.reason) })
+  if (!result.ok && isStorageFailure(result.reason)) notify({ appId: APP.FILES, title, body: reasonBody(result.reason) })
 }
 
 /** Clears Trash for good. Null while the bin is empty, so the menu item stays disabled. */
