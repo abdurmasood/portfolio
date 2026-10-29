@@ -352,6 +352,15 @@ describe('createFsStore commit', () => {
     expect(unknownVersion.getItem(FS_KEY)).toBe(JSON.stringify({ v: 3 }))
   })
 
+  it('saves a /tmp file in place in memory, whatever storage is doing', () => {
+    ;[storeOn(null), storeOn(failingWrites(new DOMException('', 'QuotaExceededError')))].forEach((store) => {
+      store.commit(write('/tmp/a', 'hi'))
+
+      expect(store.saveInPlace('/tmp/a', 'hi there')).toMatchObject({ ok: true, path: '/tmp/a', name: 'a' })
+      expect(store.getState().nodes['/tmp/a']).toEqual(text('hi there'))
+    })
+  })
+
   it('a tmp write never touches storage', () => {
     const storage = memoryStorage()
     const setItem = vi.spyOn(storage, 'setItem')

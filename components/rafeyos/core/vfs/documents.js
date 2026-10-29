@@ -32,12 +32,11 @@ export const filePath = (folder, name) => joinPath(folder, name)
  * A shipped path is blocked. The visitor's own file can be replaced. An open one cannot.
  * @returns {{ type: 'invalid' } | { type: 'write' | 'replace' | 'open' | 'blocked', name: string, path: string, folder: string }}
  */
-export const saveChoice = ({ raw, folder, userPaths, openPaths, blockedPaths, currentPath = null }) => {
+export const saveChoice = ({ raw, folder, userPaths, openPaths, blockedPaths }) => {
   const checked = documentName(raw)
   if (!checked.ok || !isSaveFolder(folder)) return { type: 'invalid' }
   const path = filePath(folder, checked.name)
   const picked = { name: checked.name, path, folder }
-  if (path === currentPath) return { type: 'write', ...picked }
   if (blockedPaths.includes(path)) return { type: 'blocked', ...picked }
   if (openPaths.includes(path)) return { type: 'open', ...picked }
   if (userPaths.includes(path)) return { type: 'replace', ...picked }

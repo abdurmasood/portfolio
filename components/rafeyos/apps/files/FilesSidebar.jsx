@@ -3,8 +3,8 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { SIDEBAR, isShowable } from './logic/filesView'
 
 /**
- * Places list; the current location is highlighted unless a search is open. A folder the shell deleted drops out
- * (Recent, Starred and Trash always stay).
+ * Places list; the current location is highlighted unless a search is open. A folder the shell deleted, or replaced
+ * with a file, drops out (Recent, Starred and Trash always stay).
  * @param {{
  *   vfs: import('@/components/rafeyos/core/vfs/buildVfs').Vfs,
  *   path: string,

@@ -75,6 +75,7 @@ describe('files view', () => {
 
     expect(['recent', 'starred', 'trash', '/home/visitor/Documents'].every((path) => isShowable(vfs, path))).toBe(true)
     expect(isShowable(vfs, '/home/visitor/Documents/notes')).toBe(false)
+    expect(isShowable({ ...vfs, '/home/visitor/Documents/notes': { type: 'text', text: 'x' } }, '/home/visitor/Documents/notes')).toBe(false)
     expect(nearestFolder(vfs, '/home/visitor/Documents/notes/deeper')).toBe('/home/visitor/Documents')
     expect(nearestFolder(realVfs, '/home/visitor/Documents')).toBe('/home/visitor')
     expect(nearestFolder(vfs, '/home/visitor/Desktop')).toBe('/home/visitor/Desktop')

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import {
   chooseMenuItem,
@@ -493,9 +493,9 @@ describe('Text Editor', () => {
 const NOTES = '/home/visitor/Desktop/notes.txt'
 
 /** An editor on a file the visitor already has, opened the way they would: a double click on its desktop icon. */
-const openDesktopFile = (path = NOTES, text = 'buy milk\n') => {
+const openDesktopFile = (path = NOTES, text = 'buy milk\n', overrides = {}) => {
   const disk = fsDisk({ [path]: text })
-  const view = renderDesktop({ fs: fsStoreOn(disk) })
+  const view = renderDesktop({ fs: fsStoreOn(disk), ...overrides })
   fireEvent.doubleClick(desktopIcon(view.container, path))
   const [win] = windowsOf(view.container, 'editor')
   return { ...view, disk, win, ui: within(win) }
@@ -549,6 +549,22 @@ describe('Text Editor when the shell changes its file', () => {
     runFsOp(services, remove, { path: NOTES })
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
+  })
+
+  it('keeps a clean title while it fades out after its file is deleted', () => {
+    // A close animation that never finishes, so the window stays on screen fading
+    Element.prototype.animate = vi.fn(() => ({ cancel: vi.fn() }))
+    try {
+      const { container, services, win } = openDesktopFile(NOTES, 'buy milk\n', { reducedMotion: () => false })
+
+      runFsOp(services, remove, { path: NOTES })
+
+      expect(windowsOf(container, 'editor')).toEqual([win])
+      expect(headerTitle(win)).toBe('notes.txt')
+      expect(subtitle(win)).not.toBe('Deleted')
+    } finally {
+      delete Element.prototype.animate
+    }
   })
 
   it('dirty editor keeps text shows deleted and saves via prompt', () => {
@@ -624,6 +640,25 @@ describe('Text Editor when the shell changes its file', () => {
     expect(ui.queryByRole('dialog')).toBeNull()
     expect(headerTitle(editor)).toBe('Makefile')
     expect(fsFiles(disk)).toEqual({ '/home/visitor/Makefile': 'all: build\n' })
+  })
+
+  it('edits a text file in /tmp and saves it in place, even when storage refuses writes', () => {
+    const disk = fsDisk()
+    const { container, services } = renderDesktop({ fs: fsStoreOn(refusingWrites(disk, quotaError())) })
+    runFsOp(services, writeFile, { path: '/tmp/a.txt', text: 'hi\n' })
+    const { input } = openTerminal(container)
+    typeCommand(input, 'xdg-open /tmp/a.txt')
+    const editor = windowsOf(container, 'editor')[0]
+    const ui = within(editor)
+    expect(field(ui, 'a.txt').readOnly).toBe(false)
+    expect(subtitle(editor)).toBe('/tmp/')
+    fireEvent.change(field(ui, 'a.txt'), { target: { value: 'hi there\n' } })
+
+    save(ui)
+
+    expect(ui.queryByRole('dialog')).toBeNull()
+    expect(headerTitle(editor)).toBe('a.txt')
+    expect(services.fs.getState().nodes['/tmp/a.txt']).toMatchObject({ type: 'text', text: 'hi there\n' })
   })
 
   it('reports a full storage on an in-place save and keeps the typing', () => {

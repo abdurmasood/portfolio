@@ -76,7 +76,7 @@ describe('filesReducer', () => {
     const exists = (path) => !path.includes('gone')
     const state = { ...initialFilesState('/p', ['/p/x', '/p/gone']), back: ['/a', '/gone'], fwd: ['/gone2', '/b'] }
 
-    const pruned = reduce(state, { type: 'prune', exists })
+    const pruned = reduce(state, { type: 'prune', exists, canShow: exists })
 
     expect(pruned).toMatchObject({ path: '/p', selection: ['/p/x'], back: ['/a'], fwd: ['/b'] })
     expect(reduce(pruned, { type: 'back' })).toMatchObject({ path: '/a', back: [], fwd: ['/b', '/p'] })
@@ -86,7 +86,23 @@ describe('filesReducer', () => {
   it('prune keeps the same state when nothing is gone', () => {
     const state = initialFilesState('/p', ['/p/x'])
 
-    expect(filesReducer(state, { type: 'prune', exists: () => true })).toBe(state)
+    expect(filesReducer(state, { type: 'prune', exists: () => true, canShow: () => true })).toBe(state)
+  })
+
+  it('prune keeps a selected file but drops history the window can no longer show', () => {
+    const state = { ...initialFilesState('/p', ['/p/d']), back: ['/a', '/p/d'], fwd: ['/p/d'] }
+
+    const pruned = reduce(state, { type: 'prune', exists: () => true, canShow: (path) => path !== '/p/d' })
+
+    expect(pruned).toMatchObject({ selection: ['/p/d'], back: ['/a'], fwd: [] })
+  })
+
+  it('prune drops history that leads to the folder already shown, and repeats left by what went', () => {
+    const state = { ...initialFilesState('/h'), back: ['/a', '/gone', '/a', '/h'], fwd: ['/b', '/gone', '/b', '/h'] }
+
+    const pruned = reduce(state, { type: 'prune', exists: () => true, canShow: (path) => path !== '/gone' })
+
+    expect(pruned).toMatchObject({ path: '/h', back: ['/a'], fwd: ['/b'] })
   })
 
   it('throws on unknown actions', () => {

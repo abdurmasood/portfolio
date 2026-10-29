@@ -28,8 +28,8 @@ export const SIDEBAR = Object.freeze([
   { path: TRASH, label: 'Trash', icon: 'trash' },
 ])
 
-/** Whether a window can still show `path`: a place outside the tree (Recent, Starred) or an entry that exists. */
-export const isShowable = (vfs, path) => Boolean(PLACES[path] || vfs[path])
+/** Whether a window can still show `path`: a place outside the tree (Recent, Starred) or a folder that exists. */
+export const isShowable = (vfs, path) => Boolean(PLACES[path]) || vfs[path]?.type === 'dir'
 
 /** The closest folder at or above `path` that still exists: where a window goes when its folder is deleted, as in Nautilus. */
 export const nearestFolder = (vfs, path) => {

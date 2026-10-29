@@ -13,7 +13,7 @@ import { DOCUMENTS, isSaveFolder, placeLabel, saveChoice } from '@/components/ra
 import { FolderDropdown } from './FolderDropdown'
 import { parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
-import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { NODE_TYPES, TMP } from '@/components/rafeyos/core/vfs/buildVfs'
 import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 // The main menu sits at the end of the header, so it opens inwards (mockup offset)
@@ -121,6 +121,24 @@ const fallbackFolder = (path) => {
   return isSaveFolder(folder) ? folder : DOCUMENTS
 }
 
+/** Everything in /tmp is the visitor's, though only their home's files carry `user` (Trash stays home-only). */
+const isTmpFile = (path) => path.startsWith(`${TMP}/`)
+
+/**
+ * Whether the window stays on its buffer after its file went: judged once, as the file goes, so a clean buffer never
+ * reads as unsaved while its window fades out, and typing a kept buffer back to the old text later does not close it.
+ */
+const useKeptAfterDelete = (deleted, unsaved) => {
+  const [seenDeleted, setSeenDeleted] = useState(deleted)
+  const [kept, setKept] = useState(false)
+  // Adjusted while rendering, like useBuffer, so the frame where the file goes already has the answer
+  if (deleted !== seenDeleted) {
+    setSeenDeleted(deleted)
+    setKept(deleted && unsaved)
+  }
+  return kept
+}
+
 /**
  * The buffer and the file it came from. A clean buffer follows the file when something outside (the shell) writes it;
  * an edited one keeps the typing. `synced` is the file's text the buffer last matched, and stays put while the file is
@@ -147,19 +165,19 @@ export const EditorApp = ({ windowId, arg }) => {
   const node = arg ? vfs[arg] : null
   // Deleted while open: the typing stays editable and Save asks for a name
   const deleted = Boolean(arg) && !node
-  const editable = deleted || ((!node || node.user === true) && !node?.trashedFrom)
-  const inPlace = node?.user === true && node.type === NODE_TYPES.TEXT && !node.trashedFrom
+  const owned = node?.user === true || (Boolean(node) && isTmpFile(arg))
+  const editable = deleted || ((!node || owned) && !node?.trashedFrom)
+  const inPlace = owned && node.type === NODE_TYPES.TEXT && !node.trashedFrom
   const label = node?.name ?? (deleted ? arg.slice(arg.lastIndexOf('/') + 1) : UNTITLED)
   const { text, setText, savedText } = useBuffer(node)
   const [prompt, setPrompt] = useState(null)
   const unsaved = editable && text !== savedText
-  // Once its file is gone, nothing on disk holds the buffer, so it counts as unsaved whatever it reads
-  const dirty = unsaved || deleted
+  const kept = useKeptAfterDelete(deleted, unsaved)
+  // Once its file is gone, nothing on disk holds a kept buffer, so it counts as unsaved whatever it reads
+  const dirty = unsaved || kept
   const dirtyRef = useRef(dirty)
-  const unsavedRef = useRef(unsaved)
   const afterCloseRef = useRef(null)
   dirtyRef.current = dirty
-  unsavedRef.current = unsaved
   const closing = windows.byId[windowId]?.phase === WINDOW_PHASES.CLOSING
 
   const dismiss = () => {
@@ -242,19 +260,18 @@ export const EditorApp = ({ windowId, arg }) => {
     })
     return () => windowManager.setCloseGuard(windowId, null)
   }, [windowManager, windowId])
-  // A file deleted while its buffer matched it leaves nothing to show, as when Move to Trash closes a clean editor.
-  // Judged only as the file goes: typing a kept buffer back to the old text later must not close it.
+  // A file deleted while its buffer matched it leaves nothing to show, as when Move to Trash closes a clean editor
   useEffect(() => {
-    if (!deleted || unsavedRef.current || closing) return
+    if (!deleted || kept || closing) return
     windowManager.setCloseGuard(windowId, null)
     windowManager.close(windowId)
-  }, [deleted, closing, windowManager, windowId])
+  }, [deleted, kept, closing, windowManager, windowId])
 
   return (
     <div className="editor-app">
       <EditorHeader
         title={editorTitle(label, dirty)}
-        subtitle={node ? (node.trashedFrom ? 'Trash' : node.user ? folderLabel(arg) : 'Read Only') : deleted ? 'Deleted' : null}
+        subtitle={node ? (node.trashedFrom ? 'Trash' : owned ? folderLabel(arg) : 'Read Only') : kept ? 'Deleted' : null}
         menus={menus}
         onNew={() => windowManager.openApp(APP.EDITOR)}
       />

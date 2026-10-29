@@ -42,14 +42,6 @@ describe('saveChoice', () => {
     expect(saveChoice({ raw: 'notes', folder: DOCUMENTS, userPaths, openPaths: ['/home/visitor/Documents/notes.txt'], blockedPaths })).toMatchObject({
       type: 'open',
     })
-    expect(saveChoice({
-      raw: 'notes.txt',
-      folder: DOCUMENTS,
-      userPaths,
-      openPaths: ['/home/visitor/Documents/notes.txt'],
-      blockedPaths,
-      currentPath: '/home/visitor/Documents/notes.txt',
-    }).type).toBe('write')
     expect(saveChoice({ raw: 'a/b', folder: DOCUMENTS, userPaths, openPaths: [], blockedPaths }).type).toBe('invalid')
     expect(saveChoice({ raw: 'notes', folder: '/home/rafey/blog', userPaths, openPaths: [], blockedPaths }).type).toBe('invalid')
   })

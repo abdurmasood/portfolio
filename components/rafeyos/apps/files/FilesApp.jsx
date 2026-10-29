@@ -118,8 +118,9 @@ const FilesBody = ({ files, menus }) => {
 }
 
 /**
- * Keeps the window on what still exists while the shell deletes underneath it: a deleted folder sends the window up to
- * the nearest one left, without a history entry, and the selection and history forget whatever is gone.
+ * Keeps the window on what still exists while the shell deletes underneath it: a deleted folder (or one replaced by a
+ * file) sends the window up to the nearest one left, without a history entry, and the selection and history forget
+ * whatever is gone.
  * @param {Vfs} vfs
  * @param {FilesState} state
  * @param {Dispatch<FilesAction>} dispatch
@@ -129,7 +130,10 @@ const useFollowDeletes = (vfs, state, dispatch) => {
   useEffect(() => {
     if (!isShowable(vfs, path)) dispatch({ type: FILES_ACTIONS.GO, path: nearestFolder(vfs, path), fromHistory: true })
   }, [vfs, path, dispatch])
-  useEffect(() => dispatch({ type: FILES_ACTIONS.PRUNE, exists: (other) => isShowable(vfs, other) }), [vfs, dispatch])
+  useEffect(
+    () => dispatch({ type: FILES_ACTIONS.PRUNE, exists: (other) => Boolean(vfs[other]), canShow: (other) => isShowable(vfs, other) }),
+    [vfs, dispatch],
+  )
 }
 
 /**

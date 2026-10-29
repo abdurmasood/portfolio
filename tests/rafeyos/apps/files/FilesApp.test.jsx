@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { clickDock, fsDisk, fsStoreOn, goToRafeyHome, renderDesktop, runFsOp, settle, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { mkdir, remove } from '@/components/rafeyos/core/vfs/fsOps'
+import { mkdir, remove, writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 
 afterEach(cleanup)
 
@@ -23,6 +23,14 @@ const openRafeyHome = () => {
 const item = (win, path) => win.querySelector(`.fbody [data-path="${path}"]`)
 const currentLocation = (win) => win.querySelector('.pathbar .cur').textContent
 const places = (ui) => within(ui.getByRole('navigation', { name: 'Places' }))
+const placeNames = (ui) => [...ui.getByRole('navigation', { name: 'Places' }).querySelectorAll('.srow span')].map((node) => node.textContent)
+
+/** `rm -r path && touch path` in one go: the folder becomes a file of the same name before Files renders again. */
+const replaceWithFile = (services, path) =>
+  act(() => {
+    runFsOp(services, remove, { path, recursive: true })
+    runFsOp(services, writeFile, { path, text: '' })
+  })
 
 describe('Files app', () => {
   it('opens on the visitor\'s Home', () => {
@@ -180,6 +188,50 @@ describe('Files when the shell changes things underneath it', () => {
     expect(win.getAttribute('aria-label')).toBe('Documents')
     expect(ui.getByText('Folder is Empty')).toBeTruthy()
     expect(ui.getByRole('button', { name: 'Forward' }).disabled).toBe(true)
+  })
+
+  it('keeps back off when the window moves up to the folder it came from', () => {
+    const { services, win, ui } = openFiles()
+    fireEvent.click(places(ui).getByText('Documents'))
+
+    runFsOp(services, remove, { path: '/home/visitor/Documents', recursive: true })
+
+    expect(currentLocation(win)).toBe('Home')
+    expect(ui.getByRole('button', { name: 'Back' }).disabled).toBe(true)
+    expect(ui.getByRole('button', { name: 'Forward' }).disabled).toBe(true)
+  })
+
+  it('moves up when its folder is replaced by a file of the same name', () => {
+    const { services, win, ui } = openFiles()
+    runFsOp(services, mkdir, { path: '/home/visitor/Documents/d' })
+    fireEvent.click(places(ui).getByText('Documents'))
+    fireEvent.doubleClick(item(win, '/home/visitor/Documents/d'))
+
+    replaceWithFile(services, '/home/visitor/Documents/d')
+
+    expect(currentLocation(win)).toBe('Documents')
+    expect(item(win, '/home/visitor/Documents/d')).not.toBeNull()
+  })
+
+  it('forward skips a folder replaced by a file of the same name', () => {
+    const { services, win, ui } = openFiles()
+    runFsOp(services, mkdir, { path: '/home/visitor/Documents/d' })
+    fireEvent.click(places(ui).getByText('Documents'))
+    fireEvent.doubleClick(item(win, '/home/visitor/Documents/d'))
+    fireEvent.click(ui.getByRole('button', { name: 'Back' }))
+    expect(ui.getByRole('button', { name: 'Forward' }).disabled).toBe(false)
+
+    replaceWithFile(services, '/home/visitor/Documents/d')
+
+    expect(ui.getByRole('button', { name: 'Forward' }).disabled).toBe(true)
+  })
+
+  it('sidebar hides a documents folder replaced by a file', () => {
+    const { services, ui } = openFiles()
+
+    replaceWithFile(services, '/home/visitor/Documents')
+
+    expect(placeNames(ui)).not.toContain('Documents')
   })
 
   it('sidebar hides a deleted documents folder', () => {

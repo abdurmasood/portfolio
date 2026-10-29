@@ -40,7 +40,7 @@ export const FILES_ACTIONS = Object.freeze({
  *   [FILES_ACTIONS.SELECT]: { path: string, mode?: 'single' | 'toggle' } | { mode: 'clear' },
  *   [FILES_ACTIONS.SET_SEARCH]: { query: string | null },
  *   [FILES_ACTIONS.SELECT_ALL]: { paths: readonly string[] },
- *   [FILES_ACTIONS.PRUNE]: { exists: (path: string) => boolean },
+ *   [FILES_ACTIONS.PRUNE]: { exists: (path: string) => boolean, canShow: (path: string) => boolean },
  * }} FilesPayloads
  */
 
@@ -115,14 +115,26 @@ const setSearch = (state, { query }) => ({ ...state, search: query, selection: [
 const selectAll = (state, { paths }) => ({ ...state, selection: [...paths] })
 
 /**
- * @type {FilesHandler<typeof FILES_ACTIONS.PRUNE>} Something outside the window (the shell) deleted paths: the selection
- * and the history forget them, so Enter never opens a ghost and back and forward skip what is gone.
- * Nothing gone keeps the same state, so React skips the re-render.
+ * One history stack with what the window can no longer show taken out. Taking a folder out can leave the same visit
+ * twice in a row, or the folder the window now shows on top, where a press of back or forward would change nothing.
+ * @param {string[]} entries
+ * @param {(path: string) => boolean} canShow
+ * @param {string} current
  */
-const prune = (state, { exists }) => {
+const tidyHistory = (entries, canShow, current) => {
+  const kept = entries.filter(canShow).filter((entry, i, shown) => entry !== shown[i - 1])
+  return kept[kept.length - 1] === current ? kept.slice(0, -1) : kept
+}
+
+/**
+ * @type {FilesHandler<typeof FILES_ACTIONS.PRUNE>} Something outside the window (the shell) deleted paths: the selection
+ * forgets what is gone and the history forgets what is no longer a folder, so Enter never opens a ghost and back and
+ * forward skip what is gone. Nothing gone keeps the same state, so React skips the re-render.
+ */
+const prune = (state, { exists, canShow }) => {
   const selection = state.selection.filter(exists)
-  const back = state.back.filter(exists)
-  const fwd = state.fwd.filter(exists)
+  const back = tidyHistory(state.back, canShow, state.path)
+  const fwd = tidyHistory(state.fwd, canShow, state.path)
   const unchanged =
     selection.length === state.selection.length && back.length === state.back.length && fwd.length === state.fwd.length
   return unchanged ? state : { ...state, selection, back, fwd }

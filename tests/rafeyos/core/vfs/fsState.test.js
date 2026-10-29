@@ -296,6 +296,15 @@ describe('saveInPlace', () => {
     expect(state.nodes['/home/visitor/Makefile']).toEqual(text('all:\n'))
   })
 
+  it('rewrites a text file in /tmp at its exact path', () => {
+    const state = stateWith({ '/tmp/a': text('hi\n') })
+
+    const saved = saveInPlace(state, '/tmp/a', 'hi there\n', 9)
+
+    expect(saved).toMatchObject({ ok: true, path: '/tmp/a', name: 'a' })
+    expect(saved.ok && saved.state.nodes['/tmp/a']).toEqual(text('hi there\n', 9))
+  })
+
   it('refuses anything but an existing visitor text file', () => {
     const state = stateWith({ '/home/visitor/link': symlink('Desktop') })
 

@@ -143,15 +143,21 @@ export const createFsStore = ({ storage, win, now }) => {
   }
 
   /**
-   * The GUI's mutators: re-reads the disk, applies the change and writes it back. Refused before the change runs
-   * when storage can't take it, so a blocked store always answers 'blocked'.
+   * The GUI's mutators: re-reads the disk, applies the change and writes it back. A change that only touches /tmp (Save
+   * on a file there) stays in memory, as the shell's do. Anything else is refused when storage can't take it, so a
+   * blocked store always answers 'blocked'.
    * @param {(state: FsState, now: number) => FsResult} change
    * @returns {FsStoreResult}
    */
   const write = (change) => {
     const disk = readDisk(state)
-    if (!storage || disk.readOnly) return BLOCKED
     const result = change(disk.state, now())
+    if (result.ok && fsState.changesOnlyTmp(disk.state, result.state)) {
+      state = result.state
+      notify()
+      return result
+    }
+    if (!storage || disk.readOnly) return BLOCKED
     return result.ok ? persist(disk, result) : result
   }
 
