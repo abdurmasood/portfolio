@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { useSettings, useShellDispatch, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
+import { useSettings, useShellDispatch, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { WALLS } from '@/components/rafeyos/core/theme/walls'
 import { DesktopIcons } from './DesktopIcons'
 import { DESKTOP, useDesktopIconModel } from './logic/useDesktopIconModel'
@@ -37,8 +37,11 @@ export const Workspace = () => {
   const { wall } = useSettings()
   const windowManager = useWindowManager()
   const shellDispatch = useShellDispatch()
+  const { vfs } = useVfs()
   const model = useDesktopIconModel()
   const [selection, setSelection] = useState([])
+  // Icons the shell deleted leave the selection, so Enter and a drag only see what is still there
+  if (selection.some((path) => !vfs[path])) setSelection(selection.filter((path) => vfs[path]))
   const layerRef = useRef(null)
   const bandRef = useRef(null)
   const startBand = useRubberBand({ bandRef, layerRef, onSelect: setSelection })

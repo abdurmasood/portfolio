@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, within } from '@testing-library/react'
-import { chooseMenuItem, desktopIcon, fsDisk, fsStoreOn, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { chooseMenuItem, desktopIcon, fsDisk, fsStoreOn, renderDesktop, rightClick, runFsOp, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { mkdir, remove } from '@/components/rafeyos/core/vfs/fsOps'
 import { propertiesRows } from '@/components/rafeyos/apps/properties/logic/propertiesRows'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { sizeLabel } from '@/components/rafeyos/core/vfs/queries'
@@ -52,6 +53,40 @@ describe('Properties', () => {
 
     fireEvent.click(ui.getByRole('button', { name: 'Open in Terminal' }))
     expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~')
+  })
+
+  it('properties shows a deleted file as gone', () => {
+    const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+    const view = renderDesktop({ fs: fsStoreOn(disk) })
+    rightClick(desktopIcon(view.container, '/home/visitor/Desktop/note.txt'))
+    chooseMenuItem('Properties')
+
+    runFsOp(view.services, remove, { path: '/home/visitor/Desktop/note.txt' })
+
+    const [win] = windowsOf(view.container, 'properties')
+    expect(win.getAttribute('aria-label')).toBe('note.txt Properties')
+    expect(win.querySelector('.pn').textContent).toBe('note.txt')
+    expect(win.querySelector('.props svg path[d^="M20 28h24"]')).not.toBeNull()
+    expect(rowsOf(win)).toEqual([
+      ['Size', '0 bytes'],
+      ['Type', 'Unknown'],
+      ['Parent Folder', '/home/visitor/Desktop'],
+    ])
+  })
+
+  it('hides Open in Terminal once a folder it shows is deleted', () => {
+    const view = renderDesktop()
+    runFsOp(view.services, mkdir, { path: '/home/visitor/Desktop/notes' })
+    rightClick(desktopIcon(view.container, '/home/visitor/Desktop/notes'))
+    chooseMenuItem('Properties')
+    const [win] = windowsOf(view.container, 'properties')
+    expect(within(win).getByRole('button', { name: 'Open in Terminal' })).toBeTruthy()
+
+    runFsOp(view.services, remove, { path: '/home/visitor/Desktop/notes', recursive: true })
+
+    expect(windowsOf(view.container, 'properties')).toEqual([win])
+    expect(within(win).queryByRole('button', { name: 'Open in Terminal' })).toBeNull()
+    expect(rowsOf(win)[1]).toEqual(['Type', 'Unknown'])
   })
 
   it('keeps one window per path and stays out of the dock', () => {

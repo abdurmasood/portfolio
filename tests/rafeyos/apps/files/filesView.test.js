@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyState, floatbarText, listItems, locationLabel, pathSegments, typeLabel, windowTitle } from '@/components/rafeyos/apps/files/logic/filesView'
+import { emptyState, floatbarText, isShowable, listItems, locationLabel, nearestFolder, pathSegments, typeLabel, windowTitle } from '@/components/rafeyos/apps/files/logic/filesView'
 import { initialFilesState } from '@/components/rafeyos/apps/files/logic/filesReducer'
 import { dirNode, mergeState, seedState, textNode, withNodes } from '@/components/rafeyos/core/vfs/fsState'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
@@ -68,5 +68,15 @@ describe('files view', () => {
   it('shortens type labels for the list view', () => {
     expect(typeLabel(realVfs, '/home/rafey/projects')).toBe('Folder')
     expect(typeLabel(realVfs, '/home/rafey/bio.txt')).toBe('Plain text')
+  })
+
+  it('knows which places a window can still show, and the nearest folder above one that went', () => {
+    const vfs = mergeState(realVfs, seedState(0))
+
+    expect(['recent', 'starred', 'trash', '/home/visitor/Documents'].every((path) => isShowable(vfs, path))).toBe(true)
+    expect(isShowable(vfs, '/home/visitor/Documents/notes')).toBe(false)
+    expect(nearestFolder(vfs, '/home/visitor/Documents/notes/deeper')).toBe('/home/visitor/Documents')
+    expect(nearestFolder(realVfs, '/home/visitor/Documents')).toBe('/home/visitor')
+    expect(nearestFolder(vfs, '/home/visitor/Desktop')).toBe('/home/visitor/Desktop')
   })
 })

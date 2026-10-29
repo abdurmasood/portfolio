@@ -88,6 +88,18 @@ describe('createFsStore writes', () => {
     expect(store.getState()).toEqual(onDisk(storage))
   })
 
+  it('saves in place over a file the shell made, under its own name', () => {
+    const storage = memoryStorage()
+    const store = storeOn(storage)
+    store.commit(write('/home/visitor/Makefile', 'all:\n'))
+
+    const result = store.saveInPlace('/home/visitor/Makefile', 'all: x\n')
+
+    expect(result).toMatchObject({ ok: true, path: '/home/visitor/Makefile', name: 'Makefile' })
+    expect(onDisk(storage).nodes['/home/visitor/Makefile']).toEqual(text('all: x\n'))
+    expect(storeOn(null).saveInPlace('/home/visitor/Makefile', 'x')).toEqual({ ok: false, reason: 'blocked' })
+  })
+
   it('first successful write clears a legacy key that is not JSON', () => {
     const storage = memoryStorage({ [LEGACY_KEY]: '{oops' })
     const store = storeOn(storage)

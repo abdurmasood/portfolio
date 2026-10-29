@@ -16,8 +16,10 @@ import {
   refusingWrites,
   renderDesktop,
   rightClick,
+  runFsOp,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { symlink } from '@/components/rafeyos/core/vfs/fsOps'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 import { FS_KEY } from '@/components/rafeyos/core/vfs/fsStore'
 
@@ -290,5 +292,39 @@ describe('Files header menus', () => {
     chooseMenuItem('New Window')
 
     expect(windowsOf(container, 'files').map((files) => files.getAttribute('aria-label'))).toEqual(['blog', 'blog'])
+  })
+})
+
+describe('a dangling link', () => {
+  it('dangling link lists selects opens and shows properties', () => {
+    const { container, services } = renderDesktop()
+    const link = '/home/visitor/Desktop/p'
+    runFsOp(services, symlink, { target: 'gone.txt', path: link })
+    clickDock('Files')
+    const win = windowsOf(container, 'files')[0]
+    const ui = within(win)
+
+    goTo(ui, 'Desktop')
+    expect(item(win, link).textContent).toBe('p')
+    expect(container.querySelector(`.dicon[data-path="${link}"]`)).toBeTruthy()
+    fireEvent.click(item(win, link))
+    expect(win.querySelector('.floatbar').textContent).toBe('“p” selected (0 bytes)')
+    fireEvent.click(ui.getByRole('button', { name: 'List view' }))
+    expect(item(win, link).textContent).toContain('Link (broken)')
+
+    fireEvent.doubleClick(item(win, link))
+    expect(screen.getByRole('status').textContent).toContain("Can't open “p”")
+
+    rightClick(item(win, link))
+    chooseMenuItem('Properties')
+    const [properties] = windowsOf(container, 'properties')
+    const rows = [...properties.querySelectorAll('.boxed .row')].map((row) => [row.querySelector('.rt').textContent, row.querySelector('.rv').textContent])
+    expect(properties.getAttribute('aria-label')).toBe('p Properties')
+    expect(rows).toEqual([
+      ['Size', '0 bytes'],
+      ['Type', 'Link (broken)'],
+      ['Link Target', 'gone.txt'],
+      ['Parent Folder', '/home/visitor/Desktop'],
+    ])
   })
 })

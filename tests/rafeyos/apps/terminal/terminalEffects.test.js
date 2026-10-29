@@ -48,6 +48,14 @@ describe('terminal effects', () => {
     expect(notes.map((line) => line.text)).toEqual(["Projects isn't available yet", "Text Editor isn't available yet"])
   })
 
+  it('notes a path that vanished before it could open, without throwing', () => {
+    const deps = handlers({ windowManager: { openApp: vi.fn(() => true), openPath: () => false } })
+
+    const { notes } = applyTerminalEffects([{ type: 'openPath', path: '/home/visitor/Documents/gone.txt' }], deps)
+
+    expect(notes.map((line) => line.text)).toEqual(["Opening links isn't available yet"])
+  })
+
   it('plays without a window, and plays an opened audio file as Music opens', () => {
     const deps = handlers()
 

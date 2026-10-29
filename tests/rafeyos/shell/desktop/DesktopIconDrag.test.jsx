@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
-import { desktopIcon, fsDisk, fsStoreOn, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { desktopIcon, fsDisk, fsStoreOn, renderDesktop, runFsOp, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { remove, writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 
 // jsdom has no layout: give icons the box their inline position implies
 const ICON_BOX = { w: 90, h: 80 }
@@ -56,6 +57,35 @@ describe('desktop icon drag', () => {
 
     expect(at(note)).toEqual({ x: noteStart.x + 20, y: noteStart.y + 30 })
     expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
+  })
+
+  it('desktop drag ignores a deleted selected icon', () => {
+    const { container, services } = desktopWithNote()
+    const home = desktopIcon(container, '/home/visitor')
+    const start = at(home)
+    fireEvent.pointerDown(home, { button: 0 })
+    fireEvent.pointerUp(home)
+    fireEvent.pointerDown(desktopIcon(container, '/home/visitor/Desktop/note.txt'), { button: 0, ctrlKey: true })
+    fireEvent.pointerUp(home)
+
+    runFsOp(services, remove, { path: '/home/visitor/Desktop/note.txt' })
+    drag(home, { x: 0, y: 0 }, { x: 20, y: 30 })
+
+    expect(at(home)).toEqual({ x: start.x + 20, y: start.y + 30 })
+    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['/home/visitor'])
+  })
+
+  it('forgets where a deleted icon was dragged, so one made again sits in the layout', () => {
+    const { container, services } = desktopWithNote()
+    const note = desktopIcon(container, '/home/visitor/Desktop/note.txt')
+    const start = at(note)
+    drag(note, { x: 0, y: 0 }, { x: 20, y: 30 })
+    expect(at(note)).not.toEqual(start)
+
+    runFsOp(services, remove, { path: '/home/visitor/Desktop/note.txt' })
+    runFsOp(services, writeFile, { path: '/home/visitor/Desktop/note.txt', text: 'again\n' })
+
+    expect(at(desktopIcon(container, '/home/visitor/Desktop/note.txt'))).toEqual(start)
   })
 
   it('ignores jitter below the drag threshold', () => {

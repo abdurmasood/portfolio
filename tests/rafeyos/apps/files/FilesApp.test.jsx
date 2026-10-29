@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { clickDock, goToRafeyHome, renderDesktop, settle, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { clickDock, fsDisk, fsStoreOn, goToRafeyHome, renderDesktop, runFsOp, settle, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { mkdir, remove } from '@/components/rafeyos/core/vfs/fsOps'
 
 afterEach(cleanup)
 
-const openFiles = () => {
-  const view = renderDesktop()
+const openFiles = (overrides) => {
+  const view = renderDesktop(overrides)
   clickDock('Files')
   const [win] = windowsOf(view.container, 'files')
   return { ...view, win, ui: within(win) }
@@ -21,6 +22,7 @@ const openRafeyHome = () => {
 
 const item = (win, path) => win.querySelector(`.fbody [data-path="${path}"]`)
 const currentLocation = (win) => win.querySelector('.pathbar .cur').textContent
+const places = (ui) => within(ui.getByRole('navigation', { name: 'Places' }))
 
 describe('Files app', () => {
   it('opens on the visitor\'s Home', () => {
@@ -160,5 +162,48 @@ describe('Files app', () => {
 
     fireEvent.click(places.getByText('Starred'))
     expect(ui.getByText('No Starred Files')).toBeTruthy()
+  })
+})
+
+describe('Files when the shell changes things underneath it', () => {
+  it('files moves up when its folder is deleted', () => {
+    const { services, win, ui } = openFiles()
+    runFsOp(services, mkdir, { path: '/home/visitor/Documents/notes/deep', parents: true })
+    fireEvent.click(places(ui).getByText('Documents'))
+    fireEvent.doubleClick(item(win, '/home/visitor/Documents/notes'))
+    fireEvent.doubleClick(item(win, '/home/visitor/Documents/notes/deep'))
+    expect(currentLocation(win)).toBe('deep')
+
+    runFsOp(services, remove, { path: '/home/visitor/Documents/notes', recursive: true })
+
+    expect(currentLocation(win)).toBe('Documents')
+    expect(win.getAttribute('aria-label')).toBe('Documents')
+    expect(ui.getByText('Folder is Empty')).toBeTruthy()
+    expect(ui.getByRole('button', { name: 'Forward' }).disabled).toBe(true)
+  })
+
+  it('sidebar hides a deleted documents folder', () => {
+    const { services, ui } = openFiles()
+
+    runFsOp(services, remove, { path: '/home/visitor/Documents', recursive: true })
+
+    const names = [...ui.getByRole('navigation', { name: 'Places' }).querySelectorAll('.srow span')].map((node) => node.textContent)
+    expect(names).toEqual(['Recent', 'Starred', 'Home', 'Desktop', 'Music', 'projects', 'blog', 'contact', 'Trash', 'Other Locations'])
+  })
+
+  it('files prunes deleted items from the selection', () => {
+    const disk = fsDisk({ '/home/visitor/Documents/notes.txt': 'buy milk\n', '/home/visitor/Documents/todo.txt': 'call\n' })
+    const { container, services, win, ui } = openFiles({ fs: fsStoreOn(disk) })
+    fireEvent.click(places(ui).getByText('Documents'))
+    fireEvent.click(item(win, '/home/visitor/Documents/notes.txt'))
+    fireEvent.click(item(win, '/home/visitor/Documents/todo.txt'), { ctrlKey: true })
+    expect(win.querySelector('.floatbar').textContent).toBe('2 items selected')
+
+    runFsOp(services, remove, { path: '/home/visitor/Documents/notes.txt' })
+
+    expect(item(win, '/home/visitor/Documents/notes.txt')).toBeNull()
+    expect(win.querySelector('.floatbar').textContent).toBe('“todo.txt” selected (5 bytes)')
+    fireEvent.keyDown(win.querySelector('.fbody'), { key: 'Enter' })
+    expect(windowsOf(container, 'editor').map((editor) => editor.getAttribute('aria-label'))).toEqual(['todo.txt'])
   })
 })

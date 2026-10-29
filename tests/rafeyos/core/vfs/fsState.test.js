@@ -8,6 +8,7 @@ import {
   parseState,
   restoreFromTrash,
   saveFile,
+  saveInPlace,
   seedState,
   serializeState,
 } from '@/components/rafeyos/core/vfs/fsState'
@@ -278,6 +279,30 @@ describe('saveFile', () => {
   it('refuses a path a folder holds', () => {
     const state = stateWith({ '/home/visitor/Desktop/box.d': { type: 'dir', mtime: 1 } })
     expect(saveFile(state, '/home/visitor/Desktop', 'box.d', 'a', 2)).toEqual({ ok: false, reason: 'taken' })
+  })
+})
+
+describe('saveInPlace', () => {
+  it('rewrites the visitor\'s own text file at its exact path, in any folder and under any name', () => {
+    const state = stateWith({ '/home/visitor/Desktop/notes': dir(), '/home/visitor/Desktop/notes/a.txt': text('hi\n'), '/home/visitor/Makefile': text('all:\n') })
+
+    const nested = saveInPlace(state, '/home/visitor/Desktop/notes/a.txt', 'hi there\n', 9)
+    const bare = saveInPlace(state, '/home/visitor/Makefile', 'all: x\n', 9)
+
+    expect(nested).toMatchObject({ ok: true, path: '/home/visitor/Desktop/notes/a.txt', name: 'a.txt' })
+    expect(nested.ok && nested.state.nodes['/home/visitor/Desktop/notes/a.txt']).toEqual(text('hi there\n', 9))
+    expect(bare.ok && bare.state.nodes).toMatchObject({ '/home/visitor/Makefile': text('all: x\n', 9) })
+    expect(bare.ok && Object.keys(bare.state.nodes)).not.toContain('/home/visitor/Makefile.txt')
+    expect(state.nodes['/home/visitor/Makefile']).toEqual(text('all:\n'))
+  })
+
+  it('refuses anything but an existing visitor text file', () => {
+    const state = stateWith({ '/home/visitor/link': symlink('Desktop') })
+
+    expect(saveInPlace(state, '/home/rafey/bio.txt', 'x', 9)).toEqual({ ok: false, reason: 'invalid' })
+    expect(saveInPlace(state, '/home/visitor/gone.txt', 'x', 9)).toEqual({ ok: false, reason: 'missing' })
+    expect(saveInPlace(state, '/home/visitor/Desktop', 'x', 9)).toEqual({ ok: false, reason: 'missing' })
+    expect(saveInPlace(state, '/home/visitor/link', 'x', 9)).toEqual({ ok: false, reason: 'missing' })
   })
 })
 

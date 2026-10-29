@@ -361,6 +361,22 @@ export const saveFile = (state, folder, name, text, now) => {
 }
 
 /**
+ * Save on a file the visitor already has: writes the text back at its exact path, in any of their folders and under any
+ * name (no .txt is added), as a real editor does. Only their own text files; anything else is for saveFile.
+ * @param {FsState} state
+ * @param {string} path
+ * @param {string} text
+ * @param {number} now
+ * @returns {FsResult}
+ */
+export const saveInPlace = (state, path, text, now) => {
+  if (!isVisitorPath(path)) return fail('invalid')
+  if (state.nodes[path]?.type !== NODE_TYPES.TEXT) return fail('missing')
+  const nodes = { ...state.nodes, [path]: textNode(String(text), now) }
+  return { ok: true, state: freezeState(nodes, state.trash), path, name: nameOf(path) }
+}
+
+/**
  * The visitor's file (text, copy or link) moves into trash, replacing an older entry for the same path.
  * @param {FsState} state
  * @param {string} path

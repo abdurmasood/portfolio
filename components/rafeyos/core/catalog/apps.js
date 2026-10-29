@@ -105,10 +105,10 @@ const HANDLERS = Object.freeze({
 })
 
 /**
- * @param {VfsNode} node
- * @returns {AppId | null} null for web links (opened in the browser)
+ * @param {VfsNode | null | undefined} node null or undefined when the path is gone
+ * @returns {AppId | null} null for web links (opened in the browser) and for nothing at all
  */
-export const handlerFor = (node) => HANDLERS[node.type] ?? null
+export const handlerFor = (node) => (node ? HANDLERS[node.type] ?? null : null)
 
 /**
  * Web links open through the "Open Link" dialog rather than an app. Follows a symlink.

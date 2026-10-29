@@ -72,6 +72,23 @@ describe('filesReducer', () => {
     expect(reduce(open, { type: 'setSearch', query: null }).search).toBeNull()
   })
 
+  it('prune forgets deleted paths in the selection and the history, so back and forward skip them', () => {
+    const exists = (path) => !path.includes('gone')
+    const state = { ...initialFilesState('/p', ['/p/x', '/p/gone']), back: ['/a', '/gone'], fwd: ['/gone2', '/b'] }
+
+    const pruned = reduce(state, { type: 'prune', exists })
+
+    expect(pruned).toMatchObject({ path: '/p', selection: ['/p/x'], back: ['/a'], fwd: ['/b'] })
+    expect(reduce(pruned, { type: 'back' })).toMatchObject({ path: '/a', back: [], fwd: ['/b', '/p'] })
+    expect(reduce(pruned, { type: 'forward' })).toMatchObject({ path: '/b', back: ['/a', '/p'], fwd: [] })
+  })
+
+  it('prune keeps the same state when nothing is gone', () => {
+    const state = initialFilesState('/p', ['/p/x'])
+
+    expect(filesReducer(state, { type: 'prune', exists: () => true })).toBe(state)
+  })
+
   it('throws on unknown actions', () => {
     expect(() => filesReducer(initialFilesState(), { type: 'nope' })).toThrow('Unknown files action: nope')
   })

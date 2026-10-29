@@ -18,9 +18,11 @@ import {
   quotaError,
   refusingWrites,
   renderDesktop,
+  runFsOp,
   typeCommand,
   windowsOf,
 } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { mkdir, remove, writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
 import { textDocuments } from '@/components/rafeyos/core/vfs/queries'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
@@ -485,5 +487,159 @@ describe('Text Editor', () => {
 
     expect(windowsOf(container, 'editor')).toHaveLength(0)
     expect(fsTrash(disk)['/home/visitor/Documents/notes.txt']).toBe('dirty\n')
+  })
+})
+
+const NOTES = '/home/visitor/Desktop/notes.txt'
+
+/** An editor on a file the visitor already has, opened the way they would: a double click on its desktop icon. */
+const openDesktopFile = (path = NOTES, text = 'buy milk\n') => {
+  const disk = fsDisk({ [path]: text })
+  const view = renderDesktop({ fs: fsStoreOn(disk) })
+  fireEvent.doubleClick(desktopIcon(view.container, path))
+  const [win] = windowsOf(view.container, 'editor')
+  return { ...view, disk, win, ui: within(win) }
+}
+
+/** An editor on a file the shell made, opened from a Files window. */
+const openFromFiles = (container, folder, path) => {
+  clickDock('Files')
+  const files = windowsOf(container, 'files')[0]
+  fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('Home'))
+  const names = folder.split('/').filter(Boolean)
+  names.reduce((at, name) => {
+    const next = `${at}/${name}`
+    fireEvent.doubleClick(files.querySelector(`.fbody [data-path="${next}"]`))
+    return next
+  }, '/home/visitor')
+  fireEvent.doubleClick(files.querySelector(`.fbody [data-path="${path}"]`))
+  return windowsOf(container, 'editor')[0]
+}
+
+const subtitle = (win) => win.querySelector('.hb .ttl small')?.textContent ?? null
+
+const save = (ui) => {
+  fireEvent.click(ui.getByRole('button', { name: 'Main Menu' }))
+  chooseMenuItem('Save')
+}
+
+describe('Text Editor when the shell changes its file', () => {
+  it('clean editor reloads outside write', () => {
+    const { services, win, ui } = openDesktopFile()
+
+    runFsOp(services, writeFile, { path: NOTES, text: 'call Sam\n', append: true })
+
+    expect(field(ui, 'notes.txt').value).toBe('buy milk\ncall Sam\n')
+    expect(headerTitle(win)).toBe('notes.txt')
+  })
+
+  it('keeps the typing of an edited buffer when the file changes outside', () => {
+    const { services, win, ui } = openDesktopFile()
+    fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'buy milk\nbuy eggs\n' } })
+
+    runFsOp(services, writeFile, { path: NOTES, text: 'call Sam\n', append: true })
+
+    expect(field(ui, 'notes.txt').value).toBe('buy milk\nbuy eggs\n')
+    expect(headerTitle(win)).toBe('• notes.txt')
+  })
+
+  it('clean editor closes when its file is deleted', () => {
+    const { container, services } = openDesktopFile()
+
+    runFsOp(services, remove, { path: NOTES })
+
+    expect(windowsOf(container, 'editor')).toHaveLength(0)
+  })
+
+  it('dirty editor keeps text shows deleted and saves via prompt', () => {
+    const { container, disk, services, win, ui } = openDesktopFile()
+    fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'buy milk\nbuy eggs\n' } })
+
+    runFsOp(services, remove, { path: NOTES })
+
+    expect(windowsOf(container, 'editor')).toEqual([win])
+    expect(field(ui, 'notes.txt').value).toBe('buy milk\nbuy eggs\n')
+    expect(field(ui, 'notes.txt').readOnly).toBe(false)
+    expect(headerTitle(win)).toBe('• notes.txt')
+    expect(subtitle(win)).toBe('Deleted')
+    fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'buy milk\n' } })
+    expect(windowsOf(container, 'editor')).toEqual([win])
+    expect(headerTitle(win)).toBe('• notes.txt')
+    fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'buy milk\nbuy eggs\nbread\n' } })
+    expect(field(ui, 'notes.txt').value).toBe('buy milk\nbuy eggs\nbread\n')
+
+    fireEvent.click(ui.getByRole('button', { name: 'Close' }))
+    fireEvent.click(within(ui.getByRole('dialog', { name: 'Save changes' })).getByRole('button', { name: 'Cancel' }))
+    save(ui)
+    const dialog = within(ui.getByRole('dialog', { name: 'Save' }))
+    expect(dialog.getByLabelText('File name').value).toBe('notes.txt')
+    expect(folderButton(dialog).textContent).toBe('Desktop')
+    fireEvent.click(dialog.getByRole('button', { name: 'Save' }))
+
+    expect(fsFiles(disk)[NOTES]).toBe('buy milk\nbuy eggs\nbread\n')
+    expect(headerTitle(win)).toBe('notes.txt')
+    expect(subtitle(win)).toBe('~/Desktop/')
+  })
+
+  it('offers Documents when a deleted file\'s folder is not one Save can use', () => {
+    const { container, services } = renderDesktop()
+    runFsOp(services, mkdir, { path: '/home/visitor/Desktop/notes' })
+    runFsOp(services, writeFile, { path: '/home/visitor/Desktop/notes/a.txt', text: 'hi\n' })
+    const editor = openFromFiles(container, 'Desktop/notes', '/home/visitor/Desktop/notes/a.txt')
+    const ui = within(editor)
+    fireEvent.change(field(ui, 'a.txt'), { target: { value: 'hi there\n' } })
+
+    runFsOp(services, remove, { path: '/home/visitor/Desktop/notes', recursive: true })
+    save(ui)
+
+    expect(folderButton(within(ui.getByRole('dialog', { name: 'Save' }))).textContent).toBe('Documents')
+  })
+
+  it('editor saves in place in a nested visitor folder', () => {
+    const disk = memoryStorage()
+    const { container, services } = renderDesktop({ fs: fsStoreOn(disk) })
+    runFsOp(services, mkdir, { path: '/home/visitor/Desktop/notes' })
+    runFsOp(services, writeFile, { path: '/home/visitor/Desktop/notes/a.txt', text: 'hi\n' })
+    const editor = openFromFiles(container, 'Desktop/notes', '/home/visitor/Desktop/notes/a.txt')
+    const ui = within(editor)
+    fireEvent.change(field(ui, 'a.txt'), { target: { value: 'hi there\n' } })
+
+    save(ui)
+
+    expect(ui.queryByRole('dialog')).toBeNull()
+    expect(headerTitle(editor)).toBe('a.txt')
+    expect(fsFiles(disk)['/home/visitor/Desktop/notes/a.txt']).toBe('hi there\n')
+  })
+
+  it('editor saves in place an extensionless file', () => {
+    const disk = memoryStorage()
+    const { container, services } = renderDesktop({ fs: fsStoreOn(disk) })
+    runFsOp(services, writeFile, { path: '/home/visitor/Makefile', text: 'all:\n' })
+    const editor = openFromFiles(container, '', '/home/visitor/Makefile')
+    const ui = within(editor)
+    fireEvent.change(field(ui, 'Makefile'), { target: { value: 'all: build\n' } })
+
+    save(ui)
+
+    expect(ui.queryByRole('dialog')).toBeNull()
+    expect(headerTitle(editor)).toBe('Makefile')
+    expect(fsFiles(disk)).toEqual({ '/home/visitor/Makefile': 'all: build\n' })
+  })
+
+  it('reports a full storage on an in-place save and keeps the typing', () => {
+    const disk = fsDisk({ [NOTES]: 'buy milk\n' })
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(disk, quotaError())) })
+    fireEvent.doubleClick(desktopIcon(container, NOTES))
+    const editor = windowsOf(container, 'editor')[0]
+    const ui = within(editor)
+    fireEvent.change(field(ui, 'notes.txt'), { target: { value: 'too big\n' } })
+
+    save(ui)
+
+    expect(screen.getByRole('status').textContent).toContain("This browser's storage is full.")
+    expect(ui.queryByRole('dialog')).toBeNull()
+    expect(field(ui, 'notes.txt').value).toBe('too big\n')
+    expect(headerTitle(editor)).toBe('• notes.txt')
+    expect(fsFiles(disk)[NOTES]).toBe('buy milk\n')
   })
 })

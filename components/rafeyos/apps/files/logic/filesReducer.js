@@ -12,6 +12,7 @@ export const FILES_ACTIONS = Object.freeze({
   SELECT: 'select',
   SET_SEARCH: 'setSearch',
   SELECT_ALL: 'selectAll',
+  PRUNE: 'prune',
 })
 
 /** @import { ActionOf, HandlerMap } from '@/components/rafeyos/state/logic/createReducer' */
@@ -39,6 +40,7 @@ export const FILES_ACTIONS = Object.freeze({
  *   [FILES_ACTIONS.SELECT]: { path: string, mode?: 'single' | 'toggle' } | { mode: 'clear' },
  *   [FILES_ACTIONS.SET_SEARCH]: { query: string | null },
  *   [FILES_ACTIONS.SELECT_ALL]: { paths: readonly string[] },
+ *   [FILES_ACTIONS.PRUNE]: { exists: (path: string) => boolean },
  * }} FilesPayloads
  */
 
@@ -112,6 +114,20 @@ const setSearch = (state, { query }) => ({ ...state, search: query, selection: [
 /** @type {FilesHandler<typeof FILES_ACTIONS.SELECT_ALL>} Select All: every item the window currently lists. */
 const selectAll = (state, { paths }) => ({ ...state, selection: [...paths] })
 
+/**
+ * @type {FilesHandler<typeof FILES_ACTIONS.PRUNE>} Something outside the window (the shell) deleted paths: the selection
+ * and the history forget them, so Enter never opens a ghost and back and forward skip what is gone.
+ * Nothing gone keeps the same state, so React skips the re-render.
+ */
+const prune = (state, { exists }) => {
+  const selection = state.selection.filter(exists)
+  const back = state.back.filter(exists)
+  const fwd = state.fwd.filter(exists)
+  const unchanged =
+    selection.length === state.selection.length && back.length === state.back.length && fwd.length === state.fwd.length
+  return unchanged ? state : { ...state, selection, back, fwd }
+}
+
 /** @type {HandlerMap<FilesState, FilesPayloads>} */
 const HANDLERS = Object.freeze({
   [FILES_ACTIONS.GO]: go,
@@ -121,6 +137,7 @@ const HANDLERS = Object.freeze({
   [FILES_ACTIONS.SELECT]: select,
   [FILES_ACTIONS.SET_SEARCH]: setSearch,
   [FILES_ACTIONS.SELECT_ALL]: selectAll,
+  [FILES_ACTIONS.PRUNE]: prune,
 })
 
 export const filesReducer = createReducer('files', HANDLERS)

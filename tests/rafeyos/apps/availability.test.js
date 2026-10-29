@@ -33,6 +33,8 @@ describe('app availability', () => {
     expect(handlerFor({ type: 'audio' })).toBe('music')
     expect(handlerFor({ type: 'mailto' })).toBe('mail')
     expect(handlerFor({ type: 'weblink' })).toBeNull()
+    expect(handlerFor(undefined)).toBeNull()
+    expect(handlerFor(null)).toBeNull()
   })
 
   it('names the missing app in the note', () => {

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, dock, fsDisk, fsStoreOn, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { chooseMenuItem, clickDock, dock, fsDisk, fsStoreOn, renderDesktop, rightClick, runFsOp, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { remove } from '@/components/rafeyos/core/vfs/fsOps'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
 
 afterEach(cleanup)
@@ -28,6 +29,24 @@ describe('desktop', () => {
 
     expect([...container.querySelectorAll('.dicon .nm')].map((node) => node.textContent)).toEqual(['Home', 'note.txt'])
     expect(icon(container, '/home/visitor/Desktop/.hidden')).toBeNull()
+  })
+
+  it('forgets a deleted icon in the selection, so Enter opens the one left', () => {
+    const disk = fsDisk({ '/home/visitor/Desktop/notes.txt': 'buy milk\n', '/home/visitor/Desktop/todo.txt': 'call\n' })
+    const { container, services } = renderDesktop({ fs: fsStoreOn(disk) })
+    const select = (path, options = {}) => {
+      fireEvent.pointerDown(icon(container, path), { button: 0, ...options })
+      fireEvent.pointerUp(icon(container, path))
+    }
+    select('/home/visitor/Desktop/notes.txt')
+    select('/home/visitor/Desktop/todo.txt', { ctrlKey: true })
+    expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
+
+    runFsOp(services, remove, { path: '/home/visitor/Desktop/notes.txt' })
+    fireEvent.keyDown(container.querySelector('.dicons'), { key: 'Enter' })
+
+    expect(icon(container, '/home/visitor/Desktop/notes.txt')).toBeNull()
+    expect(windowsOf(container, 'editor').map((editor) => editor.getAttribute('aria-label'))).toEqual(['todo.txt'])
   })
 
   it('opens Home in Files on double click', () => {

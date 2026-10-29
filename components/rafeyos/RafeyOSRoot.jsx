@@ -4,6 +4,7 @@ import { ServicesContext, VfsContext } from './state/logic/contexts'
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { mergeState } from '@/components/rafeyos/core/vfs/fsState'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 import { SessionGate } from './session/SessionGate'
 
 /** A failed store result as the GUI sees it: only the reason, never the state. */
@@ -16,8 +17,9 @@ export const RafeyOSRoot = ({ services }) => {
   const base = useMemo(() => buildVfs(content), [content])
   const state = useSyncExternalStore(fs.subscribe, fs.getState, fs.getState)
   const vfs = useMemo(() => mergeState(base, state), [base, state])
-  const saveDocument = useCallback((folder, name, text) => {
-    const result = fs.saveFile(folder, name, text)
+  // In place: Save on the visitor's own file, written back at folder/name exactly as it is
+  const saveDocument = useCallback((folder, name, text, { inPlace = false } = {}) => {
+    const result = inPlace ? fs.saveInPlace(joinPath(folder, name), text) : fs.saveFile(folder, name, text)
     return result.ok ? { ok: true, name: result.name, path: result.path } : failure(result)
   }, [fs])
   const trashDocument = useCallback((path) => {

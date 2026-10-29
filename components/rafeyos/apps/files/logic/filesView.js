@@ -1,6 +1,6 @@
 // What a Files window shows for its reducer state. Pure, so the components stay thin.
 import { HOME, RAFEY_HOME, ROOT, TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
-import { joinPath } from '@/components/rafeyos/core/vfs/paths'
+import { joinPath, parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { children, displayName, isDir, isHidden, kindOf, search, sizeLabel } from '@/components/rafeyos/core/vfs/queries'
 
 export const RECENT = 'recent'
@@ -27,6 +27,16 @@ export const SIDEBAR = Object.freeze([
   null,
   { path: TRASH, label: 'Trash', icon: 'trash' },
 ])
+
+/** Whether a window can still show `path`: a place outside the tree (Recent, Starred) or an entry that exists. */
+export const isShowable = (vfs, path) => Boolean(PLACES[path] || vfs[path])
+
+/** The closest folder at or above `path` that still exists: where a window goes when its folder is deleted, as in Nautilus. */
+export const nearestFolder = (vfs, path) => {
+  let folder = path
+  while (folder && vfs[folder]?.type !== 'dir') folder = parentOf(folder)
+  return folder ?? ROOT
+}
 
 export const locationLabel = (vfs, path) => PLACES[path]?.label ?? displayName(vfs, path)
 

@@ -193,6 +193,8 @@ export const createFsStore = ({ storage, win, now }) => {
     },
     /** @param {string} folder @param {string} name @param {string} text */
     saveFile: (folder, name, text) => write((current, time) => fsState.saveFile(current, folder, name, text, time)),
+    /** @param {string} path the visitor's own text file @param {string} text */
+    saveInPlace: (path, text) => write((current, time) => fsState.saveInPlace(current, path, text, time)),
     /** @param {string} path */
     moveToTrash: (path) => write((current, time) => fsState.moveToTrash(current, path, time)),
     /** @param {string} path the file's original path */

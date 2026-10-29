@@ -6,7 +6,8 @@ import { RafeyOSRoot } from '@/components/rafeyos/RafeyOSRoot'
 import { SESSION_KEY } from '@/components/rafeyos/session/logic/sessionStore'
 import { fakeAudioFactory } from '@/tests/rafeyos/helpers/fakeAudio'
 import { FS_KEY, createFsStore } from '@/components/rafeyos/core/vfs/fsStore'
-import { seedState, serializeState } from '@/components/rafeyos/core/vfs/fsState'
+import { mergeState, seedState, serializeState } from '@/components/rafeyos/core/vfs/fsState'
+import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 export const memoryStorage = (entries = {}) => {
   const map = new Map(Object.entries(entries))
@@ -59,6 +60,18 @@ export const fsFiles = (disk) =>
 /** The trash written to `disk`, as original path -> text. */
 export const fsTrash = (disk) =>
   Object.fromEntries(Object.entries(storedState(disk).trash).map(([path, entry]) => [path, entry.node.text]))
+
+/**
+ * Runs one fsOps call (`op`) through the visitor's store inside act, as the shell does: against the merged tree,
+ * so the GUI re-renders around a file changing underneath it. Returns the store's result.
+ */
+export const runFsOp = (services, op, args) => {
+  let result
+  act(() => {
+    result = services.fs.commit((state, now) => op(mergeState(realVfs, state), state, args, now))
+  })
+  return result
+}
 
 export const fakeServices = (overrides = {}) => ({
   navigate: vi.fn(),

@@ -1,5 +1,5 @@
 import { BIN, HOME, RAFEY_HOME, TMP, USR_BIN } from './buildVfs'
-import { parentOf, realPath } from './paths'
+import { parentOf, realPath, resolve } from './paths'
 import { humanBytes } from './format'
 
 const KIND = Object.freeze({
@@ -15,7 +15,14 @@ const encoder = new TextEncoder()
 
 export const isDir = (vfs, path) => vfs[realPath(vfs, path)]?.type === 'dir'
 
-export const displayName = (vfs, path) => (path === HOME ? 'Home' : vfs[path].display || vfs[path].name)
+const lastSegment = (path) => path.slice(path.lastIndexOf('/') + 1)
+
+/** A path that no longer exists (the shell removed it) still names itself, by its last segment. */
+export const displayName = (vfs, path) => {
+  if (path === HOME) return 'Home'
+  const node = vfs[path]
+  return node ? node.display || node.name : lastSegment(path)
+}
 
 const byDirThenName = (vfs) => (a, b) =>
   Number(isDir(vfs, b)) - Number(isDir(vfs, a)) ||
@@ -27,8 +34,10 @@ export const children = (vfs, path) =>
     .filter((key) => key !== path && parentOf(key) === path)
     .sort(byDirThenName(vfs))
 
+/** Bytes a file holds; 0 for a path that is gone and for a link that leads nowhere. */
 export const sizeOf = (vfs, path) => {
   const node = vfs[realPath(vfs, path)]
+  if (!node || node.type === 'symlink') return 0
   return node.type === 'audio' ? node.sizeBytes : encoder.encode(node.text || '').length
 }
 
@@ -38,9 +47,17 @@ export const sizeLabel = (vfs, path) => {
   return `${count} item${count === 1 ? '' : 's'}`
 }
 
+const UNKNOWN_KIND = 'Unknown'
+const BROKEN_LINK_KIND = 'Link (broken)'
+
+/** "Unknown" for a path that is gone; a link names what it reaches, or is broken when that is gone. */
 export const kindOf = (vfs, path) => {
   const node = vfs[path]
-  if (node.type === 'symlink') return `Link to ${KIND[vfs[node.target].type].toLowerCase()}`
+  if (!node) return UNKNOWN_KIND
+  if (node.type === 'symlink') {
+    const reached = resolve(vfs, path, { followLast: true })
+    return reached.ok ? `Link to ${KIND[vfs[reached.path].type].toLowerCase()}` : BROKEN_LINK_KIND
+  }
   if (path.endsWith('.md')) return 'Markdown document'
   return KIND[node.type]
 }

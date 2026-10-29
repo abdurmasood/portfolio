@@ -6,7 +6,7 @@ import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { FILE_VIEWS, FILES_ACTIONS, filesReducer, initialFilesState } from './logic/filesReducer'
-import { floatbarText, listItems, windowTitle } from './logic/filesView'
+import { floatbarText, isShowable, listItems, nearestFolder, windowTitle } from './logic/filesView'
 import { FilesSidebar } from './FilesSidebar'
 import { FilesHeader } from './FilesHeader'
 import { FilesEmpty, FilesGrid, FilesList } from './FilesItems'
@@ -118,6 +118,21 @@ const FilesBody = ({ files, menus }) => {
 }
 
 /**
+ * Keeps the window on what still exists while the shell deletes underneath it: a deleted folder sends the window up to
+ * the nearest one left, without a history entry, and the selection and history forget whatever is gone.
+ * @param {Vfs} vfs
+ * @param {FilesState} state
+ * @param {Dispatch<FilesAction>} dispatch
+ */
+const useFollowDeletes = (vfs, state, dispatch) => {
+  const { path } = state
+  useEffect(() => {
+    if (!isShowable(vfs, path)) dispatch({ type: FILES_ACTIONS.GO, path: nearestFolder(vfs, path), fromHistory: true })
+  }, [vfs, path, dispatch])
+  useEffect(() => dispatch({ type: FILES_ACTIONS.PRUNE, exists: (other) => isShowable(vfs, other) }), [vfs, dispatch])
+}
+
+/**
  * "Show in Files" opens the folder with the file already selected.
  * @param {{ path: string, select?: string }} launch
  */
@@ -131,6 +146,7 @@ export const FilesApp = ({ windowId, arg, init }) => {
   const { vfs } = useVfs()
   const windowManager = useWindowManager()
   const [state, dispatch] = useReducer(filesReducer, { path: arg || HOME, select: init?.select }, initialState)
+  useFollowDeletes(vfs, state, dispatch)
   const sidebar = useSidebarToggle()
   const items = useMemo(() => listItems(vfs, state), [vfs, state])
   const menus = useFilesMenus({ state, dispatch, items })
@@ -140,6 +156,7 @@ export const FilesApp = ({ windowId, arg, init }) => {
   return (
     <div className={splitClassName(sidebar)}>
       <FilesSidebar
+        vfs={vfs}
         path={state.path}
         searching={state.search !== null}
         onGo={(path) => {

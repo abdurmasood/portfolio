@@ -14,4 +14,12 @@ describe('useOpenPath', () => {
       body: "Opening links isn't available yet.",
     })
   })
+
+  it('shows the same banner for a path that vanished, without throwing', () => {
+    expect(unavailableBanner(realVfs, '/home/visitor/Documents/gone.txt')).toEqual({
+      appId: null,
+      title: "Can't open “gone.txt”",
+      body: "Opening links isn't available yet.",
+    })
+  })
 })

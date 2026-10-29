@@ -76,6 +76,35 @@ describe('kindOf', () => {
   })
 })
 
+describe('missing paths and dangling links', () => {
+  const linked = mergeState(buildVfs(fixtureContent), withNodes(seedState(0), {
+    ...seedState(0).nodes,
+    '/home/visitor/nowhere': symlinkNode('gone.txt', 0),
+    '/home/visitor/chain': symlinkNode('bio', 0),
+    '/home/visitor/bio': symlinkNode('../rafey/bio.txt', 0),
+  }))
+
+  it('display name of a missing path is its last segment', () => {
+    const gone = '/home/visitor/Documents/gone.txt'
+
+    expect(displayName(vfs, gone)).toBe('gone.txt')
+    expect(kindOf(vfs, gone)).toBe('Unknown')
+    expect(sizeOf(vfs, gone)).toBe(0)
+    expect(sizeLabel(vfs, gone)).toBe('0 bytes')
+  })
+
+  it('calls a dangling link broken, with no size', () => {
+    expect(kindOf(linked, '/home/visitor/nowhere')).toBe('Link (broken)')
+    expect(sizeOf(linked, '/home/visitor/nowhere')).toBe(0)
+    expect(sizeLabel(linked, '/home/visitor/nowhere')).toBe('0 bytes')
+  })
+
+  it('names what a relative or chained link reaches', () => {
+    expect(kindOf(linked, '/home/visitor/chain')).toBe('Link to plain text document')
+    expect(sizeOf(linked, '/home/visitor/chain')).toBe(sizeOf(linked, '/home/rafey/bio.txt'))
+  })
+})
+
 describe('search', () => {
   it('matches display names case-insensitively', () => {
     expect(search(vfs, 'EMAIL')).toEqual(['/home/rafey/contact/email.desktop'])

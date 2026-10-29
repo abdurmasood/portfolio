@@ -41,11 +41,13 @@ import { createContext, useContext } from 'react'
 
 /**
  * What RafeyOSRoot provides: the merged tree and the visitor's file operations, which go through the fs store.
+ * saveDocument with `inPlace` writes the visitor's existing file at folder/name as it is; without, it saves into a
+ * save folder, adding .txt to a bare name.
  * @typedef {{ ok: false, reason: FsFailure | 'full' | 'blocked' }} VfsFailure
  * @typedef {Readonly<{
  *   vfs: Vfs,
  *   content: Content,
- *   saveDocument: (folder: string, name: string, text: string) => { ok: true, name: string, path: string } | VfsFailure,
+ *   saveDocument: (folder: string, name: string, text: string, options?: { inPlace?: boolean }) => { ok: true, name: string, path: string } | VfsFailure,
  *   trashDocument: (path: string) => { ok: true } | VfsFailure,
  *   restoreDocument: (path: string) => { ok: true, path: string } | VfsFailure,
  *   emptyTrashDocument: () => { ok: true } | VfsFailure,
