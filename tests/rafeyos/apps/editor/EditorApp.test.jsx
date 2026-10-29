@@ -132,7 +132,7 @@ describe('Text Editor', () => {
     fireEvent.click(ui.getByRole('button', { name: 'Main Menu' }))
     chooseMenuItem('Open in Terminal')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
   })
 
   it('keeps Save off for a shipped file and uses New to open a blank page', () => {

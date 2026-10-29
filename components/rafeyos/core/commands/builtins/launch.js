@@ -1,9 +1,8 @@
 // Commands that open apps or files: open/xdg-open/gio open, nautilus, text editors
-import { dim, error, pre } from '@/components/rafeyos/core/commands/lines'
-import { realPath } from '@/components/rafeyos/core/vfs/paths'
+import { dim, pre } from '@/components/rafeyos/core/commands/lines'
+import { realPath, resolvePath } from '@/components/rafeyos/core/vfs/paths'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
-import { result, EFFECTS } from './result'
-import { target } from './target'
+import { failure, operands, result, EFFECTS } from './result'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 
 const UNINSTALLED_EDITORS = new Set(['nano', 'vim', 'vi'])
@@ -18,27 +17,30 @@ const openContact = (what, content) => {
   )
 }
 
-const open = ({ parsed, name, vfs, cwd, content }) => {
+const open = ({ argv, name, fs, cwd, content }) => {
   // `gio open <x>`: the first arg is gio's subcommand
-  const args = name === 'gio' ? parsed.args.slice(1) : parsed.args
-  const what = args.join(' ')
+  const args = name === 'gio' ? operands(argv).slice(1) : operands(argv)
+  const [what] = args
   if (what === 'email' || what === 'linkedin') return openContact(what, content)
-  const path = what ? target(vfs, what, cwd) : null
-  if (!path) return result([error(`${name}: ${what || 'missing operand'}: No such file or directory`)])
+  const vfs = fs.vfs()
+  const path = what ? resolvePath(vfs, what, cwd) : null
+  if (!path) return failure(`${name}: ${what || 'missing operand'}: No such file or directory`)
   return result([], [{ type: EFFECTS.OPEN_PATH, path: realPath(vfs, path) }])
 }
 
-const nautilus = ({ parsed, vfs, cwd }) => {
-  const arg = parsed.args.join(' ')
-  const path = arg ? target(vfs, arg, cwd) : cwd
-  if (!path || !isDir(vfs, path)) return result([error(`nautilus: ${arg}: not a folder`)])
+const nautilus = ({ argv, fs, cwd }) => {
+  const vfs = fs.vfs()
+  const [arg] = operands(argv)
+  const path = arg ? resolvePath(vfs, arg, cwd) : cwd
+  if (!path || !isDir(vfs, path)) return failure(`nautilus: ${arg ?? ''}: not a folder`)
   return result([], [{ type: EFFECTS.OPEN_APP, app: APP.FILES, path: realPath(vfs, path) }])
 }
 
-const editor = ({ parsed, name, vfs, cwd }) => {
-  const arg = parsed.args.join(' ')
-  const path = arg ? target(vfs, arg, cwd) : null
-  if (!path || isDir(vfs, path)) return result([error(`${name}: ${arg || 'missing file'}: No such file`)])
+const editor = ({ argv, name, fs, cwd }) => {
+  const vfs = fs.vfs()
+  const [arg] = operands(argv)
+  const path = arg ? resolvePath(vfs, arg, cwd) : null
+  if (!path || isDir(vfs, path)) return failure(`${name}: ${arg || 'missing file'}: No such file`)
   const lines = UNINSTALLED_EDITORS.has(name) ? [dim(`${name} isn't installed here, opened Text Editor instead`)] : []
   return result(lines, [{ type: EFFECTS.OPEN_APP, app: APP.EDITOR, path: realPath(vfs, path) }])
 }

@@ -5,6 +5,7 @@ import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { mergeState } from '@/components/rafeyos/core/vfs/fsState'
 import { joinPath } from '@/components/rafeyos/core/vfs/paths'
+import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { SessionGate } from './session/SessionGate'
 
 /** A failed store result as the GUI sees it: only the reason, never the state. */
@@ -17,6 +18,8 @@ export const RafeyOSRoot = ({ services }) => {
   const base = useMemo(() => buildVfs(content), [content])
   const state = useSyncExternalStore(fs.subscribe, fs.getState, fs.getState)
   const vfs = useMemo(() => mergeState(base, state), [base, state])
+  // The terminal's way in: reads the store's latest state itself, so it never waits on a render
+  const shellFs = useMemo(() => createShellFs({ base, store: fs }), [base, fs])
   // In place: Save on the visitor's own file, written back at folder/name exactly as it is
   const saveDocument = useCallback((folder, name, text, { inPlace = false } = {}) => {
     const result = inPlace ? fs.saveInPlace(joinPath(folder, name), text) : fs.saveFile(folder, name, text)
@@ -35,8 +38,8 @@ export const RafeyOSRoot = ({ services }) => {
     return result.ok ? { ok: true, path } : failure(result)
   }, [fs])
   const vfsValue = useMemo(
-    () => Object.freeze({ content, vfs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument }),
-    [content, vfs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument],
+    () => Object.freeze({ content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument }),
+    [content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument],
   )
   return (
     <ServicesContext.Provider value={services}>

@@ -55,7 +55,7 @@ const openPathNote = (path, handlers) => {
     return null
   }
   if (isAudio(vfs, path)) handlers.play()
-  return windowManager.openPath(path) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
+  return windowManager.openPath(path, { vfs }) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
 }
 
 /**

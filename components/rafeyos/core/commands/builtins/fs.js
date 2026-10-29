@@ -1,10 +1,9 @@
 // Filesystem commands: ls, cd, pwd, cat
-import { error, ls as lsLine, pre } from '@/components/rafeyos/core/commands/lines'
+import { ls as lsLine } from '@/components/rafeyos/core/commands/lines'
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
-import { joinPath, realPath, absPath } from '@/components/rafeyos/core/vfs/paths'
+import { joinPath, realPath, absPath, resolvePath } from '@/components/rafeyos/core/vfs/paths'
 import { children, isDir } from '@/components/rafeyos/core/vfs/queries'
-import { result } from './result'
-import { target } from './target'
+import { failure, operands } from './result'
 
 // Same answers the home terminal gives for its pretend files
 const HOME_FILE_MESSAGES = Object.freeze({
@@ -19,35 +18,50 @@ const entryFor = (vfs, path) => {
   return { name: shown, kind: isDir(vfs, path) ? 'dir' : 'file' }
 }
 
-const ls = ({ parsed, vfs, cwd }) => {
-  const arg = parsed.args.join(' ')
-  const path = arg ? target(vfs, arg, cwd) : cwd
-  if (!path) return result([error(`ls: cannot access '${arg}': No such file or directory`)])
-  if (!isDir(vfs, path)) return result([lsLine([entryFor(vfs, path)])])
-  const kids = children(vfs, realPath(vfs, path))
-  return result(kids.length ? [lsLine(kids.map((kid) => entryFor(vfs, kid)))] : [])
+// On screen one coloured row; down a pipe or into a file one plain name per line, as ls does
+const listing = (vfs, paths) => ({
+  stdout: paths.map((path) => `${vfs[path].name}\n`).join(''),
+  display: paths.length ? [lsLine(paths.map((path) => entryFor(vfs, path)))] : [],
+})
+
+const ls = ({ argv, fs, cwd }) => {
+  const vfs = fs.vfs()
+  const [arg] = operands(argv)
+  const path = arg ? resolvePath(vfs, arg, cwd) : cwd
+  if (!path) return failure(`ls: cannot access '${arg}': No such file or directory`, 2)
+  if (!isDir(vfs, path)) return listing(vfs, [path])
+  return listing(vfs, children(vfs, realPath(vfs, path)))
 }
 
-const cd = ({ parsed, vfs, cwd }) => {
-  const arg = parsed.args.join(' ')
-  const path = arg ? target(vfs, arg, cwd) : HOME
-  if (!path) return result([error(`bash: cd: ${arg}: No such file or directory`)])
-  if (!isDir(vfs, path)) return result([error(`bash: cd: ${arg}: Not a directory`)])
-  return { ...result(), cwd: realPath(vfs, path) }
+const cd = ({ argv, fs, cwd }) => {
+  const vfs = fs.vfs()
+  const [arg] = operands(argv)
+  const path = arg ? resolvePath(vfs, arg, cwd) : HOME
+  if (!path) return failure(`bash: cd: ${arg}: No such file or directory`)
+  if (!isDir(vfs, path)) return failure(`bash: cd: ${arg}: Not a directory`)
+  return { cwd: realPath(vfs, path), env: { OLDPWD: cwd } }
 }
 
-const pwd = ({ cwd }) => result([pre(absPath(cwd))])
+const pwd = ({ cwd }) => ({ stdout: `${absPath(cwd)}\n` })
 
-const cat = ({ parsed, vfs, cwd }) => {
-  const arg = parsed.args.join(' ')
-  if (!arg) return result([pre('Usage: cat <file-name>')])
-  if (HOME_FILE_MESSAGES[arg] && !vfs[joinPath(cwd, arg)]) return result([pre(HOME_FILE_MESSAGES[arg])])
-  const path = target(vfs, arg, cwd)
-  if (!path) return result([error(`cat: ${arg}: No such file or directory`)])
-  if (isDir(vfs, path)) return result([error(`cat: ${arg}: Is a directory`)])
+// One file's text, or the error cat prints for it
+const catOne = (vfs, arg, cwd) => {
+  if (HOME_FILE_MESSAGES[arg] && !vfs[joinPath(cwd, arg)]) return { text: `${HOME_FILE_MESSAGES[arg]}\n` }
+  const path = resolvePath(vfs, arg, cwd)
+  if (!path) return { error: `cat: ${arg}: No such file or directory` }
+  if (isDir(vfs, path)) return { error: `cat: ${arg}: Is a directory` }
   const node = vfs[realPath(vfs, path)]
-  if (node.type === 'audio') return result([error(`cat: ${arg}: binary file (try: music play)`)])
-  return result([pre(node.text)])
+  if (node.type === 'audio') return { error: `cat: ${arg}: binary file (try: music play)` }
+  return { text: node.text }
+}
+
+const cat = ({ argv, fs, cwd, stdin }) => {
+  const args = operands(argv)
+  if (!args.length) return { stdout: stdin ?? 'Usage: cat <file-name>\n' }
+  const vfs = fs.vfs()
+  const read = args.map((arg) => catOne(vfs, arg, cwd))
+  const stderr = read.flatMap((one) => (one.error ? [one.error] : []))
+  return { stdout: read.map((one) => one.text ?? '').join(''), stderr, code: stderr.length ? 1 : 0 }
 }
 
 export const fsCommands = Object.freeze({ ls, cd, pwd, cat })

@@ -52,7 +52,7 @@ describe('Properties', () => {
     ])
 
     fireEvent.click(ui.getByRole('button', { name: 'Open in Terminal' }))
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: ~')
   })
 
   it('properties shows a deleted file as gone', () => {

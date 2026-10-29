@@ -21,5 +21,5 @@ export const link = (text, href) => ({ type: LINE_TYPES.LINK, text, href })
 /** @param {{ name: string, kind: 'dir'|'link'|'file' }[]} entries */
 export const ls = (entries) => ({ type: LINE_TYPES.LS, entries: entries.map((entry) => ({ ...entry })) })
 
-/** The echoed `visitor@rafey:<cwd>$ <cmd>` row; exec() never emits it, the UI does. */
+/** The echoed `visitor@rafey.ai:<cwd>$ <cmd>` row; exec() never emits it, the UI does. */
 export const prompt = (cwd, cmd) => ({ type: LINE_TYPES.PROMPT, cwd, cmd })

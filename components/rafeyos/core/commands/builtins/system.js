@@ -1,17 +1,20 @@
-// System commands: identity, echo, refusals, clear, exit, logout
-import { error, pre } from '@/components/rafeyos/core/commands/lines'
-import { result, EFFECTS } from './result'
+// System commands: identity, echo, true/false, refusals, clear, exit, logout
+import { pre } from '@/components/rafeyos/core/commands/lines'
+import { failure, result, EFFECTS } from './result'
 
-const whoami = () => result([pre('visitor')])
+const whoami = () => ({ stdout: 'visitor\n' })
 
-const uname = ({ parsed }) =>
-  result([pre(parsed.flags.includes('-a') ? 'Linux rafey 6.8.0-rafey x86_64 GNU/Linux' : 'Linux')])
+const uname = ({ argv }) => ({ stdout: argv.includes('-a') ? 'Linux rafey.ai 6.8.0-rafey x86_64 GNU/Linux\n' : 'Linux\n' })
 
-const echo = ({ parsed }) => result([pre(parsed.words.join(' '))])
+const echo = ({ argv }) => ({ stdout: `${argv.join(' ')}\n` })
 
-const sudo = () => result([error('visitor is not in the sudoers file.  This incident will be reported.')])
+// Builtins that only set $?, so && and || have something to show off
+const succeed = () => ({ code: 0 })
+const fail = () => ({ code: 1 })
 
-const denied = ({ name }) => result([error(`${name}: Permission denied`)])
+const sudo = () => failure('visitor is not in the sudoers file.  This incident will be reported.')
+
+const denied = ({ name }) => failure(`${name}: Permission denied`)
 
 const clear = () => result([], [{ type: EFFECTS.CLEAR }])
 
@@ -25,6 +28,8 @@ export const systemCommands = Object.freeze({
   whoami,
   uname,
   echo,
+  true: succeed,
+  false: fail,
   sudo,
   rm: denied,
   mkdir: denied,

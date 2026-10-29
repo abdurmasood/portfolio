@@ -11,7 +11,7 @@ import { APP } from '@/components/rafeyos/core/catalog/apps'
 // The mockup focuses the prompt just after the open animation starts
 const FOCUS_DELAY_MS = 60
 
-export const terminalTitle = (cwd) => `visitor@rafey: ${tilde(cwd)}`
+export const terminalTitle = (cwd) => `visitor@rafey.ai: ${tilde(cwd)}`
 
 const useAutoFocus = (inputRef) => {
   useEffect(() => {
@@ -65,7 +65,7 @@ const PromptLine = ({ cwd, input, keys, inputRef }) => (
   </div>
 )
 
-/** GNOME Terminal running rafeyOS's pretend bash. */
+/** GNOME Terminal running rafeyOS's bash. */
 export const TerminalApp = ({ windowId, arg }) => {
   const { vfs } = useVfs()
   const windowManager = useWindowManager()

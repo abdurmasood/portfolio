@@ -64,7 +64,7 @@ describe('Settings app', () => {
 
     expect(win.querySelector('.about-hero').textContent).toBe('rafeyOSrafeyOS 24.04 LTS')
     expect(rowsOf(win)).toEqual([
-      ['Device Name', 'rafey'],
+      ['Device Name', 'rafey.ai'],
       ['Hardware Model', 'A. Rafey Masood · built 1997, Islamabad'],
       ['Memory', `${age()} years`],
       ['Processor', 'Self-taught full-stack developer'],

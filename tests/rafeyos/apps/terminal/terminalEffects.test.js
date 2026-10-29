@@ -66,7 +66,7 @@ describe('terminal effects', () => {
 
     applyTerminalEffects([{ type: 'openPath', path: '/home/rafey/Music/storms-ahead.mp3' }], deps)
     expect(deps.play).toHaveBeenCalledTimes(2)
-    expect(deps.windowManager.openPath).toHaveBeenCalledWith('/home/rafey/Music/storms-ahead.mp3')
+    expect(deps.windowManager.openPath).toHaveBeenCalledWith('/home/rafey/Music/storms-ahead.mp3', { vfs: realVfs })
   })
 
   it('asks before opening a web link file', () => {

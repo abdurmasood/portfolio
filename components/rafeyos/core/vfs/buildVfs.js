@@ -61,7 +61,7 @@ const COMMANDS = Object.freeze(['bio', 'projects', 'blog', 'music', 'contact', '
 /** Every other command the shell runs, stubbed in /usr/bin as Ubuntu ships them. Bash builtins like cd stay out. */
 export const SYSTEM_COMMANDS = Object.freeze([
   'ls', 'pwd', 'mkdir', 'rmdir', 'touch', 'rm', 'cp', 'mv', 'cat', 'tree', 'find', 'ln', 'stat', 'echo', 'head', 'tail', 'wc', 'grep', 'sort', 'uniq',
-  'less', 'whoami', 'uname', 'date', 'uptime', 'hostname', 'clear', 'which', 'man', 'env', 'true', 'false', 'sudo', 'xdg-open', 'gio',
+  'less', 'whoami', 'uname', 'date', 'uptime', 'hostname', 'clear', 'which', 'man', 'env', 'true', 'false', 'sudo', 'open', 'xdg-open', 'gio',
   'nautilus', 'gedit', 'gnome-text-editor', 'nano', 'vim', 'vi', 'rafeyos', 'startx',
 ])
 

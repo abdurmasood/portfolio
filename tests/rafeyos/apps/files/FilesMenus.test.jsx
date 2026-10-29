@@ -74,7 +74,7 @@ describe('Files item menu', () => {
     rightClick(item(win, '/home/rafey/skills.txt'))
     chooseMenuItem('Properties')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/blog')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/blog')
     expect(windowsOf(container, 'properties')[0].getAttribute('aria-label')).toBe('skills.txt Properties')
   })
 
@@ -110,7 +110,7 @@ describe('Files background menu', () => {
     rightClick(body(win))
     chooseMenuItem('Properties')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/Music')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/Music')
     expect(windowsOf(container, 'properties')[0].getAttribute('aria-label')).toBe('Music Properties')
   })
 

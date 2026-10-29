@@ -94,11 +94,11 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
 
   /**
    * Opens a file in its default app; false for web links and apps that aren't built yet.
+   * `vfs` is the tree to read when the caller has a newer one than the last render (the terminal, just after a write).
    * @param {string} path
-   * @param {{ from?: Rect | null }} [options]
+   * @param {{ from?: Rect | null, vfs?: Vfs }} [options]
    */
-  const openPath = (path, { from = null } = {}) => {
-    const vfs = getVfs()
+  const openPath = (path, { from = null, vfs = getVfs() } = {}) => {
     const target = realPath(vfs, path)
     const node = vfs[target]
     const appId = node ? handlerFor(node) : null

@@ -3,7 +3,7 @@
 
 export const ABOUT_TEXT = Object.freeze({
   product: 'rafeyOS 24.04 LTS',
-  deviceName: 'rafey',
+  deviceName: 'rafey.ai',
   hardwareModel: 'A. Rafey Masood · built 1997, Islamabad',
   processor: 'Self-taught full-stack developer',
   education: "Computer Science, then AI (2024), King's College London",

@@ -5,7 +5,7 @@ import { tilde } from '@/components/rafeyos/core/vfs/paths'
 /** Ubuntu's bash prompt: green user@host, blue path. */
 export const TerminalPrompt = ({ cwd }) => (
   <span>
-    <span className="pg">visitor@rafey</span>:<span className="pb">{tilde(cwd)}</span>${' '}
+    <span className="pg">visitor@rafey.ai</span>:<span className="pb">{tilde(cwd)}</span>${' '}
   </span>
 )
 

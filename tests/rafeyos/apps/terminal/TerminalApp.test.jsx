@@ -16,7 +16,65 @@ describe('Terminal app', () => {
 
     expect(log(win).textContent).toContain('Available commands:')
     expect(log(win).textContent).toContain("Use ↑ for history, tab to autocomplete, 'clear' to reset.")
-    expect(log(win).querySelector('.pg').textContent).toBe('visitor@rafey')
+    expect(log(win).querySelector('.pg').textContent).toBe('visitor@rafey.ai')
+  })
+
+  it('terminal prompt and title say rafey.ai', () => {
+    const { container } = renderDesktop()
+    const { win } = openTerminal(container)
+
+    expect(win.querySelector('.tline .pg').textContent).toBe('visitor@rafey.ai')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+  })
+
+  it('ctrl+c prints ^C, clears the input and sets $? to 130', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    fireEvent.change(input, { target: { value: 'echo oops' } })
+
+    fireEvent.keyDown(input, { key: 'c', ctrlKey: true })
+
+    expect(input.value).toBe('')
+    // The prompt's space is a no-break one, so it survives in the DOM
+    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:/home/rafey$\u00a0echo oops^C')
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('130')
+  })
+
+  it('keeps $? from one command line to the next', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'false')
+    typeCommand(input, 'echo $?')
+
+    expect(log(win).lastElementChild.textContent).toBe('1')
+  })
+
+  it('creating a file then xdg-open on one line opens it in the editor', () => {
+    const { container, services } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'cd && echo hi > notes.txt && xdg-open notes.txt')
+
+    expect(services.fs.getState().nodes['/home/visitor/notes.txt'].text).toBe('hi\n')
+    expect(windowsOf(container, 'editor').map((editor) => editor.getAttribute('aria-label'))).toEqual(['notes.txt'])
+  })
+
+  it('a new terminal starts in rafey\'s home and New Window copies the cwd', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+    typeCommand(input, 'cd ~/Documents')
+
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    fireEvent.keyDown(document.body, { key: 't', ctrlKey: true, altKey: true })
+
+    expect(windowsOf(container, 'terminal').map((terminal) => terminal.getAttribute('aria-label'))).toEqual([
+      'visitor@rafey.ai: ~/Documents',
+      'visitor@rafey.ai: ~/Documents',
+      'visitor@rafey.ai: /home/rafey',
+    ])
   })
 
   it('starts in Rafey\'s home and lists it with folders in blue', () => {
@@ -57,7 +115,7 @@ describe('Terminal app', () => {
 
     typeCommand(input, 'cd projects')
 
-    expect(win.getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/projects')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/projects')
     expect(win.querySelector('.tline .pb').textContent).toBe('/home/rafey/projects')
   })
 
@@ -165,7 +223,7 @@ describe('Terminal app', () => {
 
     const terminals = windowsOf(container, 'terminal')
     expect(terminals).toHaveLength(2)
-    expect(terminals[1].getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey/blog')
+    expect(terminals[1].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/blog')
   })
 
   it('closes its window on exit', () => {

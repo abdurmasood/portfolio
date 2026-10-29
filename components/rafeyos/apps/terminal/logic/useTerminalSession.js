@@ -34,33 +34,44 @@ const useDelayedLogout = () => {
   }, [sessionDispatch])
 }
 
+// What Ctrl+C leaves in $?: 128 + SIGINT
+const INTERRUPTED_CODE = 130
+
 /**
- * One terminal window's shell: cwd, output log, and running commands through exec() + effects.
+ * One terminal window's shell: its folder, variables and last exit code, the output log, and running lines through
+ * exec() + effects.
  * @param {{ windowId: number, initialCwd: string }} options
  */
 export const useTerminalSession = ({ windowId, initialCwd }) => {
-  const { vfs, content } = useVfs()
+  const { vfs, content, shellFs } = useVfs()
   const windowManager = useWindowManager()
-  const { openExternal } = useServices()
+  const { openExternal, now } = useServices()
   const logout = useDelayedLogout()
   const openLink = useOpenLinkDialog()
   const { play } = useMusicControls()
   const [cwd, setCwd] = useState(() => (initialCwd && isDir(vfs, initialCwd) ? initialCwd : START_DIR))
-  const cwdRef = useRef(cwd)
+  // Read and written within one keypress, so a ref rather than state
+  const shell = useRef({ cwd, env: { PWD: cwd }, lastCode: 0 })
   const log = useLog()
   const handlers = useMemo(
-    () => ({ vfs, windowManager, openExternal, openLink, play, logout, closeSelf: () => windowManager.close(windowId) }),
-    [vfs, windowManager, openExternal, openLink, play, logout, windowId],
+    () => ({ windowManager, openExternal, openLink, play, logout, closeSelf: () => windowManager.close(windowId) }),
+    [windowManager, openExternal, openLink, play, logout, windowId],
   )
   const { append } = log
   const run = useCallback((raw) => {
-    const before = cwdRef.current
-    const result = exec(raw.trim(), { vfs, cwd: before, content })
-    const { notes, clear } = applyTerminalEffects(result.effects, handlers)
-    cwdRef.current = result.cwd
+    const before = shell.current
+    const result = exec(raw, { fs: shellFs, cwd: before.cwd, env: before.env, lastCode: before.lastCode, content, now })
+    shell.current = { cwd: result.cwd, env: result.env, lastCode: result.code }
+    // Read after exec, so a file the line just made can be opened by it
+    const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, vfs: shellFs.vfs() })
     setCwd(result.cwd)
-    const echoed = clear ? [] : [prompt(before, raw)]
+    const echoed = clear ? [] : [prompt(before.cwd, raw)]
     append([...echoed, ...result.lines, ...notes], { clearFirst: clear })
-  }, [vfs, content, handlers, append])
-  return { cwd, entries: log.entries, run, append, clear: log.clear }
+  }, [shellFs, content, now, handlers, append])
+  // Ctrl+C at the prompt: the abandoned line is echoed with ^C and $? becomes 130
+  const interrupt = useCallback((input) => {
+    shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }
+    append([prompt(shell.current.cwd, `${input}^C`)])
+  }, [append])
+  return { cwd, entries: log.entries, run, interrupt, append, clear: log.clear }
 }

@@ -76,6 +76,15 @@ describe('window manager', () => {
     expect(state.byId[1].arg).toBe('/home/visitor/Documents/notes.txt')
   })
 
+  it('opens a path from the tree it is handed, ahead of the one it reads', () => {
+    const { wm, state } = setup()
+    const vfs = mergeState(realVfs, saveFile(seedState(0), '/home/visitor/Documents', 'fresh', 'hi\n', 0).state)
+
+    expect(wm.openPath('/home/visitor/Documents/fresh.txt')).toBe(false)
+    expect(wm.openPath('/home/visitor/Documents/fresh.txt', { vfs })).toBe(true)
+    expect(state().byId[1].arg).toBe('/home/visitor/Documents/fresh.txt')
+  })
+
   it('leaves web links, missing paths and unbuilt apps to the caller', () => {
     const { wm, dispatch } = setup()
 

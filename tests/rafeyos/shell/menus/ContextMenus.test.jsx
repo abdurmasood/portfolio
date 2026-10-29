@@ -70,7 +70,7 @@ describe('wallpaper menu', () => {
     chooseMenuItem('Open in Terminal')
 
     expect(windowsOf(container, 'files')[0].getAttribute('aria-label')).toBe('Desktop')
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~/Desktop')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: ~/Desktop')
   })
 
   it('closes on Escape and on a press elsewhere', () => {
@@ -129,7 +129,7 @@ describe('desktop icon menu', () => {
 
     chooseMenuItem('Open in Terminal')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey: ~')
+    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: ~')
   })
 
   it('shows a file in Files, selected', () => {

@@ -64,6 +64,12 @@ export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
       event.preventDefault()
       return session.clear()
     }
+    if (event.ctrlKey && event.key.toLowerCase() === 'c') {
+      event.preventDefault()
+      tabCount.current = 0
+      setInput('')
+      return session.interrupt(input)
+    }
     const handler = keys[event.key]
     if (!handler) return undefined
     if (event.key !== 'Enter') event.preventDefault()

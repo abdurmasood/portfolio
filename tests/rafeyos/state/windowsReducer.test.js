@@ -228,9 +228,9 @@ describe('commitRect and setTitle', () => {
   })
 
   it('setTitle renames the window', () => {
-    const state = reduce(initialWindows, openTerminal, { type: 'setTitle', id: 1, title: 'visitor@rafey: /home/rafey/Music' })
+    const state = reduce(initialWindows, openTerminal, { type: 'setTitle', id: 1, title: 'visitor@rafey.ai: /home/rafey/Music' })
 
-    expect(state.byId[1].title).toBe('visitor@rafey: /home/rafey/Music')
+    expect(state.byId[1].title).toBe('visitor@rafey.ai: /home/rafey/Music')
   })
 
   it('setArg retargets a window and refuses a file another window has open', () => {

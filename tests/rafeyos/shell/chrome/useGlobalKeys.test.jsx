@@ -116,7 +116,7 @@ describe('Ctrl+Alt+T', () => {
     fireEvent.keyDown(document.body, { key: 't', ctrlKey: true, altKey: true })
 
     const [terminal] = windowsOf(container, 'terminal')
-    expect(terminal.getAttribute('aria-label')).toBe('visitor@rafey: /home/rafey')
+    expect(terminal.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
   })
 
   it('opens another each time, leaving the overview first', () => {
