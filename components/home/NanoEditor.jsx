@@ -1,6 +1,6 @@
 // nano in the homepage terminal: the buffer in the terminal's own font and colours, under a dim rule, with nano's
 // status line and keys. It reads and writes through the shell's filesystem, so a save lands in the store /os shares.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { errnoText, failureErrno } from '@/components/rafeyos/core/commands/errors'
 import { writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 import { normalize, resolve } from '@/components/rafeyos/core/vfs/paths'
@@ -10,6 +10,8 @@ const SAVE_QUESTION = 'Save modified buffer?  Y Yes  N No  ^C Cancel'
 const FILE_NAME_PROMPT = 'File Name to Write'
 const CANCELLED = '[ Cancelled ]'
 const RULE = '────'
+// Holds an empty status line's height, so the keys under it don't move
+const EMPTY_STATUS = '\u00a0'
 
 // What nano is asking at its status line, if anything
 const ASKING = Object.freeze({ NOTHING: 'nothing', SAVE: 'save', FILE_NAME: 'fileName' })
@@ -157,7 +159,7 @@ const StatusLine = ({ nano, nameRef }) => {
       </p>
     )
   }
-  return <p className="nano-status dim">{nano.status}</p>
+  return <p className="nano-status dim">{nano.status || EMPTY_STATUS}</p>
 }
 
 // Phones have no Ctrl: the same choices as taps, for whatever nano is asking
@@ -167,10 +169,21 @@ const TAPS = Object.freeze({
   [ASKING.FILE_NAME]: (nano) => [['cancel', nano.cancel]],
 })
 
+/** Sizes the buffer to its text as wrapped, so a long line that wraps isn't cut off. */
+const useFitHeight = (bufferRef, text) => {
+  useLayoutEffect(() => {
+    const element = bufferRef.current
+    // Collapsed first, so the height can shrink as well as grow
+    element.style.height = 'auto'
+    element.style.height = `${element.scrollHeight}px`
+  }, [bufferRef, text])
+}
+
 const ActiveNano = ({ path, cwd, shellFs, onDone }) => {
   const nano = useNano({ path, cwd, shellFs, onDone })
   const bufferRef = useRef(null)
   const nameRef = useRef(null)
+  useFitHeight(bufferRef, nano.text)
 
   // Focused here, not with autoFocus; the Enter that ran nano was kept from the page, so it never reaches the buffer
   useEffect(() => {
@@ -186,7 +199,7 @@ const ActiveNano = ({ path, cwd, shellFs, onDone }) => {
         className="nano-buffer"
         aria-label="nano buffer"
         value={nano.text}
-        rows={nano.text.split('\n').length}
+        rows={1}
         readOnly={nano.asking !== ASKING.NOTHING}
         spellCheck={false}
         autoCapitalize="off"

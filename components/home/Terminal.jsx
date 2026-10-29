@@ -243,17 +243,38 @@ const Screen = ({ shell, onDone }) => (
   </div>
 );
 
-const Terminal = () => {
+/** The prompt line's input, cursor and ghost `help`, with the handlers PromptLine takes. */
+const usePromptLine = ({ shell, inputRef }) => {
   const { input, setInput } = useTerminal();
+  const cursor = useCursor(inputRef, { input, foregroundId: shell.foregroundId });
+  const prompt = usePromptKeys({ shell, input, setInput });
+  const ghostSuggestion = ghostFor({ started: shell.started, input, caretIndex: cursor.caretIndex });
+  const onKeyDown = keyDownHandler({ ghostSuggestion, input, setInput, shell, prompt });
+
+  return {
+    input,
+    cursor,
+    ghostSuggestion,
+    onChange: (e) => {
+      setInput(e.target.value);
+      prompt.resetTab();
+      cursor.sync(e.target);
+    },
+    onKeyDown: (e) => {
+      cursor.markTyping();
+      onKeyDown(e);
+    },
+    onGhostTap: () => prompt.submit(STARTER_SUGGESTION),
+  };
+};
+
+const Terminal = () => {
   const [showLoadingBar, setShowLoadingBar] = useState(false);
   const handlers = usePageHandlers(setShowLoadingBar);
   const shell = useHomeShell({ handlers });
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
-  const cursor = useCursor(inputRef, { input, foregroundId: shell.foregroundId });
-  const prompt = usePromptKeys({ shell, input, setInput });
-  const ghostSuggestion = ghostFor({ started: shell.started, input, caretIndex: cursor.caretIndex });
-  const onKeyDown = keyDownHandler({ ghostSuggestion, input, setInput, shell, prompt });
+  const promptLine = usePromptLine({ shell, inputRef });
 
   useScrollToEnd(terminalRef, shell);
 
@@ -272,25 +293,7 @@ const Terminal = () => {
     <div className="terminal" ref={terminalRef} onClick={focusInputOnClick}>
       <Screen shell={shell} onDone={finish} />
       {/* A playing track, the projects picker, the blog picker or nano owns the terminal */}
-      {!shell.foregroundId && (
-        <PromptLine
-          cwd={shell.cwd}
-          input={input}
-          inputRef={inputRef}
-          cursor={cursor}
-          ghostSuggestion={ghostSuggestion}
-          onChange={(e) => {
-            setInput(e.target.value);
-            prompt.resetTab();
-            cursor.sync(e.target);
-          }}
-          onKeyDown={(e) => {
-            cursor.markTyping();
-            onKeyDown(e);
-          }}
-          onGhostTap={() => prompt.submit(STARTER_SUGGESTION)}
-        />
-      )}
+      {!shell.foregroundId && <PromptLine cwd={shell.cwd} inputRef={inputRef} {...promptLine} />}
     </div>
   );
 };

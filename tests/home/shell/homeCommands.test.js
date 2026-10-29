@@ -160,12 +160,21 @@ describe('open, xdg-open and gio open', () => {
       lines: [panel(HOME_PANELS.MUSIC_PLAYER, { trackId: TRACK.id }, { foreground: true })],
       effects: [],
     })
-    expect(run('gio open bio.txt')).toMatchObject({ lines: [], effects: [handoff({ path: BIO })] })
+    expect(run('gio open bio.txt')).toMatchObject({ lines: [pre('starting rOS…')], effects: [handoff({ path: BIO })] })
     expect(run('xdg-open blog').effects).toEqual([handoff({ path: `${RAFEY_HOME}/blog` })])
   })
 
   it('keeps the engine\'s error', () => {
     expect(run('xdg-open nope')).toMatchObject({ lines: [error('xdg-open: nope: No such file or directory')], effects: [], code: 1 })
+  })
+
+  it('xdg-open, open and gio open say starting rOS on screen only when they hand off', () => {
+    expect(run('xdg-open bio.txt')).toMatchObject({ lines: [pre('starting rOS…')], effects: [handoff({ path: BIO })] })
+    expect(run('open blog').lines).toEqual([pre('starting rOS…')])
+    expect(run('xdg-open bio.txt | wc -l').lines).toEqual([pre('0')])
+    expect(run(`xdg-open ${BIO} > out.txt; cat out.txt`, { cwd: HOME }).lines).toEqual([])
+    expect(run('xdg-open contact/linkedin.desktop').lines).toEqual([])
+    expect(run('open email').lines).toEqual([pre('Opening email application...')])
   })
 
   it('xdg-open in a pipe still hands off', () => {

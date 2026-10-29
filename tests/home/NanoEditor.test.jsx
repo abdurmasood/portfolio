@@ -250,4 +250,25 @@ describe('nano in the homepage terminal', () => {
     fireEvent.click(screen.getByRole('button', { name: '[ exit ]' }))
     expect(queryBuffer()).toBeNull()
   })
+
+  it('a long line that wraps grows the buffer to its full height, so nothing is cut off', () => {
+    // jsdom has no layout: the wrapped height is whatever scrollHeight says
+    let wrappedHeight = 40
+    vi.spyOn(HTMLTextAreaElement.prototype, 'scrollHeight', 'get').mockImplementation(() => wrappedHeight)
+    withFile()
+    run('nano a.txt')
+    expect(buffer().style.height).toBe('40px')
+
+    wrappedHeight = 120
+    edit('x'.repeat(400))
+
+    expect(buffer().style.height).toBe('120px')
+  })
+
+  it('the footer does not move when the status line is empty', () => {
+    const { container } = render(<Page />)
+    run('nano')
+
+    expect(status(container)).toBe('\u00a0')
+  })
 })

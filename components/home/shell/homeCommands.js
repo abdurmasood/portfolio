@@ -126,12 +126,15 @@ const openedTrack = ({ fs, content }, effects) => {
   return node?.type === NODE_TYPES.AUDIO && node.src === track.src ? track : null
 }
 
-// Audio plays in the homepage's player, which needs a terminal; in a pipe it opens in rafeyOS like any other file
+// Audio plays in the homepage's player, which needs a terminal; in a pipe it opens in rafeyOS like any other file.
+// A hand-off says rafeyOS is starting, on screen only, as the launchers do
 const open = (context) => {
   const output = engine(context)
   const track = context.tty ? openedTrack(context, output.effects ?? []) : null
   if (track) return result([playerFor(track)])
-  return { ...output, effects: homeEffects(output, context) }
+  const effects = homeEffects(output, context)
+  if (effects.some((effect) => effect.type === HOME_EFFECTS.HANDOFF)) return screenOnly([pre(STARTING_ROS)], effects)
+  return { ...output, effects }
 }
 
 // nautilus and the text editors: the engine's errors, or rafeyOS starting with that window
