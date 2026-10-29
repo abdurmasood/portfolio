@@ -11,6 +11,9 @@
   --term-user: #E3B341;
   --term-host: #56D364;
   --term-error: #FF7B72;
+  /* ls: rafeyOS's terminal colours for folders and links */
+  --term-dir: #729fcf;
+  --term-link: #34e2e2;
 
   background-color: var(--term-bg);
   color: var(--term-fg);
@@ -168,6 +171,14 @@
 
 .error-text {
   color: var(--term-error);
+}
+
+.terminal .dir {
+  color: var(--term-dir);
+}
+
+.terminal .lnk {
+  color: var(--term-link);
 }
 
 .terminal .terminal-block {

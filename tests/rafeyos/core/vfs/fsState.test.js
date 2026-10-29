@@ -491,4 +491,13 @@ describe('homeChanged', () => {
     expect(homeChanged(before, changed({ '/home/visitor/a.txt': text('changed') }), { ignore })).toBe(true)
     expect(homeChanged(before, withNodes(before, rest), { ignore })).toBe(true)
   })
+
+  it('home changed treats a node re-read from disk as the same node', () => {
+    const before = stateWith({ '/home/visitor/a.txt': text('a'), '/home/visitor/d': dir(1) })
+    // Every write re-reads the disk, which builds fresh node objects with the same fields
+    const reread = withNodes(before, Object.fromEntries(Object.entries(before.nodes).map(([path, node]) => [path, { ...node }])))
+
+    expect(homeChanged(before, reread)).toBe(false)
+    expect(homeChanged(before, withNodes(before, { ...reread.nodes, '/home/visitor/d': dir(2) }))).toBe(true)
+  })
 })

@@ -73,14 +73,26 @@ describe('home terminal: os', () => {
     expect(push).not.toHaveBeenCalled()
   })
 
-  it('completes "o" to os with Tab', () => {
+  it('completes "os" to "os " with Tab', () => {
     renderTerminal()
+    const input = screen.getByLabelText('terminal input')
+    run('help')
+
+    fireEvent.change(input, { target: { value: 'os' } })
+    fireEvent.keyDown(input, { key: 'Tab' })
+
+    expect(input.value).toBe('os ')
+  })
+
+  it('lists open and os on a double Tab after "o", since open starts with o too', () => {
+    const { container } = renderTerminal()
     const input = screen.getByLabelText('terminal input')
     run('help')
 
     fireEvent.change(input, { target: { value: 'o' } })
     fireEvent.keyDown(input, { key: 'Tab' })
+    fireEvent.keyDown(input, { key: 'Tab' })
 
-    expect(input.value).toBe('os')
+    expect(container.querySelector('.terminal-output').lastElementChild.textContent).toBe('open    os')
   })
 })

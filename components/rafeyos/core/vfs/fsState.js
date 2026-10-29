@@ -282,7 +282,20 @@ export const changesOnlyTmp = (before, after) => {
 export const homeChanged = (before, after, { ignore = [] } = {}) => {
   const skipped = new Set(ignore)
   const paths = new Set([...Object.keys(before.nodes), ...Object.keys(after.nodes)])
-  return [...paths].some((path) => isVisitorPath(path) && !skipped.has(path) && before.nodes[path] !== after.nodes[path])
+  return [...paths].some((path) => isVisitorPath(path) && !skipped.has(path) && !sameNode(before.nodes[path], after.nodes[path]))
+}
+
+/**
+ * Field by field, since every store write re-reads the disk into fresh node objects. Nodes are flat.
+ * @param {FsNode | undefined} a
+ * @param {FsNode | undefined} b
+ */
+const sameNode = (a, b) => {
+  if (a === b) return true
+  if (!a || !b) return false
+  const fields = Object.entries(a)
+  const other = /** @type {Record<string, unknown>} */ (b)
+  return fields.length === Object.keys(b).length && fields.every(([key, value]) => Object.is(value, other[key]))
 }
 
 /**
