@@ -53,6 +53,19 @@ describe('Terminal app', () => {
     expect(log(win).lastElementChild.textContent).toBe('130')
   })
 
+  it('ctrl+shift+c leaves the input alone, so copy still works', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    fireEvent.change(input, { target: { value: 'echo oops' } })
+    const lines = log(win).childElementCount
+
+    const notCancelled = fireEvent.keyDown(input, { key: 'C', ctrlKey: true, shiftKey: true })
+
+    expect(notCancelled).toBe(true)
+    expect(input.value).toBe('echo oops')
+    expect(log(win).childElementCount).toBe(lines)
+  })
+
   it('keeps $? from one command line to the next', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)

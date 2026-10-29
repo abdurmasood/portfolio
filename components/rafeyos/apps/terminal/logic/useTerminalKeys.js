@@ -71,7 +71,8 @@ export const useTerminalKeys = ({ session, input, setInput, shellFs }) => {
       event.preventDefault()
       return session.clear()
     }
-    if (event.ctrlKey && event.key.toLowerCase() === 'c') {
+    // Ctrl+Shift+C is copy, so only a plain Ctrl+C interrupts
+    if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'c') {
       event.preventDefault()
       tabCount.current = 0
       setInput('')

@@ -6,7 +6,7 @@
 // (opening windows, clearing the screen) comes back as effects for the terminal to run.
 import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { writeFile } from '@/components/rafeyos/core/vfs/fsOps'
-import { normalize } from '@/components/rafeyos/core/vfs/paths'
+import { normalize, resolve } from '@/components/rafeyos/core/vfs/paths'
 import { EFFECTS } from './builtins/result'
 import { errnoText, failureErrno } from './errors'
 import { expandWord } from './expand'
@@ -18,6 +18,7 @@ import { tokenize } from './tokenize'
  * @import { Content } from '@/components/rafeyos/core/vfs/content'
  * @import { ShellFs } from '@/components/rafeyos/core/vfs/shellFs'
  * @import { CommandOutput, Effect, Handler } from './builtins/result'
+ * @import { ShellErrno } from './errors'
  * @import { ExpandContext } from './expand'
  * @import { Line } from './lines'
  * @import { Pipeline, Redirect, SimpleCommand } from './syntax'
@@ -126,28 +127,60 @@ const screenOf = (display, stdout) => {
 }
 
 /**
- * Opens each redirect in order, before the command runs: `>` empties or creates its file, `>>` checks it can be
- * written. The command's stdout goes to the last one.
- * @param {readonly Redirect[]} redirects
+ * Opens one redirect's file: `>` empties or creates it, `>>` creates a missing one (bash opens it with O_CREAT) and
+ * otherwise only checks it can be written.
+ * @param {Redirect['op']} op
+ * @param {string} path
  * @param {Shell} shell
- * @returns {{ ok: true, sink: string | null } | { ok: false, message: string } | { ok: false, bad: string }}
  */
-const openRedirects = (redirects, shell) => {
+const openFile = (op, path, shell) => {
+  if (op === '>') return shell.fs.apply(writeFile, { path, truncateOnly: true })
+  const checked = shell.fs.check(writeFile, { path, append: true })
+  if (!checked.ok || resolve(shell.fs.vfs(), path, { followLast: true }).ok) return checked
+  return shell.fs.apply(writeFile, { path, append: true })
+}
+
+/**
+ * Opens each redirect in order, before the command runs. The command's stdout goes to the last one. Full storage
+ * refusing the open is `full` rather than a failure when there is a command: bash's open succeeds on a full disk,
+ * so the command runs and its write, if it has output, is what fails.
+ * @param {readonly Redirect[]} redirects
+ * @param {boolean} named whether there is a command to run
+ * @param {Shell} shell
+ * @returns {{ ok: true, sink: string | null, full: boolean } | { ok: false, message: string } | { ok: false, bad: string }}
+ */
+const openRedirects = (redirects, named, shell) => {
   /** @type {string | null} */
   let sink = null
+  let full = false
   for (const redirect of redirects) {
     if (redirect.target.bad) return { ok: false, bad: redirect.target.bad }
     const targets = expandWord(redirect.target, expansionOf(shell))
     if (targets.length !== 1) return { ok: false, message: `bash: ${typedText(redirect.target)}: ambiguous redirect` }
     const [target] = targets
     const path = normalize(target, shell.cwd)
-    const opened =
-      redirect.op === '>' ? shell.fs.apply(writeFile, { path, truncateOnly: true }) : shell.fs.check(writeFile, { path, append: true })
-    if (!opened.ok) return { ok: false, message: `bash: ${target}: ${errnoText(failureErrno(opened))}` }
+    const opened = openFile(redirect.op, path, shell)
+    const errno = opened.ok ? null : failureErrno(opened)
+    if (errno === 'ENOSPC' && named) full = true
+    else if (errno) return { ok: false, message: `bash: ${target}: ${errnoText(errno)}` }
     sink = path
   }
-  return { ok: true, sink }
+  return { ok: true, sink, full }
 }
+
+/**
+ * The command's output lost to a failed write: bash's `write error`, code 1.
+ * @param {Ran} ran
+ * @param {string} name
+ * @param {ShellErrno} errno
+ * @returns {Ran}
+ */
+const writeError = (ran, name, errno) => ({
+  ...ran,
+  stdout: '',
+  stderr: [...ran.stderr, `bash: ${name}: write error: ${errnoText(errno)}`],
+  code: FAILURE,
+})
 
 /**
  * Writes a command's stdout to the file its redirect opened. A failed write is the command's write error (`c-full`).
@@ -158,11 +191,9 @@ const openRedirects = (redirects, shell) => {
  * @returns {Ran}
  */
 const writeOut = (path, ran, name, shell) => {
-  const sent = { ...ran, stdout: '' }
-  if (!ran.stdout) return sent
+  if (!ran.stdout) return { ...ran, stdout: '' }
   const written = shell.fs.apply(writeFile, { path, text: ran.stdout, append: true })
-  if (written.ok) return sent
-  return { ...sent, stderr: [...ran.stderr, `bash: ${name}: write error: ${errnoText(failureErrno(written))}`], code: FAILURE }
+  return written.ok ? { ...ran, stdout: '' } : writeError(ran, name, failureErrno(written))
 }
 
 /**
@@ -196,7 +227,7 @@ const runCommand = (command, { stdin, last }, shell) => {
   if (bad) return badSubstitution(bad)
   const expansion = expansionOf(shell)
   const argv = command.words.flatMap((word) => expandWord(word, expansion))
-  const opened = openRedirects(command.redirects, shell)
+  const opened = openRedirects(command.redirects, argv.length > 0, shell)
   if (!opened.ok) return 'bad' in opened ? badSubstitution(opened.bad) : refused([opened.message], FAILURE)
   if (!argv.length) return refused([], SUCCESS)
   const [name, ...args] = argv
@@ -205,6 +236,7 @@ const runCommand = (command, { stdin, last }, shell) => {
   const { fs, content, history, now, startedAt, cwd } = shell
   const output = shell.registry[name]({ argv: args, name, stdin, tty, cwd, env: variablesOf(shell), fs, content, history, now, startedAt })
   const ran = ranFrom(output, tty)
+  if (opened.full) return ran.stdout ? writeError(ran, name, 'ENOSPC') : { ...ran, stdout: '' }
   return opened.sink ? writeOut(opened.sink, ran, name, shell) : ran
 }
 

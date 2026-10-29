@@ -163,6 +163,21 @@ describe('runLine redirects', () => {
     expect(texts(run('echo x > $NOPE'))).toEqual(['bash: $NOPE: ambiguous redirect'])
   })
 
+  it('>> creates its file even when the command prints nothing', () => {
+    const { run, disk } = session()
+    run('echo kept > old')
+
+    run('true >> f')
+    run('cat nope >> log')
+    run('true >> old')
+    run('ln -s target dangling; true >> dangling')
+
+    expect(fsFiles(disk)['/home/visitor/f']).toBe('')
+    expect(fsFiles(disk)['/home/visitor/target']).toBe('')
+    expect(fsFiles(disk)['/home/visitor/log']).toBe('')
+    expect(fsFiles(disk)['/home/visitor/old']).toBe('kept\n')
+  })
+
   it('truncates with > and sends the output to the last target', () => {
     const { run, disk } = session()
     run('echo old > a')
@@ -177,8 +192,10 @@ describe('runLine redirects', () => {
     const { run, fs, disk } = session()
     run('echo a > a')
 
-    expect(texts(run('rm a > /etc/x'))).toEqual(['bash: /etc/x: Permission denied'])
+    // Were rm to run, it would delete a and complain about nope
+    expect(texts(run('rm a nope > /etc/x'))).toEqual(['bash: /etc/x: Permission denied'])
     expect(fs.vfs()['/home/visitor/a']).toBeDefined()
+    expect(fsFiles(disk)['/home/visitor/a']).toBe('a\n')
     expect(texts(run('echo b >> a > /etc/x'))).toEqual(['bash: /etc/x: Permission denied'])
     expect(fsFiles(disk)['/home/visitor/a']).toBe('a\n')
     expect(run('> f').code).toBe(0)
@@ -201,10 +218,25 @@ describe('runLine redirects', () => {
     expect(texts(run('echo t > /tmp/x && cat /tmp/x'))).toEqual(['t'])
   })
 
+  it('full storage on > says write error, as bash opens the file and the write fails', () => {
+    const { run } = session({ disk: refusingWrites(fsDisk({ '/home/visitor/f': 'a\n' }), quotaError()) })
+
+    expect(texts(run('echo x > ~/f; echo $?'))).toEqual(['bash: echo: write error: No space left on device', '1'])
+    expect(texts(run('echo x > ~/new; echo $?'))).toEqual(['bash: echo: write error: No space left on device', '1'])
+    expect(texts(run('echo x >> ~/new; echo $?'))).toEqual(['bash: echo: write error: No space left on device', '1'])
+    expect(texts(run('cat ~/f'))).toEqual(['a'])
+    // with nothing to write, nothing fails
+    expect(texts(run('true >> ~/new; echo $?'))).toEqual(['0'])
+    expect(texts(run('true > ~/f; echo $?'))).toEqual(['0'])
+    expect(texts(run('cd /tmp > ~/new; echo $?'))).toEqual(['0'])
+    expect(texts(run('cat nope > ~/f'))).toEqual(['cat: nope: No such file or directory'])
+  })
+
   it('storage that refuses every write reads as a read-only file system', () => {
     const { run } = session({ disk: null })
 
-    expect(texts(run('echo x >> ~/f'))).toEqual(['bash: echo: write error: Read-only file system'])
+    // >> creates a missing file as it opens, so the open is what fails
+    expect(texts(run('echo x >> ~/f'))).toEqual(['bash: /home/visitor/f: Read-only file system'])
     expect(texts(run('echo x > ~/g'))).toEqual(['bash: /home/visitor/g: Read-only file system'])
   })
 })
