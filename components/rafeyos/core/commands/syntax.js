@@ -18,7 +18,10 @@
 // Bash's own exit status for a line it cannot parse
 const SYNTAX_CODE = 2
 
-/** A first word that opens a tier-3 construct -> what this shell calls it. */
+/**
+ * A reserved word that opens a tier-3 construct -> what this shell calls it. Bash reads these only in command
+ * position, so after a leading redirect they are plain words.
+ */
 const KEYWORDS = new Map([
   ['for', 'loops'],
   ['while', 'loops'],
@@ -27,8 +30,9 @@ const KEYWORDS = new Map([
   ['if', 'conditionals'],
   ['case', 'conditionals'],
   ['function', 'functions'],
-  ['export', 'variables'],
 ])
+// A builtin, so it counts as a command's first word even after a redirect
+const EXPORT = 'export'
 const ASSIGNMENT = /^[A-Za-z_]\w*=/
 
 /** @param {string} message @returns {SyntaxResult} */
@@ -49,24 +53,30 @@ const categoryOf = (text) => {
 const textOf = (word) => word.parts.map((part) => part.text).join('')
 
 /**
- * A refusal when a command's first word opens a loop, conditional or function, or assigns a variable. Only bare
+ * A refusal when a command's first word opens a loop, conditional or function, or sets a variable. Only bare
  * spellings count: `'for'` is just a command bash can't find.
  * @param {Word} word
+ * @param {boolean} commandPosition nothing, not even a redirect, comes before it in its command
  * @returns {SyntaxResult | null}
  */
-const firstWordRefusal = (word) => {
+const firstWordRefusal = (word, commandPosition) => {
   const [first] = word.parts
   if (first.quoted !== 'none') return null
-  const keyword = word.parts.length === 1 ? KEYWORDS.get(first.text) : undefined
-  if (keyword) return refuse(first.text, keyword)
+  const name = word.parts.length === 1 ? first.text : ''
+  const keyword = commandPosition ? KEYWORDS.get(name) : undefined
+  if (keyword) return refuse(name, keyword)
+  if (name === EXPORT) return refuse(name, 'variables')
   return ASSIGNMENT.test(first.text) ? refuse(textOf(word), 'variables') : null
 }
 
+/** @param {string} text the token bash names, or 'newline' at the end of the line */
+const syntaxError = (text) => fail(`bash: syntax error near unexpected token '${text}'`)
+
 /** @param {OpToken | UnsupportedToken | undefined} token what stood where a word was needed */
 const unexpected = (token) => {
-  if (!token) return fail("bash: syntax error near unexpected token 'newline'")
+  if (!token) return syntaxError('newline')
   if (token.type === 'unsupported') return refuse(token.text, categoryOf(token.text))
-  return fail(`bash: syntax error near unexpected token '${token.op}'`)
+  return syntaxError(token.op)
 }
 
 /** @returns {SimpleCommand} */
@@ -74,6 +84,22 @@ const emptyCommand = () => ({ words: [], redirects: [] })
 
 /** @param {SimpleCommand} command */
 const isEmpty = (command) => !command.words.length && !command.redirects.length
+
+/** @param {Token} token */
+const tokenText = (token) => (token.type === 'word' ? textOf(token) : token.type === 'op' ? token.op : token.text)
+
+/**
+ * What an unsupported token means where it stands. `(` opens a subshell at the start of a command and, closed at once
+ * right after a lone name (`foo()`), defines a function; otherwise bash finds it, or what follows it, out of place.
+ * @param {UnsupportedToken} token @param {SimpleCommand} command the command it interrupts
+ * @param {Token | undefined} next the token after it
+ */
+const unsupportedRefusal = (token, command, next) => {
+  if (token.text !== '(' || isEmpty(command)) return unexpected(token)
+  if (command.words.length !== 1 || command.redirects.length) return syntaxError(token.text)
+  if (next?.type === 'unsupported' && next.text === ')') return refuse(token.text, 'functions')
+  return syntaxError(next ? tokenText(next) : 'newline')
+}
 
 /**
  * Closes the line: the last command ends the last pipeline, a trailing `;` is dropped, and a trailing `|`, `&&` or
@@ -101,9 +127,9 @@ export const buildSyntax = (tokens) => {
   let command = emptyCommand()
   for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index]
-    if (token.type === 'unsupported') return unexpected(token)
+    if (token.type === 'unsupported') return unsupportedRefusal(token, command, tokens[index + 1])
     if (token.type === 'word') {
-      const refusal = command.words.length ? null : firstWordRefusal(token)
+      const refusal = command.words.length ? null : firstWordRefusal(token, isEmpty(command))
       if (refusal) return refusal
       command.words.push(token)
     } else if (token.op === '>' || token.op === '>>') {
@@ -112,7 +138,7 @@ export const buildSyntax = (tokens) => {
       command.redirects.push({ op: token.op, target })
       index += 1
     } else {
-      if (isEmpty(command)) return unexpected(token)
+      if (token.op === ';;' || isEmpty(command)) return unexpected(token)
       pipeline.push(command)
       command = emptyCommand()
       if (token.op === '|') continue

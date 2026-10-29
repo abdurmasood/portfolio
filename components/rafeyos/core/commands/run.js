@@ -58,7 +58,9 @@ import { tokenize } from './tokenize'
  *   effects: Effect[],
  *   cwd?: string,
  *   env?: Record<string, string>,
- * }} Ran one command's outcome; `stdout` is what flows on to a pipe, `screen` what it shows when last
+ *   aborts?: boolean,
+ * }} Ran one command's outcome; `stdout` is what flows on to a pipe, `screen` what it shows when last; `aborts` when
+ *   a bad substitution stops the rest of the line
  */
 
 /** The fixed environment; the window adds PWD and OLDPWD. */
@@ -87,6 +89,13 @@ const expansionOf = (shell) => ({ env: variablesOf(shell), cwd: shell.cwd, vfs: 
 
 /** A word as it was typed, for bash's messages about it. @param {Word} word */
 const typedText = (word) => word.parts.map((part) => part.text).join('')
+
+/**
+ * Bash's error for a word that cannot expand: it fails the command and, outside a pipeline, the rest of the line.
+ * @param {string} message the word's `bad`
+ * @returns {Ran}
+ */
+const badSubstitution = (message) => ({ ...refused([message], FAILURE), aborts: true })
 
 /** @param {string} text */
 const withNewline = (text) => (text.endsWith('\n') ? text : `${text}\n`)
@@ -121,12 +130,13 @@ const screenOf = (display, stdout) => {
  * written. The command's stdout goes to the last one.
  * @param {readonly Redirect[]} redirects
  * @param {Shell} shell
- * @returns {{ ok: true, sink: string | null } | { ok: false, message: string }}
+ * @returns {{ ok: true, sink: string | null } | { ok: false, message: string } | { ok: false, bad: string }}
  */
 const openRedirects = (redirects, shell) => {
   /** @type {string | null} */
   let sink = null
   for (const redirect of redirects) {
+    if (redirect.target.bad) return { ok: false, bad: redirect.target.bad }
     const targets = expandWord(redirect.target, expansionOf(shell))
     if (targets.length !== 1) return { ok: false, message: `bash: ${typedText(redirect.target)}: ambiguous redirect` }
     const [target] = targets
@@ -182,10 +192,12 @@ const ranFrom = (output, tty) => {
  * @returns {Ran}
  */
 const runCommand = (command, { stdin, last }, shell) => {
+  const bad = command.words.find((word) => word.bad)?.bad
+  if (bad) return badSubstitution(bad)
   const expansion = expansionOf(shell)
   const argv = command.words.flatMap((word) => expandWord(word, expansion))
   const opened = openRedirects(command.redirects, shell)
-  if (!opened.ok) return refused([opened.message], FAILURE)
+  if (!opened.ok) return 'bad' in opened ? badSubstitution(opened.bad) : refused([opened.message], FAILURE)
   if (!argv.length) return refused([], SUCCESS)
   const [name, ...args] = argv
   if (!Object.hasOwn(shell.registry, name)) return refused([`bash: ${name}: command not found`], NOT_FOUND)
@@ -198,10 +210,10 @@ const runCommand = (command, { stdin, last }, shell) => {
 
 /**
  * Runs a pipeline: each command's stdout is the next one's stdin. Only a command that runs alone can change the
- * window's folder or variables, as each stage of a real pipeline is a subshell.
+ * window's folder or variables, or stop the rest of the line, as each stage of a real pipeline is a subshell.
  * @param {Pipeline} pipeline
  * @param {Shell} shell
- * @returns {{ lines: Line[], effects: Effect[], code: number, cwd?: string, env?: Record<string, string> }}
+ * @returns {{ lines: Line[], effects: Effect[], code: number, cwd?: string, env?: Record<string, string>, aborts?: boolean }}
  */
 const runPipeline = (pipeline, shell) => {
   /** @type {Ran[]} */
@@ -221,6 +233,7 @@ const runPipeline = (pipeline, shell) => {
     code: final.code,
     cwd: alone ? final.cwd : undefined,
     env: alone ? final.env : undefined,
+    aborts: alone && final.aborts,
   }
 }
 
@@ -258,6 +271,7 @@ export const runLine = (raw, context, registry) => {
     // `clear` wipes what the line printed before it, as it would the screen
     lines = ran.effects.some((effect) => effect.type === EFFECTS.CLEAR) ? ran.lines : [...lines, ...ran.lines]
     effects = [...effects, ...ran.effects]
+    if (ran.aborts) break
   }
   return finished(shell, lines, effects)
 }

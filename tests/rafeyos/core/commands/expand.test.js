@@ -82,7 +82,25 @@ describe('expandWord variables', () => {
   })
 
   it('leaves a $ that starts no variable as it is', () => {
-    expect(words('echo $ a$ "$" ${ \\$HOME "\\$HOME"')).toEqual(['echo', '$', 'a$', '$', '${', '$HOME', '$HOME'])
+    expect(words('echo $ a$ "$" \\$HOME "\\$HOME"')).toEqual(['echo', '$', 'a$', '$', '$HOME', '$HOME'])
+  })
+
+  it('expands special parameters as an interactive shell with no arguments', () => {
+    expect(words('echo $1 x${2}y $# ${#} $0 $! $- $$ ${10} $10 "$9"')).toEqual(['echo', 'xy', '0', '0', 'bash', 'himBHs', '2817', '0', ''])
+  })
+
+  it('expands $$ before a brace, which stays literal', () => {
+    expect(words('echo $${ $$$${')).toEqual(['echo', '2817{', '28172817{'])
+    expect(words('echo "$${x}"')).toEqual(['echo', '2817{x}'])
+    expect(words(`echo "$\${""}" "$\${\\"}" "$\${'}'}" "$\${$USER}" $\${""}`)).toEqual(['echo', '2817{""}', '2817{"}', "2817{'}'}", '2817{visitor}', '2817{}'])
+  })
+
+  it('drops a quoted $@ with no arguments but keeps a quoted $*', () => {
+    expect(words('echo "$@" "${@}" "$@$*" $@ $* "$*" "a$@b"')).toEqual(['echo', '', 'ab'])
+  })
+
+  it('keeps the empty word of any other quoted string beside a quoted $@', () => {
+    expect(words(`echo "$@"'' ''"$@" "$@""" "$@""$@" $NOPE"$@"`)).toEqual(['echo', '', '', ''])
   })
 
   it('never splits or globs what a variable holds', () => {

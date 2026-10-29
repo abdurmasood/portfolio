@@ -62,6 +62,10 @@ describe('buildSyntax redirects', () => {
     expect(outline('> f')).toEqual([[[command([], [['>', 'f']])], null]])
   })
 
+  it('takes 1> and 1>> as > and >>', () => {
+    expect(outline('echo hi 1>f 1>>g')).toEqual([[[command(['echo', 'hi'], [['>', 'f'], ['>>', 'g']])], null]])
+  })
+
   it('redirects one stage of a pipeline', () => {
     expect(outline('a > f | b')).toEqual([[[command(['a'], [['>', 'f']]), command(['b'])], null]])
   })
@@ -75,7 +79,10 @@ describe('buildSyntax errors', () => {
       '&& a': `bash: syntax error near unexpected token '&&'`,
       'a || ; b': `bash: syntax error near unexpected token ';'`,
       ';': `bash: syntax error near unexpected token ';'`,
-      'a ;; b': `bash: syntax error near unexpected token ';'`,
+      'a ;; b': `bash: syntax error near unexpected token ';;'`,
+      'echo a;;': `bash: syntax error near unexpected token ';;'`,
+      ';;': `bash: syntax error near unexpected token ';;'`,
+      'echo a ; ; b': `bash: syntax error near unexpected token ';'`,
       'echo >': `bash: syntax error near unexpected token 'newline'`,
       'echo > > f': `bash: syntax error near unexpected token '>'`,
       'echo >> | f': `bash: syntax error near unexpected token '|'`,
@@ -105,13 +112,43 @@ describe('buildSyntax errors', () => {
       'sleep 5 &': 'bash: &: background jobs isn\'t supported here',
       'cat < bio.txt': 'bash: <: input redirection isn\'t supported here',
       'ls nope 2> err.txt': 'bash: 2>: file descriptor redirection isn\'t supported here',
+      'echo hi >&2': 'bash: >&: file descriptor redirection isn\'t supported here',
+      'ls nope 2>&1': 'bash: 2>&: file descriptor redirection isn\'t supported here',
+      'ls &> f': 'bash: &>: file descriptor redirection isn\'t supported here',
+      'ls &>> f': 'bash: &>>: file descriptor redirection isn\'t supported here',
+      'foo() { echo hi; }': 'bash: (: functions isn\'t supported here',
+      'foo () { echo hi; }': 'bash: (: functions isn\'t supported here',
+      'echo hi |& cat': 'bash: |&: file descriptor redirection isn\'t supported here',
     }
     Object.entries(cases).forEach(([raw, message]) => expect(syntaxOf(raw), raw).toEqual({ ok: false, message, code: 2 }))
+  })
+
+  it('reports a ( after a lone name that no ) closes at once as out of place, naming what follows it', () => {
+    const cases = {
+      'foo (b)': 'b',
+      'foo (': 'newline',
+      'foo ( ;': ';',
+      'foo ( |': '|',
+      'foo ( >f': '>',
+      'foo ( &': '&',
+      'foo ( (': '(',
+      'foo ( $(x)': '$(…)',
+    }
+    Object.entries(cases).forEach(([raw, token]) =>
+      expect(syntaxOf(raw), raw).toEqual({ ok: false, message: `bash: syntax error near unexpected token '${token}'`, code: 2 }),
+    )
+  })
+
+  it('reports a ( after more than a function name as out of place', () => {
+    const cases = ['echo a (b)', '> f foo ()', '> f (ls)']
+    cases.forEach((raw) => expect(syntaxOf(raw), raw).toEqual({ ok: false, message: `bash: syntax error near unexpected token '('`, code: 2 }))
   })
 
   it('checks the first word of every command, not just the line', () => {
     expect(syntaxOf('echo hi; for x').ok).toBe(false)
     expect(syntaxOf('ls | while read x').ok).toBe(false)
+    expect(syntaxOf('> f export A').ok).toBe(false)
+    expect(syntaxOf('> f A=1').ok).toBe(false)
   })
 
   it('leaves keywords alone when quoted or not first', () => {
@@ -119,6 +156,7 @@ describe('buildSyntax errors', () => {
       [[command(['for', 'x'])], ';'],
       [[command(['echo', 'if', 'export', 'a=b'])], null],
     ])
+    expect(outline('> f for x')).toEqual([[[command(['for', 'x'], [['>', 'f']])], null]])
     expect(outline(`"FOO"=bar; =x; 1A=b`)).toEqual([
       [[command(['FOO=bar'])], ';'],
       [[command(['=x'])], ';'],

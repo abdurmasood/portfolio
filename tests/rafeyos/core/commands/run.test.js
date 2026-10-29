@@ -24,6 +24,7 @@ const session = ({ disk = memoryStorage(), cwd = '/home/visitor', registry = COM
 }
 
 const texts = (out) => out.lines.map((line) => line.text)
+const badSubstitution = (typed) => `bash: bad substitution: no closing '}' in ${typed}`
 
 describe('runLine pipelines', () => {
   it('pipes stdout into stdin', () => {
@@ -238,5 +239,62 @@ describe('runLine errors', () => {
 
     expect(run('| ls')).toMatchObject({ lines: [{ type: 'error', text: "bash: syntax error near unexpected token '|'" }], code: 2 })
     expect(run('echo "oops')).toMatchObject({ lines: [{ type: 'error', text: `bash: unexpected EOF while looking for matching '"'` }], code: 2 })
+  })
+
+  it('a double-quoted $${ with no } is a bad substitution that stops the rest of the line', () => {
+    const { run } = session()
+
+    expect(run('echo a && echo "$${" || echo or; echo after')).toMatchObject({
+      lines: [{ type: 'pre', text: 'a' }, { type: 'error', text: badSubstitution('"$${"') }],
+      code: 1,
+    })
+    expect(texts(run('echo $?; echo x"a$${"y "$${x"'))).toEqual(['1', badSubstitution('x"a$${"y')])
+    expect(texts(run('echo "$${x}"'))).toEqual(['2817{x}'])
+  })
+
+  it('shows a bad substitution with its word exactly as typed', () => {
+    const { run } = session()
+
+    expect(texts(run('echo "\\"$${"'))).toEqual([badSubstitution('"\\"$${"')])
+    expect(texts(run('echo \\x"$${"'))).toEqual([badSubstitution('\\x"$${"')])
+    expect(texts(run('echo "$${" "}"'))).toEqual([badSubstitution('"$${"')])
+  })
+
+  it('a ${…} that holds no parameter is a bad substitution that stops the rest of the line', () => {
+    const { run } = session()
+
+    expect(run('echo ${}; echo after')).toMatchObject({ lines: [{ type: 'error', text: 'bash: ${}: bad substitution' }], code: 1 })
+    expect(run('echo a${ b} || echo or')).toMatchObject({ lines: [{ type: 'error', text: 'bash: a${ b}: bad substitution' }], code: 1 })
+    expect(texts(run('echo "${}"'))).toEqual(['bash: ${}: bad substitution'])
+    expect(texts(run('echo ${HOME} ${1} ${#}'))).toEqual(['/home/visitor 0'])
+  })
+
+  it('a ${ whose } sits inside quotes or after a backslash leaves the line open, code 2', () => {
+    const { run } = session()
+    const cases = { "echo ${a'}'": '}', 'echo ${a\\}': '}', 'echo ${"}"': '}', "echo ${ '}'": '}', 'echo "${a\\}"': '"', 'echo "a${"b}': '"' }
+
+    Object.entries(cases).forEach(([raw, open]) =>
+      expect(run(raw), raw).toMatchObject({ lines: [{ type: 'error', text: `bash: unexpected EOF while looking for matching '${open}'` }], code: 2 }),
+    )
+  })
+
+  it('echo "$${""}" keeps the inner quotes, as bash does', () => {
+    const { run } = session()
+
+    expect(run('echo "$${""}"')).toMatchObject({ lines: [{ type: 'pre', text: '2817{""}' }], code: 0 })
+  })
+
+  it('a bad substitution in a pipeline fails only its own stage', () => {
+    const { run } = session()
+
+    expect(texts(run('echo "$${" | cat; echo piped $?'))).toEqual([badSubstitution('"$${"'), 'piped 0'])
+  })
+
+  it('a bad substitution in a redirect target stops after the redirects before it opened', () => {
+    const { run, disk } = session()
+    run('echo old > a')
+
+    expect(run('echo hi > a > "$${"; echo after')).toMatchObject({ lines: [{ type: 'error', text: badSubstitution('"$${"') }], code: 1 })
+    expect(fsFiles(disk)['/home/visitor/a']).toBe('')
   })
 })

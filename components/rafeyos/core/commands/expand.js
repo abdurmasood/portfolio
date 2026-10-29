@@ -1,8 +1,8 @@
 // @ts-check
 // The last step before a command runs: turn each of its words into the arguments it receives. In order, as bash
-// does: `~` at the start, then `$VAR`, `${VAR}` and `$?`, then `*` and `?` against the tree. Only what the visitor
-// typed bare can glob; a variable's value is used as it is, never split or globbed (the variables are fixed, and a
-// folder name with a blank in $PWD should stay one argument).
+// does: `~` at the start, then `$VAR`, `${VAR}`, `$?` and the other special parameters, then `*` and `?` against the
+// tree. Only what the visitor typed bare can glob; a variable's value is used as it is, never split or globbed (the
+// variables are fixed, and a folder name with a blank in $PWD should stay one argument).
 import { HOME, ROOT } from '@/components/rafeyos/core/vfs/buildVfs'
 import { joinPath, normalize, parentOf, resolve } from '@/components/rafeyos/core/vfs/paths'
 
@@ -17,7 +17,11 @@ import { joinPath, normalize, parentOf, resolve } from '@/components/rafeyos/cor
  * @typedef {{ shown: string, path: string }} Match the text the shell prints for a match, and the path it names
  */
 
-const VARIABLE = /\$(?:\{([A-Za-z_]\w*|\?)\}|([A-Za-z_]\w*|\?))/g
+const VARIABLE = /\$(?:\{([A-Za-z_]\w*|\d+|[?#$!@*-])\}|([A-Za-z_]\w*|[\d?#$!@*-]))/g
+const POSITIONAL = /^\d+$/
+// The special parameters of an interactive bash run with no arguments and no background jobs: `$0` is its name,
+// `$$` a made-up process ID, `$-` its option flags, and `$1`…, `$@`, `$*` and `$!` are empty
+const SPECIAL = Object.freeze({ '0': 'bash', '#': '0', $: '2817', '-': 'himBHs', '@': '', '*': '', '!': '' })
 const WILDCARDS = new Set(['*', '?'])
 const REGEX_SYNTAX = /[\\^$.*+?()[\]{}|/]/g
 
@@ -30,8 +34,17 @@ export const shellCollate = (a, b) => a.localeCompare(b, 'en', { sensitivity: 'b
 /** @param {string} name @param {ExpandContext} context */
 const valueOf = (name, { env, lastCode }) => {
   if (name === '?') return String(lastCode)
+  if (POSITIONAL.test(name)) return Number(name) === 0 ? SPECIAL['0'] : ''
+  if (Object.hasOwn(SPECIAL, name)) return SPECIAL[/** @type {keyof typeof SPECIAL} */ (name)]
   return Object.hasOwn(env, name) ? env[name] : ''
 }
+
+/**
+ * Whether a part is a double-quoted string holding `$@`: with no arguments it is no word at all, where `"$*"` or `""`
+ * is one empty word.
+ * @param {Part} part
+ */
+const holdsQuotedAt = (part) => part.quoted === 'double' && [...part.text.matchAll(VARIABLE)].some((match) => (match[1] ?? match[2]) === '@')
 
 /**
  * `text` with its variables replaced; the replaced values never glob.
@@ -138,8 +151,8 @@ const glob = (pattern, { cwd, vfs }) => {
 }
 
 /**
- * The arguments one word becomes. An unquoted word that comes to nothing is dropped; a pattern that matches nothing
- * stays as typed.
+ * The arguments one word becomes. A word that comes to nothing is dropped when each of its quoted strings holds `$@`
+ * (an unquoted one has none); a pattern that matches nothing stays as typed.
  * @param {Word} word
  * @param {ExpandContext} context
  * @returns {string[]}
@@ -148,7 +161,7 @@ export const expandWord = (word, context) => {
   const { home, parts } = expandTilde(word.parts, context)
   const pieces = [...home, ...parts.flatMap((part) => piecesOf(part, context))]
   const text = pieces.map((piece) => piece.text).join('')
-  if (!text && word.parts.every((part) => part.quoted === 'none')) return []
+  if (!text && word.parts.filter((part) => part.quoted !== 'none').every(holdsQuotedAt)) return []
   const pattern = pieces.flatMap(({ text: pieceText, typed }) => [...pieceText].map((char) => ({ char, wild: typed && WILDCARDS.has(char) })))
   if (!pattern.some(({ wild }) => wild)) return [text]
   const matches = glob(pattern, context)
