@@ -1,5 +1,6 @@
 import { runLine } from './run'
 import { contentCommands } from './builtins/content'
+import { filesCommands } from './builtins/files'
 import { fsCommands } from './builtins/fs'
 import { launchCommands } from './builtins/launch'
 import { systemCommands } from './builtins/system'
@@ -11,6 +12,7 @@ export { ENV } from './run'
 export const COMMANDS = Object.freeze({
   ...contentCommands,
   ...fsCommands,
+  ...filesCommands,
   ...launchCommands,
   ...systemCommands,
 })

@@ -59,7 +59,7 @@ describe('runLine pipelines', () => {
     const { run } = session({ cwd: '/home/rafey' })
 
     expect(run('ls').lines[0].type).toBe('ls')
-    expect(texts(run('ls | cat'))).toEqual(['blog\ncontact\nMusic\nprojects\nbio.txt\nREADME.txt\nskills.txt'])
+    expect(texts(run('ls | cat'))).toEqual(['bio.txt\nblog\ncontact\nMusic\nprojects\nREADME.txt\nskills.txt'])
   })
 
   it('cd inside a pipeline leaves the window where it was', () => {

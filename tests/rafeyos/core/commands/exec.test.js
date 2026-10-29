@@ -151,7 +151,8 @@ describe('fs commands', () => {
   it('ls marks folders and files', () => {
     const entries = run('ls').lines[0].entries
 
-    expect(entries[0]).toEqual({ name: 'blog', kind: 'dir' })
+    expect(entries[0]).toEqual({ name: 'bio.txt', kind: 'file' })
+    expect(entries[1]).toEqual({ name: 'blog', kind: 'dir' })
     expect(entries.at(-1)).toEqual({ name: 'skills.txt', kind: 'file' })
   })
 

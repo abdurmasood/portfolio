@@ -1,7 +1,16 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import {
+  desktopIcon,
+  fsDisk,
+  fsStoreOn,
+  openTerminal,
+  renderDesktop,
+  settle,
+  typeCommand,
+  windowsOf,
+} from '@/tests/rafeyos/helpers/renderRafeyOS'
 
 afterEach(cleanup)
 
@@ -243,5 +252,24 @@ describe('Terminal app', () => {
 
     expect(log(win).textContent).toContain('Returning to the rafey.ai terminal…')
     await waitFor(() => expect(services.navigate).toHaveBeenCalledWith('/'))
+  })
+
+  it('mkdir in the terminal puts a folder on the desktop', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'mkdir ~/Desktop/notes')
+
+    expect(desktopIcon(container, '/home/visitor/Desktop/notes')).not.toBeNull()
+  })
+
+  it('rm in the terminal removes the desktop icon', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(fsDisk({ '/home/visitor/Desktop/a.txt': 'x' })) })
+    const { input } = openTerminal(container)
+    expect(desktopIcon(container, '/home/visitor/Desktop/a.txt')).not.toBeNull()
+
+    typeCommand(input, 'rm ~/Desktop/a.txt')
+
+    expect(desktopIcon(container, '/home/visitor/Desktop/a.txt')).toBeNull()
   })
 })
