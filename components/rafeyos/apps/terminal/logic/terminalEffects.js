@@ -13,7 +13,8 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
  */
 
 /**
- * openLink shows the Open Link dialog; play starts the track without opening a window.
+ * openLink shows the Open Link dialog; play starts the track without opening a window; clearHistory empties the
+ * window's own history after `history -c`.
  * @typedef {{
  *   vfs: Vfs,
  *   windowManager: Pick<WindowManager, 'openApp' | 'openPath'>,
@@ -22,6 +23,7 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
  *   play: () => void,
  *   closeSelf: () => void,
  *   logout: () => void,
+ *   clearHistory: () => void,
  * }} EffectHandlers
  */
 
@@ -83,6 +85,9 @@ const runEffect = (effect, handlers) => {
       return null
     case EFFECTS.LOGOUT:
       handlers.logout()
+      return null
+    case EFFECTS.CLEAR_HISTORY:
+      handlers.clearHistory()
       return null
     default:
       throw new Error(`Unknown terminal effect: ${effect.type}`)

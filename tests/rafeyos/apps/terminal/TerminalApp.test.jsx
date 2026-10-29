@@ -327,6 +327,32 @@ describe('Terminal app', () => {
     expect(input.value).toBe('whoami')
   })
 
+  it('a failed history write leaves history listing the window\'s own lines', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(memoryStorage(), quotaError())) })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'whoami')
+    typeCommand(input, 'history')
+
+    expect(log(win).lastElementChild.textContent).toBe('    1  whoami\n    2  history')
+  })
+
+  it('history -c leaves ↑ with nothing to recall', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'whoami')
+
+    typeCommand(input, 'history -c')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('')
+
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  history')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('history')
+  })
+
   it('uptime counts from when the terminal opened', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)

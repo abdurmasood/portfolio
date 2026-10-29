@@ -20,6 +20,8 @@ const LONG_ONLY_INDENT = '    '
 
 // bash's echo prints every argument it is given, `--help` included
 const PRINTS_HELP_AS_TEXT = new Set(['echo'])
+// sudo stops reading its own options at COMMAND, so a later `--help` is COMMAND's
+const OPTIONS_END_AT_OPERAND = new Set(['sudo'])
 
 /** @type {OptionRow} */
 const HELP_OPTION = ['--help', 'display this help and exit']
@@ -394,13 +396,34 @@ export const helpText = (name) => {
 }
 
 /**
- * Whether a command's words ask for its help, the way GNU tools read them: `--help` anywhere before `--`. echo
- * never does, as bash's echo prints it.
+ * The option words in a page's OPTIONS that take the next word as their value: every name in a row whose flag
+ * shows one (`-n, --lines=NUM`, `-name PATTERN`).
+ * @param {Page | null} page
+ * @returns {Set<string>}
+ */
+const valuedOptions = (page) =>
+  new Set(
+    (page?.options ?? []).flatMap(([flag]) => {
+      const names = flag.split(', ')
+      return names.some((option) => /[ =]/.test(option)) ? names.map((option) => option.split(/[ =]/)[0]) : []
+    }),
+  )
+
+/**
+ * Whether a command's words ask for its help, the way GNU tools read them: `--help` anywhere before `--`, unless it
+ * is the value of an option that takes one (`find -name --help`). echo never does, as bash's echo prints it; sudo
+ * only before its COMMAND.
  * @param {string} name
  * @param {readonly string[]} argv
  */
 export const asksForHelp = (name, argv) => {
   if (PRINTS_HELP_AS_TEXT.has(name)) return false
-  const end = argv.indexOf('--')
-  return (end < 0 ? argv : argv.slice(0, end)).includes('--help')
+  const valued = valuedOptions(pageOf(name))
+  for (let index = 0; index < argv.length; index += 1) {
+    const word = argv[index]
+    if (word === '--help') return true
+    if (word === '--' || (OPTIONS_END_AT_OPERAND.has(name) && !word.startsWith('-'))) return false
+    if (valued.has(word)) index += 1
+  }
+  return false
 }

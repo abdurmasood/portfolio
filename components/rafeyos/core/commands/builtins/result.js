@@ -37,6 +37,7 @@ export const EFFECTS = Object.freeze({
   OPEN_EXTERNAL: 'openExternal',
   PLAY: 'play',
   CLEAR: 'clear',
+  CLEAR_HISTORY: 'clearHistory',
   CLOSE_SELF: 'closeSelf',
   LOGOUT: 'logout',
 })
@@ -47,14 +48,15 @@ export const EFFECTS = Object.freeze({
  *   | { type: typeof EFFECTS.OPEN_PATH, path: string }
  *   | { type: typeof EFFECTS.OPEN_LINK, href: string }
  *   | { type: typeof EFFECTS.OPEN_EXTERNAL, href: string }
- *   | { type: typeof EFFECTS.PLAY | typeof EFFECTS.CLEAR | typeof EFFECTS.CLOSE_SELF | typeof EFFECTS.LOGOUT }
+ *   | { type: typeof EFFECTS.PLAY | typeof EFFECTS.CLEAR | typeof EFFECTS.CLEAR_HISTORY | typeof EFFECTS.CLOSE_SELF }
+ *   | { type: typeof EFFECTS.LOGOUT }
  * } Effect
  */
 
 /**
  * What a command is run with. `argv` holds its arguments after expansion, its name not included; `stdin` is null
  * when nothing is piped in; `tty` is true when its stdout goes straight to the screen; `startedAt` is when the shell
- * started.
+ * started; `history` is the window's own lines when the history file couldn't record this one, and empty otherwise.
  * @typedef {{
  *   argv: string[],
  *   name: string,

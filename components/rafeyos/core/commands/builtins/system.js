@@ -9,6 +9,7 @@ import { ENV } from '@/components/rafeyos/core/commands/run'
 import { NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
 import { writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 import { joinPath, resolve } from '@/components/rafeyos/core/vfs/paths'
+import { statOf } from '@/components/rafeyos/core/vfs/queries'
 import { missing, usage } from './fileInfo'
 import { failure, result, EFFECTS } from './result'
 
@@ -150,41 +151,62 @@ const COUNT = /^\d+$/
 // bash's exit status for a builtin's usage error
 const BUILTIN_USAGE = 2
 
-/** bash's history builtin: the shared file, numbered; `-c` empties it, N shows only the last N. @param {CommandContext} context @returns {CommandOutput} */
-const history = ({ argv, fs }) => {
+/**
+ * bash's history builtin: the shared file, numbered; `-c` empties it and the window's ↑ list, N shows only the last N.
+ * When the file couldn't record the line, the window's own lines stand in for it.
+ * @param {CommandContext} context
+ * @returns {CommandOutput}
+ */
+const history = ({ argv, fs, history: ownLines }) => {
   /** @type {string[]} */
   const counts = []
   let clear = false
   for (const arg of argv) {
-    if (arg === '-c') clear = true
-    else if (arg.startsWith('-')) return { stderr: [`bash: history: ${arg}: invalid option`, 'history: usage: history [-c] [n]'], code: BUILTIN_USAGE }
-    else counts.push(arg)
+    // A lone `-` is an operand, as bash reads it
+    if (arg === '-' || !arg.startsWith('-')) {
+      counts.push(arg)
+      continue
+    }
+    // bash names the first letter of a combined word that isn't c
+    const invalid = [...arg.slice(1)].find((letter) => letter !== 'c')
+    if (invalid !== undefined) return { stderr: [`bash: history: -${invalid}: invalid option`, 'history: usage: history [-c] [n]'], code: BUILTIN_USAGE }
+    clear = true
   }
   if (clear) {
     // A file that can't be emptied stays as it was, silently, as a failed recording does
     fs.apply(writeFile, { path: HISTORY_FILE, truncateOnly: true })
-    return {}
+    return { effects: [{ type: EFFECTS.CLEAR_HISTORY }] }
   }
   if (counts.length > 1) return failure('bash: history: too many arguments')
   const [count] = counts
   if (count !== undefined && !COUNT.test(count)) return failure(`bash: history: ${count}: numeric argument required`)
-  const numbered = historyLines(fs.vfs()).map((line, index) => `${pad(index + 1, HISTORY_NUMBER_WIDTH, ' ')}  ${line}\n`)
+  const lines = ownLines.length ? ownLines : historyLines(fs.vfs())
+  const numbered = lines.map((line, index) => `${pad(index + 1, HISTORY_NUMBER_WIDTH, ' ')}  ${line}\n`)
   return { stdout: (count === undefined ? numbered : numbered.slice(numbered.length - Number(count))).join('') }
 }
 
-/** A command file: anything at `path`, through links, but a folder. @param {Vfs} vfs @param {string} path */
+/** A command file: anything at `path`, through links, that isn't a folder and can be run. @param {Vfs} vfs @param {string} path */
 const isProgram = (vfs, path) => {
   const spot = resolve(vfs, path, { followLast: true })
-  return spot.ok && vfs[spot.path].type !== NODE_TYPES.DIR
+  return spot.ok && vfs[spot.path].type !== NODE_TYPES.DIR && Boolean(statOf(vfs, spot.path)?.mode.includes('x'))
+}
+
+/**
+ * Where `name` runs from: a name with a slash is a path from `cwd`, printed as typed; any other is looked up in PATH.
+ * @param {Vfs} vfs @param {string} name @param {{ cwd: string, folders: readonly string[] }} where
+ */
+const programPath = (vfs, name, { cwd, folders }) => {
+  if (name.includes('/')) return isProgram(vfs, name.startsWith('/') ? name : joinPath(cwd, name)) ? name : undefined
+  return folders.map((folder) => joinPath(folder, name)).find((path) => isProgram(vfs, path))
 }
 
 /** The first PATH folder holding each name; bash builtins have no file, so they print nothing. @param {CommandContext} context @returns {CommandOutput} */
-const which = ({ argv, fs, env: variables }) => {
+const which = ({ argv, fs, cwd, env: variables }) => {
   const parsed = options(argv, { name: 'which' })
   if (!('operands' in parsed)) return parsed
   const vfs = fs.vfs()
-  const folders = variables.PATH.split(':')
-  const found = parsed.operands.map((name) => folders.map((folder) => joinPath(folder, name)).find((path) => isProgram(vfs, path)))
+  const where = { cwd, folders: variables.PATH.split(':') }
+  const found = parsed.operands.map((name) => programPath(vfs, name, where))
   const paths = found.filter((path) => path !== undefined)
   return { stdout: paths.map(withNewline).join(''), code: found.length && paths.length === found.length ? 0 : 1 }
 }

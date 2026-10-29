@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { exec, COMMANDS } from '@/components/rafeyos/core/commands/exec'
+import { exec, COMMANDS, EFFECTS } from '@/components/rafeyos/core/commands/exec'
 import { HISTORY_FILE, HISTSIZE, recordHistory } from '@/components/rafeyos/core/commands/history'
 import { manPage } from '@/components/rafeyos/core/commands/manPages'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
@@ -13,15 +13,20 @@ const MINUTE = 60 * 1000
 
 /**
  * One terminal window over `disk`: each non-blank line is recorded in the history file before it runs, as the
- * terminal does, and cwd, env and $? carry over.
+ * terminal does, and cwd, env and $? carry over. When the file can't take a line, the window's own lines go to
+ * `history` instead, and `history -c` forgets them.
  */
 const session = ({ disk = memoryStorage(), cwd = RAFEY, now = FIXED_NOW, startedAt = now } = {}) => {
   const store = fsStoreOn(disk)
   const fs = createShellFs({ base, store })
   let state = { cwd, env: { PWD: cwd }, lastCode: 0 }
+  let own = []
   const run = (raw) => {
-    if (raw.trim()) fs.apply(recordHistory, { line: raw })
-    const out = exec(raw, { fs, ...state, content: fixtureContent, now: () => now, startedAt })
+    if (raw.trim()) own = [...own, raw]
+    const recorded = raw.trim() ? fs.apply(recordHistory, { line: raw }) : { ok: true }
+    const history = recorded.ok ? [] : own
+    const out = exec(raw, { fs, ...state, content: fixtureContent, history, now: () => now, startedAt })
+    if (out.effects.some((effect) => effect.type === EFFECTS.CLEAR_HISTORY)) own = []
     state = { cwd: out.cwd, env: out.env, lastCode: out.code }
     return out
   }
@@ -75,12 +80,29 @@ describe('history', () => {
     const { run } = session({ disk })
 
     expect(shown(run('whoami'))).toEqual(['visitor'])
-    expect(run('history')).toMatchObject({ lines: [], code: 0 })
+    expect(run('history')).toMatchObject({ lines: [{ type: 'pre', text: '    1  whoami\n    2  history' }], code: 0 })
+  })
+
+  it('lists the window\'s own lines when the file cannot be written, and -c forgets them', () => {
+    const { run } = session({ disk: refusingWrites(memoryStorage(), quotaError()) })
+    run('whoami')
+
+    expect(shown(run('history'))).toEqual(['    1  whoami\n    2  history'])
+    expect(run('history -c')).toMatchObject({ lines: [], code: 0 })
+    expect(shown(run('history'))).toEqual(['    1  history'])
+  })
+
+  it('history -c asks the window to forget its ↑ list', () => {
+    expect(last(['history -c']).effects).toEqual([{ type: EFFECTS.CLEAR_HISTORY }])
+    expect(last(['history']).effects).toEqual([])
   })
 
   it('refuses bad arguments the bash way', () => {
     expect(shown(last(['history -z']))).toEqual(['bash: history: -z: invalid option', 'history: usage: history [-c] [n]'])
     expect(last(['history -z']).code).toBe(2)
+    expect(shown(last(['history -cz']))[0]).toBe('bash: history: -z: invalid option')
+    expect(shown(last(['history -zc']))[0]).toBe('bash: history: -z: invalid option')
+    expect(last(['history -']).lines).toMatchObject([{ text: 'bash: history: -: numeric argument required' }])
     expect(last(['history abc'])).toMatchObject({ lines: [{ text: 'bash: history: abc: numeric argument required' }], code: 1 })
     expect(last(['history 1 2'])).toMatchObject({ lines: [{ text: 'bash: history: too many arguments' }], code: 1 })
   })
@@ -93,6 +115,14 @@ describe('which', () => {
     expect(last(['which history nope'])).toMatchObject({ lines: [], code: 1 })
     expect(last(['which ls nope'])).toMatchObject({ lines: [{ text: '/usr/bin/ls' }], code: 1 })
     expect(last(['which'])).toMatchObject({ lines: [], code: 1 })
+  })
+
+  it('prints a name with a slash as it is when it names a command file, from the current folder', () => {
+    expect(last(['which /usr/bin/ls'])).toMatchObject({ lines: [{ text: '/usr/bin/ls' }], code: 0 })
+    expect(last(['which /bin/ls ./ls'], { cwd: '/usr/bin' })).toMatchObject({ lines: [{ text: '/bin/ls\n./ls' }], code: 0 })
+    expect(last(['which bin/bio'], { cwd: '/usr/local' })).toMatchObject({ lines: [{ text: 'bin/bio' }], code: 0 })
+    expect(last(['which ./nope /usr/bin'], { cwd: '/usr/bin' })).toMatchObject({ lines: [], code: 1 })
+    expect(last(['echo hi > /tmp/notes', 'which /tmp/notes'])).toMatchObject({ lines: [], code: 1 })
   })
 
   it('finds pwd and echo in /usr/bin as Ubuntu ships them, and never a folder', () => {
@@ -143,6 +173,18 @@ describe('--help', () => {
     expect(shown(last(['which --help']))[0]).toMatch(/^Usage: which /)
     expect(last(['cat -- --help'])).toMatchObject({ lines: [{ text: 'cat: --help: No such file or directory' }] })
     expect(shown(last(['echo --help']))).toEqual(['--help'])
+  })
+
+  it('takes --help as the value of an option that needs one', () => {
+    expect(shown(last(['touch /tmp/--help', 'find /tmp -name --help']))).toEqual(['/tmp/--help'])
+    expect(shown(last(['find /tmp -name x --help']))[0]).toMatch(/^Usage: find /)
+    expect(shown(last(['head -n --help']))[0]).toMatch(/^head: invalid number of lines: /)
+    expect(shown(last(['head --lines --help']))[0]).toMatch(/^head: invalid number of lines: /)
+  })
+
+  it('sudo reads --help only before its command, as sudo stops at the first operand', () => {
+    expect(shown(last(['sudo rm --help']))).toEqual(['visitor is not in the sudoers file.  This incident will be reported.'])
+    expect(shown(last(['sudo --help']))[0]).toMatch(/^Usage: sudo /)
   })
 })
 

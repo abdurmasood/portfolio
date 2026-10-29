@@ -10,6 +10,7 @@ const handlers = (overrides = {}) => ({
   play: vi.fn(),
   closeSelf: vi.fn(),
   logout: vi.fn(),
+  clearHistory: vi.fn(),
   ...overrides,
 })
 
@@ -25,11 +26,13 @@ describe('terminal effects', () => {
         { type: 'openExternal', href: '/projects' },
         { type: 'closeSelf' },
         { type: 'logout' },
+        { type: 'clearHistory' },
       ],
       deps,
     )
 
     expect(outcome).toEqual({ notes: [], clear: false })
+    expect(deps.clearHistory).toHaveBeenCalledTimes(1)
     expect(deps.windowManager.openApp).toHaveBeenCalledWith('files', { path: '/home/visitor' })
     expect(deps.openLink).toHaveBeenCalledTimes(1)
     expect(deps.openExternal).toHaveBeenCalledWith('/projects')
