@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   emptyTrash,
+  homeChanged,
   mergeLegacy,
   mergeState,
   migrateLegacy,
@@ -11,6 +12,7 @@ import {
   saveInPlace,
   seedState,
   serializeState,
+  withNodes,
 } from '@/components/rafeyos/core/vfs/fsState'
 import { readLegacy } from '@/components/rafeyos/core/vfs/legacyDocuments'
 import { trashItemPath } from '@/components/rafeyos/core/vfs/documents'
@@ -467,5 +469,26 @@ describe('v2 nodes in the merged tree', () => {
       '/home/visitor/a/b': dir(3),
       '/home/visitor/a/b/link': symlink('/etc', 3),
     })
+  })
+})
+
+describe('homeChanged', () => {
+  const HISTORY = '/home/visitor/.bash_history'
+
+  it('home changed ignores listed paths and tmp', () => {
+    const before = stateWith({ '/home/visitor/a.txt': text('a'), [HISTORY]: text('ls\n') })
+    // As the store changes it: untouched nodes stay the same objects
+    const changed = (nodes) => withNodes(before, { ...before.nodes, ...nodes })
+    const { '/home/visitor/a.txt': removed, ...rest } = before.nodes
+    const ignore = [HISTORY]
+
+    expect(removed).toBeDefined()
+    expect(homeChanged(before, changed({}), { ignore })).toBe(false)
+    expect(homeChanged(before, changed({ [HISTORY]: text('ls\npwd\n') }), { ignore })).toBe(false)
+    expect(homeChanged(before, changed({ '/tmp/scratch': text('x') }), { ignore })).toBe(false)
+    expect(homeChanged(before, changed({ [HISTORY]: text('ls\npwd\n') }))).toBe(true)
+    expect(homeChanged(before, changed({ '/home/visitor/b.txt': text('b') }), { ignore })).toBe(true)
+    expect(homeChanged(before, changed({ '/home/visitor/a.txt': text('changed') }), { ignore })).toBe(true)
+    expect(homeChanged(before, withNodes(before, rest), { ignore })).toBe(true)
   })
 })

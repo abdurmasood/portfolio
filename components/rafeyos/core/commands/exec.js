@@ -15,7 +15,7 @@ export { ENV } from './run'
  * Every command takes `--help` (echo aside): it prints the synopsis and options from its man page instead of running.
  * @param {Record<string, import('./builtins/result').Handler>} commands
  */
-const withHelp = (commands) =>
+export const withHelp = (commands) =>
   Object.fromEntries(
     Object.entries(commands).map(([name, handler]) => {
       const help = helpText(name)
@@ -39,18 +39,25 @@ export const COMMANDS = Object.freeze(
 // Commands tab leaves out; startx is deliberately hidden
 const UNLISTED = new Set(['startx'])
 
-/** What tab completes for the first word: every command in the registry, in the shell's name order. */
-export const COMPLETION_COMMANDS = Object.freeze(
-  Object.keys(COMMANDS)
-    .filter((name) => !UNLISTED.has(name))
-    .sort(shellCollate),
-)
+/**
+ * What tab completes for the first word: every command in `registry`, in the shell's name order.
+ * @param {import('./run').Registry} registry
+ */
+export const completionCommands = (registry) =>
+  Object.freeze(
+    Object.keys(registry)
+      .filter((name) => !UNLISTED.has(name))
+      .sort(shellCollate),
+  )
+
+export const COMPLETION_COMMANDS = completionCommands(COMMANDS)
 
 /**
- * Runs one command line. Files change through `context.fs`; every other side effect comes back as a descriptor for
- * the caller to run. The echoed prompt row is not included; the UI prints it before these lines.
+ * Runs one command line against `context.commands`, or every command the shell knows. Files change through
+ * `context.fs`; every other side effect comes back as a descriptor for the caller to run. The echoed prompt row is
+ * not included; the UI prints it before these lines.
  * @param {string} raw
  * @param {import('./run').ExecContext} context
  * @returns {import('./run').ExecResult}
  */
-export const exec = (raw, context) => runLine(raw, context, COMMANDS)
+export const exec = (raw, context) => runLine(raw, context, context.commands ?? COMMANDS)

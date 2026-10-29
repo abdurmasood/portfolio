@@ -18,8 +18,15 @@ export default defineConfig({
     setupFiles: ['./tests/setup/tz.js'],
     coverage: {
       provider: 'v8',
-      // Scoped to modules added or extracted for rafeyOS
-      include: ['lib/browserStorage.js', 'lib/contact.js', 'lib/help.js', 'lib/loadRafeyOS.js', 'components/rafeyos/**/*.{js,jsx}'],
+      // Scoped to modules added or extracted for rafeyOS, and the homepage terminal that runs its shell
+      include: [
+        'lib/browserStorage.js',
+        'lib/contact.js',
+        'lib/help.js',
+        'lib/loadRafeyOS.js',
+        'components/rafeyos/**/*.{js,jsx}',
+        'components/home/**/*.{js,jsx}',
+      ],
       exclude: ['**/*.test.{js,jsx}'],
       thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },
     },

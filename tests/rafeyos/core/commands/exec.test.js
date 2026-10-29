@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { exec, COMMANDS, COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
+import { exec, COMMANDS, COMPLETION_COMMANDS, completionCommands, withHelp } from '@/components/rafeyos/core/commands/exec'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { fsStoreOn, memoryStorage } from '@/tests/rafeyos/helpers/renderRafeyOS'
@@ -52,6 +52,29 @@ describe('exec basics', () => {
   it('true and false only set the exit code', () => {
     expect(run('true')).toMatchObject({ lines: [], code: 0 })
     expect(run('false')).toMatchObject({ lines: [], code: 1 })
+  })
+})
+
+describe('a second terminal\'s own commands', () => {
+  const runWith = (raw, commands) =>
+    exec(raw, { fs: shellOn(fixtureVfs), cwd: '/home/rafey', env: { PWD: '/home/rafey' }, lastCode: 0, content: fixtureContent, commands })
+
+  it('exec runs a custom registry instead of the shared one', () => {
+    const commands = withHelp({ ...COMMANDS, greet: () => ({ stdout: 'hi\n' }), whoami: () => ({ stdout: 'someone\n' }) })
+
+    expect(texts(runWith('greet', commands))).toEqual(['hi'])
+    expect(texts(runWith('whoami', commands))).toEqual(['someone'])
+    expect(texts(runWith('whoami --help', commands))[0]).toMatch(/^Usage: whoami/)
+    expect(texts(runWith('greet', { whoami: COMMANDS.whoami }))).toEqual(['bash: greet: command not found'])
+    expect(texts(run('greet'))).toEqual(['bash: greet: command not found'])
+  })
+
+  it('completion commands derive from a registry: sorted, without startx', () => {
+    const handler = () => ({})
+
+    expect(completionCommands({ zeta: handler, startx: handler, alpha: handler })).toEqual(['alpha', 'zeta'])
+    expect(completionCommands(COMMANDS)).toEqual(COMPLETION_COMMANDS)
+    expect(Object.isFrozen(completionCommands({ alpha: handler }))).toBe(true)
   })
 })
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ENV, runLine } from '@/components/rafeyos/core/commands/run'
 import { COMMANDS } from '@/components/rafeyos/core/commands/exec'
+import { panel } from '@/components/rafeyos/core/commands/lines'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { fsDisk, fsFiles, fsStoreOn, memoryStorage, quotaError, refusingWrites } from '@/tests/rafeyos/helpers/renderRafeyOS'
@@ -145,6 +146,18 @@ describe('runLine lists', () => {
       TERM: 'xterm-256color',
       LANG: 'en_US.UTF-8',
     })
+  })
+})
+
+describe('runLine panels', () => {
+  it('a panel on screen never reaches a pipe or file', () => {
+    const shown = panel('projects', { title: 'x' }, { foreground: true })
+    const { run, disk } = session({ registry: { ...COMMANDS, wc, x: () => ({ display: [shown] }) } })
+
+    expect(run('x').lines).toEqual([shown])
+    expect(texts(run('x | wc -l'))).toEqual(['0'])
+    expect(run('x > f')).toMatchObject({ lines: [], code: 0 })
+    expect(fsFiles(disk)['/home/visitor/f']).toBe('')
   })
 })
 

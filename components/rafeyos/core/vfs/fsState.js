@@ -273,6 +273,19 @@ export const changesOnlyTmp = (before, after) => {
 }
 
 /**
+ * Whether any of the visitor's own nodes was added, removed or changed between `before` and `after`. TMP never
+ * counts, nor do the paths in `ignore`.
+ * @param {FsState} before
+ * @param {FsState} after
+ * @param {{ ignore?: readonly string[] }} [options]
+ */
+export const homeChanged = (before, after, { ignore = [] } = {}) => {
+  const skipped = new Set(ignore)
+  const paths = new Set([...Object.keys(before.nodes), ...Object.keys(after.nodes)])
+  return [...paths].some((path) => isVisitorPath(path) && !skipped.has(path) && before.nodes[path] !== after.nodes[path])
+}
+
+/**
  * Adds legacy files whose path is free in both `nodes` and `trash` (so a file trashed here stays trashed),
  * and legacy trash entries whose path is likewise free and not just added live. Nothing new returns `state` itself.
  * @param {FsState} state

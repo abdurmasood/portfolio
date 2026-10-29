@@ -1,38 +1,12 @@
 import { useRef, useState } from 'react'
 import { complete } from '@/components/rafeyos/core/commands/complete'
-import { historyLines } from '@/components/rafeyos/core/commands/history'
 import { COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
 import { pre, prompt } from '@/components/rafeyos/core/commands/lines'
+import { useCommandRecall } from '@/components/rafeyos/apps/terminal/logic/useCommandRecall'
 
 // Runs as the first command; Tab, → or Enter on an empty prompt accepts it
 export const STARTER_COMMAND = 'help'
 const ACCEPTS_STARTER = new Set(['Tab', 'ArrowRight', 'Enter'])
-
-/**
- * Bash-style history: ↑ walks back, ↓ forward, past the newest clears the line. It walks ~/.bash_history as it was
- * when the window opened, then this window's own lines; other windows' later lines show only in `history`, and
- * `history -c` empties it.
- */
-const useHistory = (shellFs) => {
-  const [snapshot] = useState(() => historyLines(shellFs.vfs()))
-  const items = useRef(snapshot)
-  const index = useRef(snapshot.length)
-  return {
-    push: (command) => {
-      if (command.trim()) items.current = [...items.current, command]
-      index.current = items.current.length
-    },
-    clear: () => {
-      items.current = []
-      index.current = 0
-    },
-    older: () => (index.current > 0 ? items.current[--index.current] : null),
-    newer: () => {
-      index.current = Math.min(items.current.length, index.current + 1)
-      return items.current[index.current] ?? ''
-    },
-  }
-}
 
 /**
  * Keyboard handling for the terminal prompt.
@@ -40,7 +14,7 @@ const useHistory = (shellFs) => {
  * @returns {{ onKeyDown: Function, onChange: Function, started: boolean, runStarter: Function }}
  */
 export const useTerminalKeys = ({ session, input, setInput, shellFs }) => {
-  const history = useHistory(shellFs)
+  const history = useCommandRecall(shellFs)
   const tabCount = useRef(0)
   const [started, setStarted] = useState(false)
   const submit = (command) => {

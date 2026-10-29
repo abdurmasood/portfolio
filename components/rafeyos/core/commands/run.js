@@ -37,9 +37,11 @@ import { tokenize } from './tokenize'
  *   history?: readonly string[],
  *   now?: () => Date,
  *   startedAt?: Date,
+ *   commands?: Registry,
  * }} ExecContext `env` is the window's own variables (PWD, OLDPWD); `lastCode` is $? before the line; `startedAt`
  *   is when the window's shell started (uptime counts from it), the line's start when not given; `history` is the
- *   window's own lines, given only when the history file couldn't record this one
+ *   window's own lines, given only when the history file couldn't record this one; `commands` is the terminal's own
+ *   registry, for exec() only (every command the shell knows when not given)
  * @typedef {{ lines: Line[], effects: Effect[], cwd: string, env: Record<string, string>, code: number }} ExecResult
  * @typedef {{
  *   fs: ShellFs,
