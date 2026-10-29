@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { complete } from '@/components/rafeyos/core/commands/complete'
-import { COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
+import { COMPLETION_COMMANDS, ENV } from '@/components/rafeyos/core/commands/exec'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { mergeState, parseState, seedState } from '@/components/rafeyos/core/vfs/fsState'
 import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
@@ -22,8 +22,10 @@ const vfs = vfsWith({
   'Documents/report.txt': file(),
   docs: { type: 'symlink', target: 'Documents', mtime: 1 },
 })
-const tab = (input, { cwd = '/home/rafey', tabCount = 1 } = {}) =>
-  complete(input, { vfs, cwd, commands: COMPLETION_COMMANDS, tabCount })
+const tab = (input, { cwd = '/home/rafey', tabCount = 1 } = {}) => {
+  const env = { ...ENV, PWD: cwd, OLDPWD: '/home/rafey/Music' }
+  return complete(input, { vfs, cwd, env, lastCode: 0, commands: COMPLETION_COMMANDS, tabCount })
+}
 
 describe('complete', () => {
   it('fills a unique command with a trailing space', () => {
@@ -123,7 +125,30 @@ describe('complete', () => {
       list: ['Desktop/', 'docs/', 'Documents/', 'Downloads/', "don't.txt", 'my notes.txt', 'say "hi".txt'],
     })
     expect(tab('cat .pr', { cwd: '/home/visitor' })).toEqual({ value: 'cat .profile ' })
-    expect(tab('ls ~/.', { tabCount: 2 })).toEqual({ list: ['.config/', '.profile'] })
+    expect(tab('ls ~/.', { tabCount: 2 })).toEqual({ list: ['./', '../', '.config/', '.profile'] })
+  })
+
+  it('completes after a variable in the folder part, keeping the variable as typed', () => {
+    expect(tab('cd $HOME/Doc')).toEqual({ value: 'cd $HOME/Documents/' })
+    expect(tab('cat ${HOME}/Documents/re')).toEqual({ value: 'cat ${HOME}/Documents/report.txt ' })
+    expect(tab('cd "$HOME/Doc')).toEqual({ value: 'cd "$HOME/Documents/' })
+    expect(tab('cat $OLDPWD/st')).toEqual({ value: 'cat $OLDPWD/story.txt ' })
+    expect(tab('cat $PWD/sk')).toEqual({ value: 'cat $PWD/skills.txt ' })
+  })
+
+  it('leaves a single-quoted or escaped $ unexpanded', () => {
+    expect(tab("cd '$HOME/Doc")).toEqual({ value: "cd '$HOME/Doc" })
+    expect(tab('cd \\$HOME/Doc')).toEqual({ value: 'cd \\$HOME/Doc' })
+  })
+
+  it('completes . and .. to ./ and ../', () => {
+    expect(tab('cd ..')).toEqual({ value: 'cd ../' })
+    expect(tab('cd Music/..')).toEqual({ value: 'cd Music/../' })
+    expect(tab('ls .', { tabCount: 2 })).toEqual({ list: ['./', '../'] })
+  })
+
+  it('keeps ~/ as home inside an open quote', () => {
+    expect(tab('cd "~/Doc')).toEqual({ value: 'cd "~/Documents/' })
   })
 
   it('leaves a comment alone', () => {

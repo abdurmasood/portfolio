@@ -160,6 +160,21 @@ describe('Terminal app', () => {
     expect(input.value).toBe('')
   })
 
+  it('completes a path after $HOME and the window\'s $OLDPWD with Tab', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    fireEvent.change(input, { target: { value: 'cd $HOME/Doc' } })
+    fireEvent.keyDown(input, { key: 'Tab' })
+    expect(input.value).toBe('cd $HOME/Documents/')
+
+    typeCommand(input, 'cd /home/visitor')
+    typeCommand(input, 'cd /')
+    fireEvent.change(input, { target: { value: 'cd $OLDPWD/Down' } })
+    fireEvent.keyDown(input, { key: 'Tab' })
+    expect(input.value).toBe('cd $OLDPWD/Downloads/')
+  })
+
   it('lists several completions on the second Tab', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)

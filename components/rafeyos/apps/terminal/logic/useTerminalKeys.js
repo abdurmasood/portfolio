@@ -52,7 +52,7 @@ export const useTerminalKeys = ({ session, input, setInput, shellFs }) => {
   const tab = () => {
     tabCount.current += 1
     // The tree as it is right now, so a file the last line made completes at once
-    const context = { vfs: shellFs.vfs(), cwd: session.cwd, commands: COMPLETION_COMMANDS, tabCount: tabCount.current }
+    const context = { ...session.variables(), vfs: shellFs.vfs(), cwd: session.cwd, commands: COMPLETION_COMMANDS, tabCount: tabCount.current }
     const outcome = complete(input, context)
     if (outcome.list) session.append([prompt(session.cwd, input), pre(outcome.list.join('  '))])
     else setInput(outcome.value)

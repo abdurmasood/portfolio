@@ -65,6 +65,13 @@ const substitute = (text, typed, context) => {
 }
 
 /**
+ * `text` with its variables replaced, as one string: what Tab completion looks up for a typed folder.
+ * @param {string} text @param {ExpandContext} context
+ */
+export const expandVariables = (text, context) =>
+  substitute(text, false, context).map((piece) => piece.text).join('')
+
+/**
  * `~` alone or `~/…` at the start of an unquoted word is the home folder; `~name` stays as typed.
  * @param {Part[]} parts @param {ExpandContext} context
  * @returns {{ home: Piece[], parts: Part[] }}

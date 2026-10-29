@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMusicControls, useServices, useSessionDispatch, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
-import { exec } from '@/components/rafeyos/core/commands/exec'
+import { ENV, exec } from '@/components/rafeyos/core/commands/exec'
 import { recordHistory } from '@/components/rafeyos/core/commands/history'
 import { prompt } from '@/components/rafeyos/core/commands/lines'
 import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
@@ -96,5 +96,7 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
     shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }
     append([prompt(shell.current.cwd, `${input}^C`)])
   }, [append])
-  return { cwd, entries: log.entries, run, interrupt, append, clear: log.clear }
+  // The window's variables and $? as they are now, for Tab to fill in a typed `$HOME/` or `$OLDPWD/`
+  const variables = useCallback(() => ({ env: { ...ENV, ...shell.current.env }, lastCode: shell.current.lastCode }), [])
+  return { cwd, entries: log.entries, run, interrupt, variables, append, clear: log.clear }
 }
