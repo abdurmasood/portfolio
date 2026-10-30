@@ -112,6 +112,17 @@ describe('menus', () => {
     expect(windowsOf(container, 'files')).toHaveLength(1)
   })
 
+  it('lights the focused item only once a key is pressed', () => {
+    renderDesktop()
+    rightClick(screen.getByTestId('wallpaper'))
+    const menu = screen.getByRole('menu')
+
+    expect(document.activeElement.textContent).toBe('New Folder…')
+    expect(menu.classList.contains('kbd')).toBe(false)
+    fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+    expect(menu.classList.contains('kbd')).toBe(true)
+  })
+
   it('closes on Tab', () => {
     renderDesktop()
     rightClick(screen.getByTestId('wallpaper'))

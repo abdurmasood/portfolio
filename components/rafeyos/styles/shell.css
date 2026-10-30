@@ -71,8 +71,10 @@
 :where(.rafeyos) .shm .mi:hover:not(:disabled) { background: rgba(255,255,255,.1); }
 :where(.rafeyos) .mi:disabled { opacity: .4; }
 /* Keyboard focus in a menu is a highlight, as in GTK, not the accent ring */
-:where(.rafeyos) .pop .mi:focus-visible { outline: none; background: var(--btn); }
-:where(.rafeyos) .shm .mi:focus-visible { outline: none; background: rgba(255,255,255,.1); }
+:where(.rafeyos) .pop .mi:focus-visible, :where(.rafeyos) .shm .mi:focus-visible { outline: none; }
+/* Lit only once a key is pressed (ContextMenu's .kbd), so a right-click opens with nothing highlighted */
+:where(.rafeyos) .pop.kbd .mi:focus-visible { background: var(--btn); }
+:where(.rafeyos) .shm.kbd .mi:focus-visible { background: rgba(255,255,255,.1); }
 :where(.rafeyos) .mi .k { opacity: .55; }
 /* Choice items: icon, label, then the check on the current one */
 :where(.rafeyos) .mi:has(.mic) { justify-content: flex-start; gap: 10px; }
