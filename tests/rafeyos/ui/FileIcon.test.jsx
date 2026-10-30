@@ -2,12 +2,13 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { FileIcon } from '@/components/rafeyos/ui/icons/FileIcon'
-import { HOME, NODE_TYPES, buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
-import { buildContent } from '@/components/rafeyos/core/vfs/content'
+import { HOME, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { mergeState, seedState, symlinkNode, withNodes } from '@/components/rafeyos/core/vfs/fsState'
+import { realVfs, visitorVfs } from '@/tests/rafeyos/helpers/testVfs'
 
 afterEach(cleanup)
 
-const vfs = buildVfs(buildContent())
+const vfs = visitorVfs()
 const textFile = Object.keys(vfs).find((path) => vfs[path].type === NODE_TYPES.TEXT)
 const audioFile = Object.keys(vfs).find((path) => vfs[path].type === NODE_TYPES.AUDIO)
 
@@ -20,7 +21,7 @@ describe('file icons', () => {
     const { container } = render(
       <>
         <FileIcon vfs={vfs} path={HOME} />
-        <FileIcon vfs={vfs} path="~/Desktop" />
+        <FileIcon vfs={vfs} path="/home/visitor/Desktop" />
       </>,
     )
 
@@ -62,5 +63,36 @@ describe('file icons', () => {
 
     expect(note.style.stroke).toBe('var(--accent)')
     expect(container.innerHTML).not.toMatch(/#E95420/i)
+  })
+
+  describe('when the file is gone', () => {
+    const linked = mergeState(realVfs, withNodes(seedState(0), {
+      ...seedState(0).nodes,
+      '/home/visitor/nowhere': symlinkNode('gone', 0),
+      '/home/visitor/docs': symlinkNode('Documents', 0),
+    }))
+    const textLines = (container) => container.querySelector('path[d^="M20 28h24"]')
+    const linkBadge = (container) => container.querySelector('g[transform="translate(40 44)"]')
+
+    it('draws the plain file icon for a path that no longer exists', () => {
+      const { container } = render(<FileIcon vfs={vfs} path="/home/visitor/Documents/gone.txt" />)
+
+      expect(textLines(container)).not.toBeNull()
+    })
+
+    it('draws a dangling link as a plain file, still badged as a link', () => {
+      const { container } = render(<FileIcon vfs={linked} path="/home/visitor/nowhere" />)
+
+      expect(textLines(container)).not.toBeNull()
+      expect(linkBadge(container)).not.toBeNull()
+    })
+
+    it('follows a relative link to the folder it reaches', () => {
+      const { container } = render(<FileIcon vfs={linked} path="/home/visitor/docs" />)
+
+      expect(textLines(container)).toBeNull()
+      expect(container.querySelectorAll('linearGradient')).toHaveLength(2)
+      expect(linkBadge(container)).not.toBeNull()
+    })
   })
 })

@@ -1,7 +1,8 @@
-// Links between the Projects app and the ~/projects/*.txt files that describe each project
-import { realPath } from './paths'
+// Links between the Projects app and the /home/rafey/projects/*.txt files that describe each project
+import { RAFEY_HOME } from './buildVfs'
+import { joinPath, realPath } from './paths'
 
-export const PROJECTS_FOLDER = '~/projects'
+export const PROJECTS_FOLDER = joinPath(RAFEY_HOME, 'projects')
 
 /** The position of the project with this slug, or the first project when there's none. */
 export const projectIndexFor = (projects, slug) => {

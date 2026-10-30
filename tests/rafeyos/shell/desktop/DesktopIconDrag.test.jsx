@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
-import { desktopIcon, memoryStorage, renderDesktop, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { createDocumentsStore } from '@/components/rafeyos/core/vfs/documents'
+import { desktopIcon, fsDisk, fsStoreOn, renderDesktop, runFsOp, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { remove, writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 
 // jsdom has no layout: give icons the box their inline position implies
 const ICON_BOX = { w: 90, h: 80 }
@@ -21,10 +21,8 @@ afterEach(() => {
 const at = (element) => ({ x: parseFloat(element.style.left), y: parseFloat(element.style.top) })
 
 const desktopWithNote = () => {
-  const disk = memoryStorage({
-    'rafeyos-documents': JSON.stringify({ files: { '~/Desktop/note.txt': 'desk\n' }, trash: {} }),
-  })
-  return renderDesktop({ documents: createDocumentsStore(disk) })
+  const disk = fsDisk({ '/home/visitor/Desktop/note.txt': 'desk\n' })
+  return renderDesktop({ fs: fsStoreOn(disk) })
 }
 
 const drag = (element, from, to, options = {}) => {
@@ -36,7 +34,7 @@ const drag = (element, from, to, options = {}) => {
 describe('desktop icon drag', () => {
   it('moves an icon and commits where it was dropped', () => {
     const { container } = renderDesktop()
-    const home = desktopIcon(container, '~')
+    const home = desktopIcon(container, '/home/visitor')
     const start = at(home)
 
     drag(home, { x: 100, y: 60 }, { x: 150, y: 100 })
@@ -49,8 +47,8 @@ describe('desktop icon drag', () => {
 
   it('moves the whole selection together', () => {
     const { container } = desktopWithNote()
-    const home = desktopIcon(container, '~')
-    const note = desktopIcon(container, '~/Desktop/note.txt')
+    const home = desktopIcon(container, '/home/visitor')
+    const note = desktopIcon(container, '/home/visitor/Desktop/note.txt')
     const noteStart = at(note)
     fireEvent.pointerDown(home, { button: 0 })
     fireEvent.pointerUp(home)
@@ -61,9 +59,38 @@ describe('desktop icon drag', () => {
     expect(container.querySelectorAll('.dicon.sel')).toHaveLength(2)
   })
 
+  it('desktop drag ignores a deleted selected icon', () => {
+    const { container, services } = desktopWithNote()
+    const home = desktopIcon(container, '/home/visitor')
+    const start = at(home)
+    fireEvent.pointerDown(home, { button: 0 })
+    fireEvent.pointerUp(home)
+    fireEvent.pointerDown(desktopIcon(container, '/home/visitor/Desktop/note.txt'), { button: 0, ctrlKey: true })
+    fireEvent.pointerUp(home)
+
+    runFsOp(services, remove, { path: '/home/visitor/Desktop/note.txt' })
+    drag(home, { x: 0, y: 0 }, { x: 20, y: 30 })
+
+    expect(at(home)).toEqual({ x: start.x + 20, y: start.y + 30 })
+    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['/home/visitor'])
+  })
+
+  it('forgets where a deleted icon was dragged, so one made again sits in the layout', () => {
+    const { container, services } = desktopWithNote()
+    const note = desktopIcon(container, '/home/visitor/Desktop/note.txt')
+    const start = at(note)
+    drag(note, { x: 0, y: 0 }, { x: 20, y: 30 })
+    expect(at(note)).not.toEqual(start)
+
+    runFsOp(services, remove, { path: '/home/visitor/Desktop/note.txt' })
+    runFsOp(services, writeFile, { path: '/home/visitor/Desktop/note.txt', text: 'again\n' })
+
+    expect(at(desktopIcon(container, '/home/visitor/Desktop/note.txt'))).toEqual(start)
+  })
+
   it('ignores jitter below the drag threshold', () => {
     const { container } = renderDesktop()
-    const home = desktopIcon(container, '~')
+    const home = desktopIcon(container, '/home/visitor')
     const start = at(home)
 
     drag(home, { x: 100, y: 60 }, { x: 102, y: 61 })
@@ -73,7 +100,7 @@ describe('desktop icon drag', () => {
 
   it('still opens on a touch tap, but not after a touch drag', () => {
     const { container } = renderDesktop()
-    const home = desktopIcon(container, '~')
+    const home = desktopIcon(container, '/home/visitor')
 
     drag(home, { x: 0, y: 0 }, { x: 40, y: 40 }, { pointerType: 'touch' })
     fireEvent.click(home)
@@ -87,7 +114,7 @@ describe('desktop icon drag', () => {
 
   it('toggles an icon out of the selection with Shift, without dragging it', () => {
     const { container } = renderDesktop()
-    const home = desktopIcon(container, '~')
+    const home = desktopIcon(container, '/home/visitor')
     const start = at(home)
     fireEvent.pointerDown(home, { button: 0 })
     fireEvent.pointerUp(home)
@@ -111,7 +138,7 @@ describe('rubber band', () => {
 
     expect(band.hidden).toBe(false)
     expect(band.style.width).toBe('200px')
-    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['~', '~/Desktop/note.txt'])
+    expect([...container.querySelectorAll('.dicon.sel')].map((icon) => icon.dataset.path)).toEqual(['/home/visitor', '/home/visitor/Desktop/note.txt'])
 
     fireEvent.pointerUp(wall, { pointerId: 1 })
     expect(band.hidden).toBe(true)
@@ -120,7 +147,7 @@ describe('rubber band', () => {
 
   it('starts each band from an empty selection', () => {
     const { container } = renderDesktop()
-    fireEvent.pointerDown(desktopIcon(container, '~'), { button: 0 })
+    fireEvent.pointerDown(desktopIcon(container, '/home/visitor'), { button: 0 })
     const wall = screen.getByTestId('wallpaper')
 
     fireEvent.pointerDown(wall, { button: 0, pointerId: 1, clientX: 0, clientY: 0 })

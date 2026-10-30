@@ -7,19 +7,26 @@ import { parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { placeLabel } from '@/components/rafeyos/core/vfs/documents'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { isStorageFailure, reasonBody } from '@/components/rafeyos/ui/menus/logic/storageFailure'
+
+/** Tells the visitor the browser refused a Trash change; a successful one shows for itself. */
+const reportFailure = (notify, title, result) => {
+  if (!result.ok && isStorageFailure(result.reason)) notify({ appId: APP.FILES, title, body: reasonBody(result.reason) })
+}
 
 /** Clears Trash for good. Null while the bin is empty, so the menu item stays disabled. */
 export const useEmptyTrash = () => {
   const { vfs, emptyTrashDocument } = useVfs()
   const windows = useWindowsState()
   const windowManager = useWindowManager()
+  const notify = useNotify()
   const full = children(vfs, TRASH).length > 0
   const run = useCallback(() => {
     Object.values(windows.byId).forEach((win) => {
       if (win.appId === APP.EDITOR && win.phase !== WINDOW_PHASES.CLOSING && vfs[win.arg]?.trashedFrom) windowManager.close(win.id)
     })
-    emptyTrashDocument()
-  }, [vfs, windows, windowManager, emptyTrashDocument])
+    reportFailure(notify, "Couldn't empty Trash", emptyTrashDocument())
+  }, [vfs, windows, windowManager, emptyTrashDocument, notify])
   return full ? run : null
 }
 
@@ -48,20 +55,21 @@ export const useTrashActions = () => {
             title: blocked ? `Can't restore ${node.name}` : "Couldn't restore",
             body: blocked
               ? `A file named ${node.name} is already in ${folder}.`
-              : 'This browser blocked saving the file.',
+              : reasonBody(result.reason),
           })
         },
       }
     }
     if (!node?.user) return {}
+    const trash = () => reportFailure(notify, "Couldn't move to Trash", trashDocument(path))
     return {
       trash: () => {
         const win = openEditor(windows, path)
         if (!win) {
-          trashDocument(path)
+          trash()
           return
         }
-        windowManager.close(win.id, () => trashDocument(path))
+        windowManager.close(win.id, trash)
       },
     }
   }, [vfs, windows, windowManager, trashDocument, restoreDocument, notify])

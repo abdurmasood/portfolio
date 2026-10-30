@@ -1,5 +1,6 @@
 // @ts-check
 import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
+import { HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 
 export const FILE_VIEWS = Object.freeze({ GRID: 'grid', LIST: 'list' })
 
@@ -11,6 +12,7 @@ export const FILES_ACTIONS = Object.freeze({
   SELECT: 'select',
   SET_SEARCH: 'setSearch',
   SELECT_ALL: 'selectAll',
+  PRUNE: 'prune',
 })
 
 /** @import { ActionOf, HandlerMap } from '@/components/rafeyos/state/logic/createReducer' */
@@ -38,6 +40,7 @@ export const FILES_ACTIONS = Object.freeze({
  *   [FILES_ACTIONS.SELECT]: { path: string, mode?: 'single' | 'toggle' } | { mode: 'clear' },
  *   [FILES_ACTIONS.SET_SEARCH]: { query: string | null },
  *   [FILES_ACTIONS.SELECT_ALL]: { paths: readonly string[] },
+ *   [FILES_ACTIONS.PRUNE]: { exists: (path: string) => boolean, canShow: (path: string) => boolean },
  * }} FilesPayloads
  */
 
@@ -53,7 +56,7 @@ export const FILES_ACTIONS = Object.freeze({
  * @param {readonly string[]} [selection]
  * @returns {Readonly<FilesState>}
  */
-export const initialFilesState = (path = '~', selection = []) =>
+export const initialFilesState = (path = HOME, selection = []) =>
   Object.freeze({ path, back: [], fwd: [], view: FILE_VIEWS.GRID, selection: [...selection], search: null })
 
 /** @type {FilesHandler<typeof FILES_ACTIONS.GO>} */
@@ -111,6 +114,32 @@ const setSearch = (state, { query }) => ({ ...state, search: query, selection: [
 /** @type {FilesHandler<typeof FILES_ACTIONS.SELECT_ALL>} Select All: every item the window currently lists. */
 const selectAll = (state, { paths }) => ({ ...state, selection: [...paths] })
 
+/**
+ * One history stack with what the window can no longer show taken out. Taking a folder out can leave the same visit
+ * twice in a row, or the folder the window now shows on top, where a press of back or forward would change nothing.
+ * @param {string[]} entries
+ * @param {(path: string) => boolean} canShow
+ * @param {string} current
+ */
+const tidyHistory = (entries, canShow, current) => {
+  const kept = entries.filter(canShow).filter((entry, i, shown) => entry !== shown[i - 1])
+  return kept[kept.length - 1] === current ? kept.slice(0, -1) : kept
+}
+
+/**
+ * @type {FilesHandler<typeof FILES_ACTIONS.PRUNE>} Something outside the window (the shell) deleted paths: the selection
+ * forgets what is gone and the history forgets what is no longer a folder, so Enter never opens a ghost and back and
+ * forward skip what is gone. Nothing gone keeps the same state, so React skips the re-render.
+ */
+const prune = (state, { exists, canShow }) => {
+  const selection = state.selection.filter(exists)
+  const back = tidyHistory(state.back, canShow, state.path)
+  const fwd = tidyHistory(state.fwd, canShow, state.path)
+  const unchanged =
+    selection.length === state.selection.length && back.length === state.back.length && fwd.length === state.fwd.length
+  return unchanged ? state : { ...state, selection, back, fwd }
+}
+
 /** @type {HandlerMap<FilesState, FilesPayloads>} */
 const HANDLERS = Object.freeze({
   [FILES_ACTIONS.GO]: go,
@@ -120,6 +149,7 @@ const HANDLERS = Object.freeze({
   [FILES_ACTIONS.SELECT]: select,
   [FILES_ACTIONS.SET_SEARCH]: setSearch,
   [FILES_ACTIONS.SELECT_ALL]: selectAll,
+  [FILES_ACTIONS.PRUNE]: prune,
 })
 
 export const filesReducer = createReducer('files', HANDLERS)

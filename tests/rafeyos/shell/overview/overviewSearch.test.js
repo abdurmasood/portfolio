@@ -11,7 +11,7 @@ describe('overview search', () => {
     const results = overviewResults(realVfs, 'bio')
 
     expect(results.apps).toEqual([])
-    expect(results.files).toEqual([{ path: '~/bio.txt', name: 'bio.txt', parent: '~' }])
+    expect(results.files).toEqual([{ path: '/home/rafey/bio.txt', name: 'bio.txt', parent: '/home/rafey' }])
     expect(results.settings).toEqual([])
   })
 
@@ -40,7 +40,7 @@ describe('overview search', () => {
 
   it('launches apps first, then files, then settings', () => {
     expect(firstResult(overviewResults(realVfs, 'term'))).toEqual({ kind: RESULT_KINDS.APP, id: 'terminal' })
-    expect(firstResult(overviewResults(realVfs, 'bio'))).toEqual({ kind: RESULT_KINDS.FILE, path: '~/bio.txt' })
+    expect(firstResult(overviewResults(realVfs, 'bio'))).toEqual({ kind: RESULT_KINDS.FILE, path: '/home/rafey/bio.txt' })
     expect(firstResult(overviewResults(realVfs, 'appearance'))).toEqual({ kind: RESULT_KINDS.SETTING, page: 'appearance' })
     expect(firstResult(overviewResults(realVfs, 'zzzz'))).toBeNull()
   })

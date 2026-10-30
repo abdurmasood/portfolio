@@ -16,15 +16,15 @@ describe('app availability', () => {
   })
 
   it('recognises web links, which open through a dialog', () => {
-    expect(isWebLink(realVfs, '~/contact/linkedin.desktop')).toBe(true)
-    expect(isWebLink(realVfs, '~/contact/email.desktop')).toBe(false)
-    expect(isWebLink(realVfs, '~/nope')).toBe(false)
+    expect(isWebLink(realVfs, '/home/rafey/contact/linkedin.desktop')).toBe(true)
+    expect(isWebLink(realVfs, '/home/rafey/contact/email.desktop')).toBe(false)
+    expect(isWebLink(realVfs, '/home/rafey/nope')).toBe(false)
   })
 
   it('recognises audio files, which play as they open', () => {
-    expect(isAudio(realVfs, '~/Music/storms-ahead.mp3')).toBe(true)
-    expect(isAudio(realVfs, '~/Music/story.txt')).toBe(false)
-    expect(isAudio(realVfs, '~/nope')).toBe(false)
+    expect(isAudio(realVfs, '/home/rafey/Music/storms-ahead.mp3')).toBe(true)
+    expect(isAudio(realVfs, '/home/rafey/Music/story.txt')).toBe(false)
+    expect(isAudio(realVfs, '/home/rafey/nope')).toBe(false)
   })
 
   it('maps file types to the app that would open them', () => {
@@ -33,6 +33,8 @@ describe('app availability', () => {
     expect(handlerFor({ type: 'audio' })).toBe('music')
     expect(handlerFor({ type: 'mailto' })).toBe('mail')
     expect(handlerFor({ type: 'weblink' })).toBeNull()
+    expect(handlerFor(undefined)).toBeNull()
+    expect(handlerFor(null)).toBeNull()
   })
 
   it('names the missing app in the note', () => {

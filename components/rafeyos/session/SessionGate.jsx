@@ -5,6 +5,7 @@ import { useSession } from './logic/useSession'
 import { BootSplash } from './BootSplash'
 import { LockScreen, SuspendScreen } from './SessionScreens'
 import { DesktopProvider } from '@/components/rafeyos/session/DesktopProvider'
+import { HandoffOpener } from './HandoffOpener'
 import { SettingsProvider } from '@/components/rafeyos/state/SettingsProvider'
 import { Desktop } from '@/components/rafeyos/shell/Desktop'
 
@@ -30,6 +31,7 @@ const SessionScreens = () => {
   return (
     <SessionDispatchContext.Provider value={dispatch}>
       <DesktopProvider>
+        <HandoffOpener />
         <Desktop overlay={overlay} active={state === SESSION_STATES.DESKTOP} />
       </DesktopProvider>
     </SessionDispatchContext.Provider>

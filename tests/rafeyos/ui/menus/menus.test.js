@@ -87,39 +87,39 @@ describe('path commands', () => {
   }
 
   it('opens files and folders through the injected opener', () => {
-    const { openPath, commands } = setup('~/bio.txt')
+    const { openPath, commands } = setup('/home/rafey/bio.txt')
 
     commands.open()
 
-    expect(openPath).toHaveBeenCalledWith('~/bio.txt')
+    expect(openPath).toHaveBeenCalledWith('/home/rafey/bio.txt')
   })
 
   it("opens a file's terminal in its folder and a folder's inside it", () => {
-    const file = setup('~/blog/x.md')
+    const file = setup('/home/rafey/blog/x.md')
     file.commands.openTerminal()
-    const folder = setup('~/projects')
+    const folder = setup('/home/rafey/projects')
     folder.commands.openTerminal()
 
-    expect(file.windowManager.openApp).toHaveBeenCalledWith('terminal', { path: '~/blog' })
-    expect(folder.windowManager.openApp).toHaveBeenCalledWith('terminal', { path: '~/projects' })
+    expect(file.windowManager.openApp).toHaveBeenCalledWith('terminal', { path: '/home/rafey/blog' })
+    expect(folder.windowManager.openApp).toHaveBeenCalledWith('terminal', { path: '/home/rafey/projects' })
   })
 
-  it('shows the file selected in its folder, and Home inside Home', () => {
-    const file = setup('~/bio.txt')
+  it('shows the file selected in its folder, and Home selected in /home', () => {
+    const file = setup('/home/rafey/bio.txt')
     file.commands.showInFiles()
-    const home = setup('~')
+    const home = setup('/home/visitor')
     home.commands.showInFiles()
 
-    expect(file.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~', init: { select: '~/bio.txt' } })
-    expect(home.windowManager.openApp).toHaveBeenCalledWith('files', { path: '~', init: { select: '~' } })
+    expect(file.windowManager.openApp).toHaveBeenCalledWith('files', { path: '/home/rafey', init: { select: '/home/rafey/bio.txt' } })
+    expect(home.windowManager.openApp).toHaveBeenCalledWith('files', { path: '/home', init: { select: '/home/visitor' } })
   })
 
   it('opens Properties on the path it was given', () => {
-    const { windowManager, commands } = setup('~/bio.txt')
+    const { windowManager, commands } = setup('/home/rafey/bio.txt')
 
     commands.properties()
 
-    expect(windowManager.openApp).toHaveBeenCalledWith('properties', { path: '~/bio.txt' })
+    expect(windowManager.openApp).toHaveBeenCalledWith('properties', { path: '/home/rafey/bio.txt' })
   })
 })
 

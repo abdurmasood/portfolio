@@ -1,35 +1,24 @@
 // @ts-check
-import { WALLS } from '@/components/rafeyos/core/theme/walls'
+import { DEFAULT_SETTINGS, isValid } from '@/components/rafeyos/core/settings/settingsSchema'
 import { createReducer } from '@/components/rafeyos/state/logic/createReducer'
 
 export const SETTINGS_ACTIONS = Object.freeze({ SET: 'set', TOGGLE: 'toggle' })
 
-export const STYLES = Object.freeze({ DARK: 'dark', LIGHT: 'light' })
-export const DOCK_POSITIONS = Object.freeze(['left', 'bottom', 'right'])
-// Where new desktop icons start: top/bottom + left/right
-export const ICON_CORNERS = Object.freeze(['tl', 'tr', 'bl', 'br'])
-// The Ubuntu Desktop page's dock icon size slider
-export const ICON_SIZE_RANGE = Object.freeze({ min: 28, max: 56, step: 4 })
-export const VOLUME_RANGE = Object.freeze({ min: 0, max: 100 })
+// Defaults and validation live in core, where the saved-settings store needs them too
+export {
+  DEFAULT_SETTINGS,
+  DOCK_POSITIONS,
+  ICON_CORNERS,
+  ICON_SIZE_RANGE,
+  STYLES,
+  VOLUME_RANGE,
+} from '@/components/rafeyos/core/settings/settingsSchema'
 
 /** @import { ActionOf, HandlerMap } from './createReducer' */
 
 /**
- * @typedef {{
- *   style: typeof STYLES[keyof typeof STYLES],
- *   accent: string,
- *   wall: number,
- *   dockPos: string,
- *   iconSize: number,
- *   showHome: boolean,
- *   corner: string,
- *   dnd: boolean,
- *   night: boolean,
- *   wifi: boolean,
- *   bt: boolean,
- *   volume: number,
- * }} SettingsState
- * @typedef {keyof SettingsState} SettingKey
+ * @typedef {import('@/components/rafeyos/core/settings/settingsSchema').SettingsState} SettingsState
+ * @typedef {import('@/components/rafeyos/core/settings/settingsSchema').SettingKey} SettingKey
  */
 
 /**
@@ -47,22 +36,6 @@ export const VOLUME_RANGE = Object.freeze({ min: 0, max: 100 })
  * @typedef {(state: SettingsState, action: SettingsPayloads[T]) => SettingsState} SettingsHandler
  */
 
-/** @type {Readonly<SettingsState>} */
-export const DEFAULT_SETTINGS = Object.freeze({
-  style: 'dark',
-  accent: '#E95420',
-  wall: 0,
-  dockPos: 'bottom',
-  iconSize: 40,
-  showHome: true,
-  corner: 'tl',
-  dnd: false,
-  night: false,
-  wifi: true,
-  bt: false,
-  volume: 70,
-})
-
 export const initialSettings = DEFAULT_SETTINGS
 
 const STYLE_TOGGLE = Object.freeze({ dark: 'light', light: 'dark' })
@@ -70,25 +43,6 @@ const STYLE_TOGGLE = Object.freeze({ dark: 'light', light: 'dark' })
 /** @param {string} key */
 const assertKnownKey = (key) => {
   if (!Object.hasOwn(DEFAULT_SETTINGS, key)) throw new Error(`Unknown setting: ${key}`)
-}
-
-/** @type {Readonly<Partial<Record<SettingKey, readonly unknown[]>>>} */
-const CHOICES = Object.freeze({ style: Object.values(STYLES), dockPos: DOCK_POSITIONS, corner: ICON_CORNERS })
-/** @type {Readonly<Partial<Record<SettingKey, { min: number, max: number }>>>} */
-const RANGES = Object.freeze({ iconSize: ICON_SIZE_RANGE, volume: VOLUME_RANGE, wall: { min: 0, max: WALLS.length - 1 } })
-const HEX_COLOUR = /^#[0-9a-f]{6}$/i
-
-/**
- * @param {SettingKey} key
- * @param {SettingsState[SettingKey]} value - already the key's type (set checks typeof first)
- */
-const isValid = (key, value) => {
-  const choices = CHOICES[key]
-  if (choices) return choices.includes(value)
-  const range = RANGES[key]
-  if (range) return typeof value === 'number' && Number.isInteger(value) && value >= range.min && value <= range.max
-  if (key === 'accent') return typeof value === 'string' && HEX_COLOUR.test(value)
-  return true
 }
 
 /** @type {SettingsHandler<typeof SETTINGS_ACTIONS.SET>} */

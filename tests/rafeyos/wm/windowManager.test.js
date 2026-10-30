@@ -3,7 +3,7 @@ import { createWindowManager } from '@/components/rafeyos/wm/logic/windowManager
 import { initialWindows, windowsReducer } from '@/components/rafeyos/state/logic/windowsReducer'
 import { SNAP_MODES } from '@/components/rafeyos/core/geometry'
 import { realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { mergeDocuments } from '@/components/rafeyos/core/vfs/documents'
+import { mergeState, saveFile, seedState } from '@/components/rafeyos/core/vfs/fsState'
 
 const layout = { area: { x: 54, y: 28, w: 970, h: 740 }, compact: false }
 
@@ -21,10 +21,10 @@ describe('window manager', () => {
   it('opens implemented apps with their registry size and name', () => {
     const { wm, state } = setup()
 
-    expect(wm.openApp('files', { path: '~/blog' })).toBe(true)
+    expect(wm.openApp('files', { path: '/home/rafey/blog' })).toBe(true)
 
     const [win] = Object.values(state().byId)
-    expect(win).toMatchObject({ appId: 'files', arg: '~/blog', title: 'Files', mode: SNAP_MODES.NORMAL })
+    expect(win).toMatchObject({ appId: 'files', arg: '/home/rafey/blog', title: 'Files', mode: SNAP_MODES.NORMAL })
     expect(win.rect.w).toBe(760)
   })
 
@@ -49,13 +49,13 @@ describe('window manager', () => {
   it('opens each file in its app', () => {
     const { wm, state } = setup()
 
-    expect(wm.openPath('~/projects')).toBe(true)
-    expect(wm.openPath('~/bio.txt')).toBe(true)
-    expect(wm.openPath('~/contact/email.desktop')).toBe(true)
-    expect(wm.openPath('~/Music/storms-ahead.mp3')).toBe(true)
+    expect(wm.openPath('/home/rafey/projects')).toBe(true)
+    expect(wm.openPath('/home/rafey/bio.txt')).toBe(true)
+    expect(wm.openPath('/home/rafey/contact/email.desktop')).toBe(true)
+    expect(wm.openPath('/home/rafey/Music/storms-ahead.mp3')).toBe(true)
 
     const opened = Object.values(state().byId).map((win) => [win.appId, win.arg])
-    expect(opened).toEqual([['files', '~/projects'], ['editor', '~/bio.txt'], ['mail', ''], ['music', '']])
+    expect(opened).toEqual([['files', '/home/rafey/projects'], ['editor', '/home/rafey/bio.txt'], ['mail', ''], ['music', '']])
   })
 
   it('opens a path from the filesystem as it is now', () => {
@@ -70,17 +70,26 @@ describe('window manager', () => {
       getVfs: () => vfs,
     })
 
-    vfs = mergeDocuments(realVfs, { 'notes.txt': 'hello\n' })
+    vfs = mergeState(realVfs, saveFile(seedState(0), '/home/visitor/Documents', 'notes', 'hello\n', 0).state)
 
-    expect(wm.openPath('~/Documents/notes.txt')).toBe(true)
-    expect(state.byId[1].arg).toBe('~/Documents/notes.txt')
+    expect(wm.openPath('/home/visitor/Documents/notes.txt')).toBe(true)
+    expect(state.byId[1].arg).toBe('/home/visitor/Documents/notes.txt')
+  })
+
+  it('opens a path from the tree it is handed, ahead of the one it reads', () => {
+    const { wm, state } = setup()
+    const vfs = mergeState(realVfs, saveFile(seedState(0), '/home/visitor/Documents', 'fresh', 'hi\n', 0).state)
+
+    expect(wm.openPath('/home/visitor/Documents/fresh.txt')).toBe(false)
+    expect(wm.openPath('/home/visitor/Documents/fresh.txt', { vfs })).toBe(true)
+    expect(state().byId[1].arg).toBe('/home/visitor/Documents/fresh.txt')
   })
 
   it('leaves web links, missing paths and unbuilt apps to the caller', () => {
     const { wm, dispatch } = setup()
 
-    expect(wm.openPath('~/contact/linkedin.desktop')).toBe(false)
-    expect(wm.openPath('~/nope')).toBe(false)
+    expect(wm.openPath('/home/rafey/contact/linkedin.desktop')).toBe(false)
+    expect(wm.openPath('/home/rafey/nope')).toBe(false)
     expect(dispatch).not.toHaveBeenCalled()
   })
 
@@ -89,9 +98,9 @@ describe('window manager', () => {
 
     wm.openApp('editor')
     wm.openApp('editor')
-    wm.openApp('editor', { path: '~/README.txt' })
+    wm.openApp('editor', { path: '/home/rafey/README.txt' })
 
-    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['', '~/README.txt'])
+    expect(Object.values(state().byId).map((win) => win.arg)).toEqual(['', '/home/rafey/README.txt'])
   })
 
   it('lets a close guard keep the window open', () => {
@@ -126,12 +135,35 @@ describe('window manager', () => {
     expect(next).toHaveBeenCalledTimes(1)
   })
 
+  it('lists live windows by id with the next id, for ps', () => {
+    const { wm } = setup()
+    wm.openApp('terminal')
+    wm.openApp('files')
+    wm.openApp('editor')
+    wm.minimize(2)
+    wm.close(1)
+
+    expect(wm.list()).toEqual({ windows: [{ id: 2, appId: 'files' }, { id: 3, appId: 'editor' }], nextId: 4 })
+  })
+
+  it('force-closes past a guard and drops it', () => {
+    const { wm, state } = setup()
+    const guard = vi.fn(() => false)
+    wm.openApp('files')
+    wm.setCloseGuard(1, guard)
+
+    wm.forceClose(1)
+
+    expect(guard).not.toHaveBeenCalled()
+    expect(state().byId[1].phase).toBe('closing')
+  })
+
   it('passes launch options to the new window', () => {
     const { wm, state } = setup()
 
-    wm.openApp('files', { path: '~', init: { select: '~/bio.txt' } })
+    wm.openApp('files', { path: '/home/visitor', init: { select: '/home/rafey/bio.txt' } })
 
-    expect(state().byId[1].init).toEqual({ select: '~/bio.txt' })
+    expect(state().byId[1].init).toEqual({ select: '/home/rafey/bio.txt' })
   })
 
   it('toggles maximize and back', () => {

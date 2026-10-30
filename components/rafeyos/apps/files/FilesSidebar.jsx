@@ -1,12 +1,19 @@
 import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
-import { SIDEBAR } from './logic/filesView'
+import { SIDEBAR, isShowable } from './logic/filesView'
 
 /**
- * Places list; the current location is highlighted unless a search is open.
- * @param {{ path: string, searching: boolean, onGo: (path: string) => void, onMainMenu: (event: import('react').MouseEvent) => void }} props
+ * Places list; the current location is highlighted unless a search is open. A folder the shell deleted, or replaced
+ * with a file, drops out (Recent, Starred and Trash always stay).
+ * @param {{
+ *   vfs: import('@/components/rafeyos/core/vfs/buildVfs').Vfs,
+ *   path: string,
+ *   searching: boolean,
+ *   onGo: (path: string) => void,
+ *   onMainMenu: (event: import('react').MouseEvent) => void,
+ * }} props
  */
-export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (
+export const FilesSidebar = ({ vfs, path, searching, onGo, onMainMenu }) => (
   <div className="side">
     <HeaderBar
       title="Files"
@@ -18,8 +25,10 @@ export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (
       }
     />
     <div className="slist" role="navigation" aria-label="Places">
-      {SIDEBAR.map((place, i) =>
-        place ? (
+      {SIDEBAR.map((place, i) => {
+        if (!place) return <div key={`sep-${i}`} className="ssep" />
+        if (!isShowable(vfs, place.path)) return null
+        return (
           <button
             key={place.path}
             type="button"
@@ -29,10 +38,8 @@ export const FilesSidebar = ({ path, searching, onGo, onMainMenu }) => (
             <Sym name={place.icon} />
             <span>{place.label}</span>
           </button>
-        ) : (
-          <div key={`sep-${i}`} className="ssep" />
-        ),
-      )}
+        )
+      })}
       <button type="button" className="srow" disabled>
         <Sym name="plus" />
         <span>Other Locations</span>

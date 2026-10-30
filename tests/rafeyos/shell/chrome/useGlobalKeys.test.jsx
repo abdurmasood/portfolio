@@ -110,13 +110,13 @@ describe('Meta (Super)', () => {
 })
 
 describe('Ctrl+Alt+T', () => {
-  it('opens a Terminal in ~', () => {
+  it('opens a Terminal in Rafey\'s home', () => {
     const { container } = renderDesktop()
 
     fireEvent.keyDown(document.body, { key: 't', ctrlKey: true, altKey: true })
 
     const [terminal] = windowsOf(container, 'terminal')
-    expect(terminal.getAttribute('aria-label')).toBe('visitor@rafey: ~')
+    expect(terminal.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
   })
 
   it('opens another each time, leaving the overview first', () => {

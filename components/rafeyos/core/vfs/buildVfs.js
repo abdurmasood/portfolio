@@ -1,5 +1,5 @@
 // @ts-check
-// Builds the visitor's home folder from buildContent(). Paths are keys ("~/Music/story.txt");
+// Builds the filesystem from buildContent(). Absolute paths are keys ("/home/rafey/Music/story.txt");
 // every node and the map itself are frozen, so the vfs can be shared freely.
 
 export const NODE_TYPES = Object.freeze({
@@ -32,19 +32,51 @@ export const NODE_TYPES = Object.freeze({
  */
 
 /**
- * A vfs entry; narrow on `type` to reach its fields.
- * @typedef {Readonly<NodeFields & { path: string, name: string }>} VfsNode
+ * A vfs entry; narrow on `type` to reach its fields. `mtime` is epoch milliseconds.
+ * @typedef {Readonly<NodeFields & { path: string, name: string, mtime: number }>} VfsNode
  */
 
 /** @typedef {Readonly<Record<string, VfsNode>>} Vfs path -> node */
 
-/** @typedef {[path: string, fields: NodeFields | (DirFields & { name: string })]} Entry */
+/** @typedef {[path: string, fields: NodeFields | (DirFields & { name: string }), mtime?: number]} Entry the shipped mtime unless one is given */
 
-export const HOME = '~'
+export const ROOT = '/'
+/** The visitor's home: ~ in the shell, Home in Files. */
+export const HOME = '/home/visitor'
+/** Rafey's content, read-only. The terminal starts here. */
+export const RAFEY_HOME = '/home/rafey'
+export const START_DIR = RAFEY_HOME
+export const TMP = '/tmp'
+export const BIN = '/usr/local/bin'
+/** The system commands' stubs; /bin links here. */
+export const USR_BIN = '/usr/bin'
+/** When every shipped file but a blog post was last changed: a fixed build date, so listings never drift. */
+export const SHIPPED_MTIME = Date.UTC(2026, 9, 1)
+/** A GUI place outside the tree, so its path stays relative. */
 export const TRASH = 'trash'
 
+// Rafey's portfolio commands, shipped as stubs so `ls /usr/local/bin` lists them
+const COMMANDS = Object.freeze(['bio', 'projects', 'blog', 'music', 'contact', 'skills', 'help', 'os'])
+
+/** Every other command the shell runs, stubbed in /usr/bin as Ubuntu ships them. Bash builtins like cd stay out. */
+export const SYSTEM_COMMANDS = Object.freeze([
+  'ls', 'pwd', 'mkdir', 'rmdir', 'touch', 'rm', 'cp', 'mv', 'cat', 'tree', 'find', 'ln', 'stat', 'echo', 'head', 'tail', 'wc', 'grep', 'sort', 'uniq',
+  'less', 'whoami', 'uname', 'date', 'uptime', 'hostname', 'clear', 'which', 'man', 'env', 'true', 'false', 'sudo', 'open', 'xdg-open', 'gio',
+  'nautilus', 'gedit', 'gnome-text-editor', 'nano', 'vim', 'vi', 'rafeyos', 'startx', 'gsettings', 'ps', 'kill', 'neofetch',
+  'reset-home',
+])
+
+const OS_RELEASE = 'PRETTY_NAME="rafeyOS 24.04 LTS"\nNAME="rafeyOS"\nVERSION_ID="24.04"\nID=rafeyos\n'
+const PASSWD =
+  'root:x:0:0:root:/root:/bin/sh\n' +
+  `rafey:x:1000:1000:Rafey:${RAFEY_HOME}:/bin/sh\n` +
+  `visitor:x:1001:1001:Visitor:${HOME}:/bin/sh\n`
+
 /** @param {string} path */
-const nameOf = (path) => (path === HOME ? 'visitor' : path.slice(path.lastIndexOf('/') + 1))
+const nameOf = (path) => (path === ROOT ? ROOT : path.slice(path.lastIndexOf('/') + 1))
+
+/** @param {string} name */
+const rafeyPath = (name) => `${RAFEY_HOME}/${name}`
 
 /** @param {Content['projects'][number]} project */
 const projectText = (project) => {
@@ -73,8 +105,8 @@ const desktopEntry = (name, icon, url) =>
  * @returns {Entry[]}
  */
 const musicNodes = ({ track, milestones }) => [
-  ['~/Music', { type: 'dir' }],
-  [`~/Music/${track.id}.mp3`, {
+  [rafeyPath('Music'), { type: 'dir' }],
+  [rafeyPath(`Music/${track.id}.mp3`), {
     type: 'audio',
     src: track.src,
     title: track.title,
@@ -82,7 +114,7 @@ const musicNodes = ({ track, milestones }) => [
     sizeBytes: track.sizeBytes,
     durationSeconds: track.durationSeconds,
   }],
-  ['~/Music/story.txt', { type: 'text', text: storyText(milestones) }],
+  [rafeyPath('Music/story.txt'), { type: 'text', text: storyText(milestones) }],
 ]
 
 /**
@@ -90,14 +122,14 @@ const musicNodes = ({ track, milestones }) => [
  * @returns {Entry[]}
  */
 const contactNodes = (contact) => [
-  ['~/contact', { type: 'dir' }],
-  ['~/contact/email.desktop', {
+  [rafeyPath('contact'), { type: 'dir' }],
+  [rafeyPath('contact/email.desktop'), {
     type: 'mailto',
     display: 'Email Rafey',
     href: contact.mailtoHref,
     text: desktopEntry('Email Rafey', 'mail', `mailto:${contact.email}`),
   }],
-  ['~/contact/linkedin.desktop', {
+  [rafeyPath('contact/linkedin.desktop'), {
     type: 'weblink',
     display: 'LinkedIn',
     href: contact.linkedinUrl,
@@ -106,25 +138,59 @@ const contactNodes = (contact) => [
 ]
 
 /**
+ * Rafey's home: his music, posts, contact links, projects and notes.
+ * @param {Content} content
+ * @returns {Entry[]}
+ */
+const rafeyNodes = (content) => [
+  [RAFEY_HOME, { type: 'dir' }],
+  ...musicNodes(content.music),
+  [rafeyPath('blog'), { type: 'dir' }],
+  ...content.posts.map(/** @returns {Entry} */ (post) => [
+    rafeyPath(`blog/${post.slug}.md`),
+    { type: 'text', text: postText(post) },
+    // "2023-05-15" parses as UTC midnight
+    Date.parse(post.date),
+  ]),
+  ...contactNodes(content.contact),
+  [rafeyPath('projects'), { type: 'dir' }],
+  ...content.projects.map(/** @returns {Entry} */ (project) => [
+    rafeyPath(`projects/${project.slug}.txt`),
+    { type: 'text', projectIndex: project.index, text: projectText(project) },
+  ]),
+  [rafeyPath('bio.txt'), { type: 'text', text: content.bio }],
+  [rafeyPath('skills.txt'), { type: 'text', text: content.skills }],
+  [rafeyPath('README.txt'), { type: 'text', text: content.readme }],
+]
+
+/** @returns {Entry[]} */
+const systemNodes = () => [
+  ['/usr', { type: 'dir' }],
+  ['/usr/local', { type: 'dir' }],
+  [BIN, { type: 'dir' }],
+  ...COMMANDS.map(/** @returns {Entry} */ (name) => [`${BIN}/${name}`, { type: 'text', text: `#!/bin/sh\n# rafey.ai portfolio: ${name}\n` }]),
+  [USR_BIN, { type: 'dir' }],
+  ...SYSTEM_COMMANDS.map(/** @returns {Entry} */ (name) => [`${USR_BIN}/${name}`, { type: 'text', text: `#!/bin/sh\n# rafeyOS: ${name}\n` }]),
+  // Absolute, as Ubuntu's merged /usr ships it, so `ls /` reads bin etc home tmp usr
+  ['/bin', { type: 'symlink', target: USR_BIN }],
+  ['/etc', { type: 'dir' }],
+  ['/etc/hostname', { type: 'text', text: 'rafey.ai\n' }],
+  ['/etc/os-release', { type: 'text', text: OS_RELEASE }],
+  ['/etc/passwd', { type: 'text', text: PASSWD }],
+  [TMP, { type: 'dir' }],
+]
+
+/**
  * @param {Content} content
  * @returns {Entry[]}
  */
 const entriesFor = (content) => [
+  [ROOT, { type: 'dir' }],
+  ['/home', { type: 'dir' }],
+  ...rafeyNodes(content),
+  // Its Desktop, Documents and Downloads are the visitor's, seeded by fsState
   [HOME, { type: 'dir' }],
-  ['~/Desktop', { type: 'dir' }],
-  ['~/Documents', { type: 'dir' }],
-  ...musicNodes(content.music),
-  ['~/blog', { type: 'dir' }],
-  ...content.posts.map(/** @returns {Entry} */ (post) => [`~/blog/${post.slug}.md`, { type: 'text', text: postText(post) }]),
-  ...contactNodes(content.contact),
-  ['~/projects', { type: 'dir' }],
-  ...content.projects.map(/** @returns {Entry} */ (project) => [
-    `~/projects/${project.slug}.txt`,
-    { type: 'text', projectIndex: project.index, text: projectText(project) },
-  ]),
-  ['~/bio.txt', { type: 'text', text: content.bio }],
-  ['~/skills.txt', { type: 'text', text: content.skills }],
-  ['~/README.txt', { type: 'text', text: content.readme }],
+  ...systemNodes(),
   [TRASH, { type: 'dir', name: 'Trash' }],
 ]
 
@@ -135,8 +201,8 @@ const entriesFor = (content) => [
 export const buildVfs = (content) => {
   /** @type {Record<string, VfsNode>} */
   const vfs = {}
-  entriesFor(content).forEach(([path, node]) => {
-    vfs[path] = Object.freeze({ path, name: nameOf(path), ...node })
+  entriesFor(content).forEach(([path, node, mtime = SHIPPED_MTIME]) => {
+    vfs[path] = Object.freeze({ path, name: nameOf(path), mtime, ...node })
   })
   return Object.freeze(vfs)
 }

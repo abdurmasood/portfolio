@@ -1,57 +1,45 @@
 // rafeyOS with its dependencies injected; RafeyOS.jsx wires in the real browser services
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { ServicesContext, VfsContext } from './state/logic/contexts'
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
-import { asDocuments, documentName, emptyTrash, filePath, isSaveFolder, mergeDocuments, moveToTrash, restoreFromTrash } from '@/components/rafeyos/core/vfs/documents'
+import { mergeState } from '@/components/rafeyos/core/vfs/fsState'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
+import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { SessionGate } from './session/SessionGate'
+
+/** A failed store result as the GUI sees it: only the reason, never the state. */
+const failure = (result) => ({ ok: false, reason: result.reason })
 
 /** @param {{ services: object }} props - see services/createServices.js */
 export const RafeyOSRoot = ({ services }) => {
+  const { fs } = services
   const content = useMemo(() => buildContent(), [])
   const base = useMemo(() => buildVfs(content), [content])
-  const [docs, setDocs] = useState(() => asDocuments(services.documents.load()))
-  const docsRef = useRef(docs)
-  const commit = useCallback((next) => {
-    if (!services.documents.save(next)) return false
-    docsRef.current = next
-    setDocs(next)
-    return true
-  }, [services])
-  const saveDocument = useCallback((folder, name, text) => {
-    const checked = documentName(name)
-    if (!checked.ok || !isSaveFolder(folder)) return { ok: false, reason: 'invalid' }
-    const path = filePath(folder, checked.name)
-    if (base[path]) return { ok: false, reason: 'taken' }
-    const next = { ...docsRef.current, files: { ...docsRef.current.files, [path]: String(text) } }
-    if (!commit(next)) return { ok: false, reason: 'write' }
-    return { ok: true, name: checked.name, path }
-  }, [base, commit])
+  const state = useSyncExternalStore(fs.subscribe, fs.getState, fs.getState)
+  const vfs = useMemo(() => mergeState(base, state), [base, state])
+  // The terminal's way in: reads the store's latest state itself, so it never waits on a render
+  const shellFs = useMemo(() => createShellFs({ base, store: fs }), [base, fs])
+  // In place: Save on the visitor's own file, written back at folder/name exactly as it is
+  const saveDocument = useCallback((folder, name, text, { inPlace = false } = {}) => {
+    const result = inPlace ? fs.saveInPlace(joinPath(folder, name), text) : fs.saveFile(folder, name, text)
+    return result.ok ? { ok: true, name: result.name, path: result.path } : failure(result)
+  }, [fs])
   const trashDocument = useCallback((path) => {
-    const next = moveToTrash(docsRef.current, path)
-    if (!next || !commit(next)) return { ok: false, reason: next ? 'write' : 'missing' }
-    return { ok: true }
-  }, [commit])
+    const result = fs.moveToTrash(path)
+    return result.ok ? { ok: true } : failure(result)
+  }, [fs])
   const emptyTrashDocument = useCallback(() => {
-    const next = emptyTrash(docsRef.current)
-    if (!next || !commit(next)) return { ok: false, reason: next ? 'write' : 'empty' }
-    return { ok: true }
-  }, [commit])
+    const result = fs.emptyTrash()
+    return result.ok ? { ok: true } : failure(result)
+  }, [fs])
   const restoreDocument = useCallback((path) => {
-    const result = restoreFromTrash(docsRef.current, path, Object.keys(base))
-    if (!result.ok || !commit(result.state)) return { ok: false, reason: result.ok ? 'write' : result.reason }
-    return { ok: true, path }
-  }, [base, commit])
+    const result = fs.restoreFromTrash(path)
+    return result.ok ? { ok: true, path } : failure(result)
+  }, [fs])
   const vfsValue = useMemo(
-    () => Object.freeze({
-      content,
-      vfs: mergeDocuments(base, docs.files, docs.trash),
-      saveDocument,
-      trashDocument,
-      restoreDocument,
-      emptyTrashDocument,
-    }),
-    [content, base, docs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument],
+    () => Object.freeze({ content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument }),
+    [content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument],
   )
   return (
     <ServicesContext.Provider value={services}>

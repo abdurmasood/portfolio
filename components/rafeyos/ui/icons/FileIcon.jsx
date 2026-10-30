@@ -1,6 +1,7 @@
 // File and folder icons, shaded like the dock's tiles; folders take the accent colour
 import { useId } from 'react'
-import { HOME, TRASH, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { HOME, RAFEY_HOME, TRASH, NODE_TYPES } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath, realPath } from '@/components/rafeyos/core/vfs/paths'
 import { children } from '@/components/rafeyos/core/vfs/queries'
 import { MailIcon, TrashIcon } from './appIcons'
 
@@ -16,13 +17,13 @@ const GLYPH_STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' 
 
 const FOLDER_GLYPHS = Object.freeze({
   [HOME]: <path d="M2.5 7.5L8 3l5.5 4.5v6h-11z" strokeLinejoin="round" />,
-  '~/Desktop': (
+  [joinPath(HOME, 'Desktop')]: (
     <>
       <rect x="2" y="3" width="12" height="8" rx="1" />
       <path d="M6 13.5h4" />
     </>
   ),
-  '~/Music': (
+  [joinPath(RAFEY_HOME, 'Music')]: (
     <>
       <path d="M6 12V3.5l7-1.5v9" />
       <circle cx="4.25" cy="12" r="1.75" />
@@ -123,20 +124,20 @@ const ICON_64 = '0 0 64 64'
 
 /** @returns {{ viewBox: string, body: JSX.Element }} */
 const iconFor = (vfs, path) => {
-  const node = vfs[path]
+  // Undefined for a path that is gone; it and a link that leads nowhere fall through to the plain page
+  const type = vfs[path]?.type
   if (path === TRASH) return { viewBox: '0 0 48 48', body: <TrashIcon full={children(vfs, TRASH).length > 0} /> }
-  if (node.type === NODE_TYPES.DIR) return { viewBox: ICON_64, body: <Folder glyph={FOLDER_GLYPHS[path]} /> }
-  if (node.type === NODE_TYPES.AUDIO) return { viewBox: ICON_64, body: <Page><AudioNote /></Page> }
-  if (node.type === NODE_TYPES.MAILTO) return { viewBox: '-4 -4 56 56', body: <MailIcon /> }
-  if (node.type === NODE_TYPES.WEBLINK) return { viewBox: ICON_64, body: <Globe /> }
+  if (type === NODE_TYPES.DIR) return { viewBox: ICON_64, body: <Folder glyph={FOLDER_GLYPHS[path]} /> }
+  if (type === NODE_TYPES.AUDIO) return { viewBox: ICON_64, body: <Page><AudioNote /></Page> }
+  if (type === NODE_TYPES.MAILTO) return { viewBox: '-4 -4 56 56', body: <MailIcon /> }
+  if (type === NODE_TYPES.WEBLINK) return { viewBox: ICON_64, body: <Globe /> }
   return { viewBox: ICON_64, body: <Page><TextLines /></Page> }
 }
 
-/** A vfs entry's icon; symlinks show their target's icon with a link badge. */
+/** A vfs entry's icon; symlinks show what they reach with a link badge. A path that is gone draws the plain page. */
 export const FileIcon = ({ vfs, path, className }) => {
-  const node = vfs[path]
-  const isLink = node.type === NODE_TYPES.SYMLINK
-  const { viewBox, body } = iconFor(vfs, isLink ? node.target : path)
+  const isLink = vfs[path]?.type === NODE_TYPES.SYMLINK
+  const { viewBox, body } = iconFor(vfs, isLink ? realPath(vfs, path) : path)
   return (
     <svg viewBox={viewBox} className={className} aria-hidden="true">
       {body}

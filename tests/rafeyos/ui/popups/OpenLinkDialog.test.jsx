@@ -17,8 +17,8 @@ const openLinkedInFile = () => {
   const view = renderDesktop()
   clickDock('Files')
   const [files] = windowsOf(view.container, 'files')
-  fireEvent.doubleClick(files.querySelector('.fbody [data-path="~/contact"]'))
-  fireEvent.doubleClick(files.querySelector('.fbody [data-path="~/contact/linkedin.desktop"]'))
+  fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByText('contact'))
+  fireEvent.doubleClick(files.querySelector('.fbody [data-path="/home/rafey/contact/linkedin.desktop"]'))
   return view
 }
 

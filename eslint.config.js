@@ -66,7 +66,13 @@ export default [
   },
   {
     // Plain JS with JSDoc and no prop-types dependency; props are covered by component tests instead
-    files: ['components/rafeyos/**/*.{js,jsx}', 'app/os/**/*.{js,jsx}', 'tests/rafeyos/**/*.{js,jsx}'],
+    files: [
+      'components/rafeyos/**/*.{js,jsx}',
+      'app/os/**/*.{js,jsx}',
+      'tests/rafeyos/**/*.{js,jsx}',
+      'components/home/**/*.{js,jsx}',
+      'tests/home/**/*.{js,jsx}',
+    ],
     rules: { 'react/prop-types': 'off' },
   },
   ...Object.entries(RAFEYOS_LAYERS).map(([layer, forbidden]) => layerRule(layer, forbidden)),

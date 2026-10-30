@@ -1,7 +1,23 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { openTerminal, renderDesktop, settle, typeCommand, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import {
+  clickDock,
+  desktopIcon,
+  fsDisk,
+  fsFiles,
+  fsStoreOn,
+  fsTrash,
+  memoryStorage,
+  openTerminal,
+  quotaError,
+  refusingWrites,
+  renderDesktop,
+  settle,
+  typeCommand,
+  windowsOf,
+} from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { createSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 
 afterEach(cleanup)
 
@@ -16,17 +32,88 @@ describe('Terminal app', () => {
 
     expect(log(win).textContent).toContain('Available commands:')
     expect(log(win).textContent).toContain("Use ↑ for history, tab to autocomplete, 'clear' to reset.")
-    expect(log(win).querySelector('.pg').textContent).toBe('visitor@rafey')
+    expect(log(win).querySelector('.pg').textContent).toBe('visitor@rafey.ai')
   })
 
-  it('lists home with folders in blue and links in cyan', () => {
+  it('terminal prompt and title say rafey.ai', () => {
+    const { container } = renderDesktop()
+    const { win } = openTerminal(container)
+
+    expect(win.querySelector('.tline .pg').textContent).toBe('visitor@rafey.ai')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+  })
+
+  it('ctrl+c prints ^C, clears the input and sets $? to 130', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    fireEvent.change(input, { target: { value: 'echo oops' } })
+
+    fireEvent.keyDown(input, { key: 'c', ctrlKey: true })
+
+    expect(input.value).toBe('')
+    // The prompt's space is a no-break one, so it survives in the DOM
+    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:/home/rafey$\u00a0echo oops^C')
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('130')
+  })
+
+  it('ctrl+shift+c leaves the input alone, so copy still works', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    fireEvent.change(input, { target: { value: 'echo oops' } })
+    const lines = log(win).childElementCount
+
+    const notCancelled = fireEvent.keyDown(input, { key: 'C', ctrlKey: true, shiftKey: true })
+
+    expect(notCancelled).toBe(true)
+    expect(input.value).toBe('echo oops')
+    expect(log(win).childElementCount).toBe(lines)
+  })
+
+  it('keeps $? from one command line to the next', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'false')
+    typeCommand(input, 'echo $?')
+
+    expect(log(win).lastElementChild.textContent).toBe('1')
+  })
+
+  it('creating a file then xdg-open on one line opens it in the editor', () => {
+    const { container, services } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'cd && echo hi > notes.txt && xdg-open notes.txt')
+
+    expect(services.fs.getState().nodes['/home/visitor/notes.txt'].text).toBe('hi\n')
+    expect(windowsOf(container, 'editor').map((editor) => editor.getAttribute('aria-label'))).toEqual(['notes.txt'])
+  })
+
+  it('a new terminal starts in rafey\'s home and New Window copies the cwd', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+    typeCommand(input, 'cd ~/Documents')
+
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    fireEvent.keyDown(document.body, { key: 't', ctrlKey: true, altKey: true })
+
+    expect(windowsOf(container, 'terminal').map((terminal) => terminal.getAttribute('aria-label'))).toEqual([
+      'visitor@rafey.ai: ~/Documents',
+      'visitor@rafey.ai: ~/Documents',
+      'visitor@rafey.ai: /home/rafey',
+    ])
+  })
+
+  it('starts in Rafey\'s home and lists it with folders in blue', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
 
     typeCommand(input, 'ls')
 
     const pre = log(win).querySelector('pre')
-    expect(pre.textContent).toContain('Desktop')
+    expect(pre.textContent).toContain('Music')
     expect(pre.textContent).toContain('bio.txt')
     expect([...pre.querySelectorAll('.pb')].map((node) => node.textContent)).toContain('projects')
   })
@@ -57,8 +144,8 @@ describe('Terminal app', () => {
 
     typeCommand(input, 'cd projects')
 
-    expect(win.getAttribute('aria-label')).toBe('visitor@rafey: ~/projects')
-    expect(win.querySelector('.tline .pb').textContent).toBe('~/projects')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/projects')
+    expect(win.querySelector('.tline .pb').textContent).toBe('/home/rafey/projects')
   })
 
   it('completes with Tab and walks history with the arrows', () => {
@@ -77,6 +164,21 @@ describe('Terminal app', () => {
     expect(input.value).toBe('')
   })
 
+  it('completes a path after $HOME and the window\'s $OLDPWD with Tab', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    fireEvent.change(input, { target: { value: 'cd $HOME/Doc' } })
+    fireEvent.keyDown(input, { key: 'Tab' })
+    expect(input.value).toBe('cd $HOME/Documents/')
+
+    typeCommand(input, 'cd /home/visitor')
+    typeCommand(input, 'cd /')
+    fireEvent.change(input, { target: { value: 'cd $OLDPWD/Down' } })
+    fireEvent.keyDown(input, { key: 'Tab' })
+    expect(input.value).toBe('cd $OLDPWD/Downloads/')
+  })
+
   it('lists several completions on the second Tab', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
@@ -86,7 +188,7 @@ describe('Terminal app', () => {
     fireEvent.keyDown(input, { key: 'Tab' })
     fireEvent.keyDown(input, { key: 'Tab' })
 
-    expect(log(win).textContent).toContain('contact  cd  cat  clear')
+    expect(log(win).textContent).toContain('cat  cd  clear  contact  cp')
   })
 
   it('clears with clear and with Ctrl+L', () => {
@@ -165,7 +267,7 @@ describe('Terminal app', () => {
 
     const terminals = windowsOf(container, 'terminal')
     expect(terminals).toHaveLength(2)
-    expect(terminals[1].getAttribute('aria-label')).toBe('visitor@rafey: ~/blog')
+    expect(terminals[1].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/blog')
   })
 
   it('closes its window on exit', () => {
@@ -185,5 +287,375 @@ describe('Terminal app', () => {
 
     expect(log(win).textContent).toContain('Returning to the rafey.ai terminal…')
     await waitFor(() => expect(services.navigate).toHaveBeenCalledWith('/'))
+  })
+
+  it('mkdir in the terminal puts a folder on the desktop', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'mkdir ~/Desktop/notes')
+
+    expect(desktopIcon(container, '/home/visitor/Desktop/notes')).not.toBeNull()
+  })
+
+  it('history_survives_a_remount_through_bash_history', () => {
+    const disk = memoryStorage()
+    const first = renderDesktop({ fs: fsStoreOn(disk) })
+    typeCommand(openTerminal(first.container).input, 'whoami')
+    first.unmount()
+
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('whoami')
+
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  whoami\n    2  history')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('whoami')
+  })
+
+  it('history_in_one_window_shows_lines_from_another', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    const second = windowsOf(container, 'terminal')[1]
+    const secondInput = within(second).getByLabelText('Terminal input')
+
+    typeCommand(input, 'whoami')
+    typeCommand(secondInput, 'history')
+
+    expect(log(second).lastElementChild.textContent).toBe('    1  whoami\n    2  history')
+    // ↑ walks the window's own lines, not the other window's
+    fireEvent.change(secondInput, { target: { value: '' } })
+    fireEvent.keyDown(secondInput, { key: 'ArrowUp' })
+    fireEvent.keyDown(secondInput, { key: 'ArrowUp' })
+    expect(secondInput.value).toBe('history')
+  })
+
+  it('a failed history write is silent and ↑ still recalls the line', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(memoryStorage(), quotaError())) })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'whoami')
+
+    expect(log(win).lastElementChild.textContent).toBe('visitor')
+    expect(log(win).querySelector('.er')).toBeNull()
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('whoami')
+  })
+
+  it('a failed history write leaves history listing the window\'s own lines', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(refusingWrites(memoryStorage(), quotaError())) })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'whoami')
+    typeCommand(input, 'history')
+
+    expect(log(win).lastElementChild.textContent).toBe('    1  whoami\n    2  history')
+  })
+
+  it('history -c leaves ↑ with nothing to recall', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'whoami')
+
+    typeCommand(input, 'history -c')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('')
+
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  history')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('history')
+  })
+
+  it('uptime counts from when the terminal opened', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'uptime')
+
+    expect(log(win).lastElementChild.textContent).toBe(' 21:04:00 up 0 min,  1 user,  load average: 0.00, 0.00, 0.00')
+  })
+
+  it('rm in the terminal removes the desktop icon', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(fsDisk({ '/home/visitor/Desktop/a.txt': 'x' })) })
+    const { input } = openTerminal(container)
+    expect(desktopIcon(container, '/home/visitor/Desktop/a.txt')).not.toBeNull()
+
+    typeCommand(input, 'rm ~/Desktop/a.txt')
+
+    expect(desktopIcon(container, '/home/visitor/Desktop/a.txt')).toBeNull()
+  })
+})
+
+describe('gsettings in the Terminal', () => {
+  const root = (container) => container.querySelector('.rafeyos')
+
+  it('set_color_scheme_prefer_light_switches_the_desktop_to_light', () => {
+    const { container, services } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    expect(root(container).className).toBe('rafeyos')
+
+    typeCommand(input, "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'")
+
+    expect(root(container).className).toBe('rafeyos light')
+    expect(services.settings.getState()).toEqual({ style: 'light' })
+    typeCommand(input, 'gsettings get org.gnome.desktop.interface color-scheme')
+    expect(log(win).lastElementChild.textContent).toBe("'prefer-light'")
+  })
+
+  it('accent_color_set_changes_the_accent_css_var', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, "gsettings set org.gnome.desktop.interface accent-color 'purple'")
+    typeCommand(input, "gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'RIGHT'")
+
+    expect(root(container).style.getPropertyValue('--accent')).toBe('#7764D8')
+    expect(container.querySelector('.dock').className).toBe('dock right')
+  })
+})
+
+describe('ps and kill in the Terminal', () => {
+  const saveDialog = () => screen.queryByRole('dialog', { name: 'Save changes' })
+
+  it('ps_lists_bash_nautilus_editor_and_itself', () => {
+    const { container } = renderDesktop()
+    clickDock('Files')
+    clickDock('Text Editor')
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'ps')
+
+    expect(log(win).lastElementChild.textContent).toBe(
+      [
+        '    PID TTY          TIME CMD',
+        '   1001 ?        00:00:00 nautilus',
+        '   1002 ?        00:00:00 gnome-text-editor',
+        '   1003 pts/0    00:00:00 bash',
+        '   1004 pts/0    00:00:00 ps',
+      ].join('\n'),
+    )
+  })
+
+  it('ps_lists_terminals_as_bash_on_pts_by_id', () => {
+    const { container } = renderDesktop()
+    const { win } = openTerminal(container)
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    const second = windowsOf(container, 'terminal')[1]
+
+    typeCommand(within(second).getByLabelText('Terminal input'), 'ps')
+
+    expect(log(second).lastElementChild.textContent).toBe(
+      [
+        '    PID TTY          TIME CMD',
+        '   1001 pts/0    00:00:00 bash',
+        '   1002 pts/1    00:00:00 bash',
+        '   1003 pts/1    00:00:00 ps',
+      ].join('\n'),
+    )
+  })
+
+  it('kill_closes_the_files_window', () => {
+    const { container } = renderDesktop()
+    clickDock('Files')
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'kill 1001')
+
+    expect(windowsOf(container, 'files')).toHaveLength(0)
+    expect(windowsOf(container, 'terminal')).toHaveLength(1)
+  })
+
+  it('kill_on_a_changed_editor_asks_to_save_and_kill_9_does_not', () => {
+    const { container } = renderDesktop()
+    clickDock('Text Editor')
+    const [editor] = windowsOf(container, 'editor')
+    fireEvent.change(within(editor).getByLabelText('Untitled'), { target: { value: 'keep me' } })
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'kill 1001')
+    expect(saveDialog()).not.toBeNull()
+    expect(windowsOf(container, 'editor')).toEqual([editor])
+    fireEvent.click(within(saveDialog()).getByRole('button', { name: 'Cancel' }))
+
+    typeCommand(input, 'kill -9 1001')
+    expect(windowsOf(container, 'editor')).toHaveLength(0)
+    expect(saveDialog()).toBeNull()
+  })
+
+  it('kill_own_bash_closes_the_terminal', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'kill 1001')
+
+    expect(windowsOf(container, 'terminal')).toHaveLength(0)
+  })
+})
+
+describe('neofetch in the Terminal', () => {
+  it('neofetch_renders_with_labels_in_the_accent_colour', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, "gsettings set org.gnome.desktop.interface accent-color 'purple'; neofetch")
+
+    const block = log(win).lastElementChild
+    expect(block.textContent).toContain('Theme: Dark · Purple accent')
+    const accented = [...block.querySelectorAll('.ac')].map((span) => span.textContent.trimEnd()).filter(Boolean)
+    expect(accented).toEqual([
+      "   .-'''-.", '  /  .-.  \\', ' |  ( r )  |', 'OS', "  \\  '-'  /", 'Host', "   '-...-'", 'Kernel',
+      'Uptime', 'Shell', 'DE', 'Theme', 'CPU', 'Memory',
+    ])
+  })
+})
+
+describe('reset-home in the Terminal', () => {
+  const QUESTION = 'reset-home: erase /home/visitor, saved settings and history? [y/N]'
+  const NOTES = '/home/visitor/Desktop/notes.txt'
+  const HISTORY = '/home/visitor/.bash_history'
+  const root = (container) => container.querySelector('.rafeyos')
+  const promptOf = (win) => win.querySelector('.tline')
+  const savedDisk = () => fsDisk({ [NOTES]: 'hi\n', [HISTORY]: 'ls\n' }, { '/home/visitor/old.txt': 'old\n' })
+  /** A saved purple accent, light style, right-hand dock and bigger icons. */
+  const savedSettings = () => {
+    const settings = createSettingsStore({ storage: memoryStorage() })
+    settings.set('accent', '#7764D8')
+    settings.set('style', 'light')
+    settings.set('dockPos', 'right')
+    settings.set('iconSize', 48)
+    return settings
+  }
+
+  it('reset_home_asks_and_enter_means_no', () => {
+    const disk = savedDisk()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'reset-home')
+    expect(promptOf(win).textContent).toBe(`${QUESTION} `)
+    expect(promptOf(win).querySelector('.pg')).toBeNull()
+    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:/home/rafey$ reset-home')
+
+    typeCommand(input, '')
+
+    expect(log(win).lastElementChild.textContent).toBe(`${QUESTION} `)
+    expect(promptOf(win).querySelector('.pg').textContent).toBe('visitor@rafey.ai')
+    expect(fsFiles(disk)).toMatchObject({ [NOTES]: 'hi\n' })
+    expect(fsTrash(disk)).toEqual({ '/home/visitor/old.txt': 'old\n' })
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('0')
+  })
+
+  it('reset_home_y_wipes_files_trash_history_and_settings', () => {
+    const disk = savedDisk()
+    const settings = savedSettings()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk), settings })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'y')
+
+    expect(log(win).lastElementChild.textContent).toBe(`${QUESTION} y`)
+    expect(fsFiles(disk)).toEqual({})
+    expect(fsTrash(disk)).toEqual({})
+    expect(settings.getState()).toEqual({})
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  history')
+  })
+
+  it('desktop_icons_and_accent_return_to_defaults_after_reset', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(savedDisk()), settings: savedSettings() })
+    const { input } = openTerminal(container)
+    expect(desktopIcon(container, NOTES)).not.toBeNull()
+    expect(root(container).className).toBe('rafeyos light')
+    expect(root(container).style.getPropertyValue('--accent')).toBe('#7764D8')
+    expect(container.querySelector('.dock').className).toBe('dock right')
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'YES')
+
+    expect(desktopIcon(container, NOTES)).toBeNull()
+    expect(root(container).className).toBe('rafeyos')
+    expect(root(container).style.getPropertyValue('--accent')).toBe('#E95420')
+    expect(container.querySelector('.dock').className).toBe('dock bottom')
+  })
+
+  it('ctrl_c_at_the_question_cancels_with_130', () => {
+    const disk = savedDisk()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'reset-home')
+    fireEvent.change(input, { target: { value: 'ma' } })
+
+    fireEvent.keyDown(input, { key: 'c', ctrlKey: true })
+
+    expect(input.value).toBe('')
+    expect(log(win).lastElementChild.textContent).toBe(`${QUESTION} ma^C`)
+    expect(promptOf(win).querySelector('.pg')).not.toBeNull()
+    expect(fsFiles(disk)).toMatchObject({ [NOTES]: 'hi\n' })
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('130')
+  })
+
+  it('answer_is_not_saved_to_history_or_up_arrow', () => {
+    const disk = fsDisk()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk) })
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'reset-home')
+
+    // Tab, ↑ and ↓ do nothing while the question waits
+    for (const key of ['ArrowUp', 'Tab', 'ArrowDown']) fireEvent.keyDown(input, { key })
+    expect(input.value).toBe('')
+    typeCommand(input, 'nope')
+
+    expect(fsFiles(disk)[HISTORY]).toBe('reset-home\n')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('reset-home')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('reset-home')
+    typeCommand(input, 'history')
+    expect(log(win).lastElementChild.textContent).toBe('    1  reset-home\n    2  history')
+  })
+
+  it('other_open_terminal_up_arrow_is_cleared', () => {
+    const { container } = renderDesktop({ fs: fsStoreOn(savedDisk()) })
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'echo one')
+    fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
+    const second = within(windowsOf(container, 'terminal')[1]).getByLabelText('Terminal input')
+    typeCommand(second, 'echo two')
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'y')
+
+    fireEvent.keyDown(second, { key: 'ArrowUp' })
+    expect(second.value).toBe('')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input.value).toBe('')
+  })
+
+  it('a failed reset after y prints why, sets 1 and changes nothing', () => {
+    const disk = refusingWrites(savedDisk(), quotaError())
+    const settings = savedSettings()
+    const { container } = renderDesktop({ fs: fsStoreOn(disk), settings })
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'reset-home')
+    typeCommand(input, 'y')
+
+    expect([...log(win).children].slice(-2).map((row) => row.textContent)).toEqual([
+      `${QUESTION} y`,
+      'reset-home: cannot reset: No space left on device',
+    ])
+    expect(desktopIcon(container, NOTES)).not.toBeNull()
+    expect(settings.getState()).toMatchObject({ accent: '#7764D8' })
+    typeCommand(input, 'echo $?')
+    expect(log(win).lastElementChild.textContent).toBe('1')
   })
 })

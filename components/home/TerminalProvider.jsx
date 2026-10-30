@@ -1,21 +1,34 @@
 'use client'
 
-import React, { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext } from 'react';
 
 const TerminalContext = createContext();
 
+// Plain state, kept across routes by the root layout. No shell imports here: every route renders this provider,
+// and only the homepage should pay for the engine.
 export const TerminalProvider = ({ children }) => {
-  const [history, setHistory] = useState([]);
-  const [commandHistory, setCommandHistory] = useState([]);
+  const [entries, setEntries] = useState([]);
   const [input, setInput] = useState('');
+  // null until a line runs this visit; until then the homepage restores the saved folder
+  const [cwd, setCwd] = useState(null);
+  const [env, setEnv] = useState({});
+  const [lastCode, setLastCode] = useState(0);
+  // Commands run since the page loaded: the ghost `help` shows until the first
+  const [ranThisVisit, setRanThisVisit] = useState(0);
 
   const value = {
-    history,
-    setHistory,
-    commandHistory,
-    setCommandHistory,
+    entries,
+    setEntries,
     input,
     setInput,
+    cwd,
+    setCwd,
+    env,
+    setEnv,
+    lastCode,
+    setLastCode,
+    ranThisVisit,
+    setRanThisVisit,
   };
 
   return (

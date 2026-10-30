@@ -45,6 +45,7 @@
 :where(.rafeyos) .term pre { margin: 0; white-space: pre-wrap; font: inherit; }
 :where(.rafeyos) .term .pg { color: var(--tgreen); font-weight: 700; } :where(.rafeyos) .term .pb { color: var(--tblue); font-weight: 700; }
 :where(.rafeyos) .term .lc { color: var(--tcyan); font-weight: 700; } :where(.rafeyos) .term .er { color: var(--tred); } :where(.rafeyos) .term .dm { opacity: .55; }
+:where(.rafeyos) .term .ac { color: var(--accent); }
 :where(.rafeyos) .term a { color: inherit; }
 :where(.rafeyos) .tline { display: flex; flex-wrap: wrap; }
 :where(.rafeyos) .tline .inp { position: relative; flex: 1; min-width: 40px; }

@@ -11,7 +11,7 @@ import { APP } from '@/components/rafeyos/core/catalog/apps'
 // The mockup focuses the prompt just after the open animation starts
 const FOCUS_DELAY_MS = 60
 
-export const terminalTitle = (cwd) => `visitor@rafey: ${tilde(cwd)}`
+export const terminalTitle = (cwd) => `visitor@rafey.ai: ${tilde(cwd)}`
 
 const useAutoFocus = (inputRef) => {
   useEffect(() => {
@@ -41,10 +41,10 @@ const TerminalHeader = ({ title, onNewWindow }) => (
   />
 )
 
-/** The live prompt; the grey ghost shows until the first command. */
-const PromptLine = ({ cwd, input, keys, inputRef }) => (
+/** The live prompt, or a command's [y/N] question waiting for its answer; the grey ghost shows until the first command. */
+const PromptLine = ({ cwd, question, input, keys, inputRef }) => (
   <div className="tline">
-    <TerminalPrompt cwd={cwd} />
+    {question === null ? <TerminalPrompt cwd={cwd} /> : <span>{question} </span>}
     <span className="inp">
       <input
         ref={inputRef}
@@ -65,13 +65,13 @@ const PromptLine = ({ cwd, input, keys, inputRef }) => (
   </div>
 )
 
-/** GNOME Terminal running rafeyOS's pretend bash. */
+/** GNOME Terminal running rafeyOS's bash. */
 export const TerminalApp = ({ windowId, arg }) => {
-  const { vfs } = useVfs()
+  const { shellFs, vfs } = useVfs()
   const windowManager = useWindowManager()
   const session = useTerminalSession({ windowId, initialCwd: arg })
   const [input, setInput] = useState('')
-  const keys = useTerminalKeys({ session, input, setInput, vfs })
+  const keys = useTerminalKeys({ session, input, setInput, shellFs, vfs })
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
   const title = terminalTitle(session.cwd)
@@ -92,7 +92,7 @@ export const TerminalApp = ({ windowId, arg }) => {
             <TerminalLine key={entry.id} line={entry.line} />
           ))}
         </div>
-        <PromptLine cwd={session.cwd} input={input} keys={keys} inputRef={inputRef} />
+        <PromptLine cwd={session.cwd} question={session.question} input={input} keys={keys} inputRef={inputRef} />
       </div>
     </>
   )

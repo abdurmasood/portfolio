@@ -94,11 +94,11 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
 
   /**
    * Opens a file in its default app; false for web links and apps that aren't built yet.
+   * `vfs` is the tree to read when the caller has a newer one than the last render (the terminal, just after a write).
    * @param {string} path
-   * @param {{ from?: Rect | null }} [options]
+   * @param {{ from?: Rect | null, vfs?: Vfs }} [options]
    */
-  const openPath = (path, { from = null } = {}) => {
-    const vfs = getVfs()
+  const openPath = (path, { from = null, vfs = getVfs() } = {}) => {
     const target = realPath(vfs, path)
     const node = vfs[target]
     const appId = node ? handlerFor(node) : null
@@ -141,6 +141,23 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
     else closeGuards.delete(id)
   }
 
+  // Past the guard, as the Editor closes itself once its file is gone: `kill -9` asks nothing
+  /** @param {number} id */
+  const forceClose = (id) => {
+    setCloseGuard(id, null)
+    close(id)
+  }
+
+  /** The windows still open (minimized counts), by ascending id, and the id the next one gets: what `ps` lists. */
+  const list = () => {
+    const state = getState()
+    const windows = Object.values(state.byId)
+      .filter((win) => win.phase !== WINDOW_PHASES.CLOSING)
+      .sort((a, b) => a.id - b.id)
+      .map(({ id, appId }) => ({ id, appId }))
+    return { windows, nextId: state.nextId }
+  }
+
   /** @param {number} id */
   const remove = (id) => {
     openOrigins.delete(id)
@@ -165,6 +182,8 @@ export const createWindowManager = ({ dispatch, getState, getLayout, getVfs }) =
   return Object.freeze({
     ...commands,
     close,
+    forceClose,
+    list,
     openApp,
     openPath,
     snap,

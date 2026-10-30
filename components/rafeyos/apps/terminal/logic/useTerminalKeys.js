@@ -2,52 +2,49 @@ import { useRef, useState } from 'react'
 import { complete } from '@/components/rafeyos/core/commands/complete'
 import { COMPLETION_COMMANDS } from '@/components/rafeyos/core/commands/exec'
 import { pre, prompt } from '@/components/rafeyos/core/commands/lines'
+import { useCommandRecall } from '@/components/rafeyos/apps/terminal/logic/useCommandRecall'
+import { answerKey } from '@/components/rafeyos/apps/terminal/logic/useQuestion'
 
 // Runs as the first command; Tab, → or Enter on an empty prompt accepts it
 export const STARTER_COMMAND = 'help'
 const ACCEPTS_STARTER = new Set(['Tab', 'ArrowRight', 'Enter'])
 
-/** Bash-style history: ↑ walks back, ↓ forward, past the newest clears the line. */
-const useHistory = () => {
-  const items = useRef([])
-  const index = useRef(0)
+/** Tab completion; a second Tab in a row lists the matches. */
+const useTabCompletion = ({ session, input, setInput, shellFs }) => {
+  const tabCount = useRef(0)
   return {
-    push: (command) => {
-      if (command.trim()) items.current.push(command)
-      index.current = items.current.length
+    tab: () => {
+      tabCount.current += 1
+      // The tree as it is right now, so a file the last line made completes at once
+      const context = { ...session.variables(), vfs: shellFs.vfs(), cwd: session.cwd, commands: COMPLETION_COMMANDS, tabCount: tabCount.current }
+      const outcome = complete(input, context)
+      if (outcome.list) session.append([prompt(session.cwd, input), pre(outcome.list.join('  '))])
+      else setInput(outcome.value)
     },
-    older: () => (index.current > 0 ? items.current[--index.current] : null),
-    newer: () => {
-      index.current = Math.min(items.current.length, index.current + 1)
-      return items.current[index.current] ?? ''
+    reset: () => {
+      tabCount.current = 0
     },
   }
 }
 
 /**
  * Keyboard handling for the terminal prompt.
- * @param {{ session: object, input: string, setInput: Function, vfs: object }} options
+ * @param {{ session: object, input: string, setInput: Function, shellFs: import('@/components/rafeyos/core/vfs/shellFs').ShellFs, vfs: object }} options
  * @returns {{ onKeyDown: Function, onChange: Function, started: boolean, runStarter: Function }}
  */
-export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
-  const history = useHistory()
-  const tabCount = useRef(0)
+export const useTerminalKeys = ({ session, input, setInput, shellFs, vfs }) => {
+  const history = useCommandRecall(shellFs, vfs)
+  const completion = useTabCompletion({ session, input, setInput, shellFs })
   const [started, setStarted] = useState(false)
   const submit = (command) => {
     setStarted(true)
     setInput('')
     history.push(command)
-    session.run(command)
-  }
-  const tab = () => {
-    tabCount.current += 1
-    const outcome = complete(input, { vfs, cwd: session.cwd, commands: COMPLETION_COMMANDS, tabCount: tabCount.current })
-    if (outcome.list) session.append([prompt(session.cwd, input), pre(outcome.list.join('  '))])
-    else setInput(outcome.value)
+    if (session.run(command).historyCleared) history.clear()
   }
   const keys = {
     Enter: () => submit(input),
-    Tab: tab,
+    Tab: completion.tab,
     ArrowUp: () => {
       const command = history.older()
       if (command !== null) setInput(command)
@@ -56,6 +53,7 @@ export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
   }
   const onKeyDown = (event) => {
     event.stopPropagation()
+    if (session.question !== null && answerKey(event, { session, input, setInput })) return undefined
     if (!started && !input && ACCEPTS_STARTER.has(event.key)) {
       event.preventDefault()
       return submit(STARTER_COMMAND)
@@ -64,13 +62,20 @@ export const useTerminalKeys = ({ session, input, setInput, vfs }) => {
       event.preventDefault()
       return session.clear()
     }
+    // Ctrl+Shift+C is copy, so only a plain Ctrl+C interrupts
+    if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'c') {
+      event.preventDefault()
+      completion.reset()
+      setInput('')
+      return session.interrupt(input)
+    }
     const handler = keys[event.key]
     if (!handler) return undefined
     if (event.key !== 'Enter') event.preventDefault()
     return handler()
   }
   const onChange = (event) => {
-    tabCount.current = 0
+    completion.reset()
     setInput(event.target.value)
   }
   return { onKeyDown, onChange, started, runStarter: () => submit(STARTER_COMMAND) }

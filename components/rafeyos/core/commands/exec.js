@@ -1,39 +1,71 @@
-import { parse } from './parse'
-import { error } from './lines'
+import { shellCollate } from './expand'
+import { runLine } from './run'
+import { asksForHelp, helpText } from './manPages'
 import { contentCommands } from './builtins/content'
+import { filesCommands } from './builtins/files'
 import { fsCommands } from './builtins/fs'
+import { gsettingsCommands } from './builtins/gsettings'
 import { launchCommands } from './builtins/launch'
+import { neofetchCommands } from './builtins/neofetch'
+import { processCommands } from './builtins/process'
+import { resetHomeCommands } from './builtins/resetHome'
 import { systemCommands } from './builtins/system'
+import { textCommands } from './builtins/text'
 
 export { EFFECTS } from './builtins/result'
-
-export const COMMANDS = Object.freeze({
-  ...contentCommands,
-  ...fsCommands,
-  ...launchCommands,
-  ...systemCommands,
-})
-
-// What tab completes for the first word; startx is deliberately hidden
-export const COMPLETION_COMMANDS = Object.freeze([
-  'help', 'bio', 'projects', 'blog', 'skills', 'music', 'contact', 'open', 'xdg-open', 'ls', 'cd',
-  'pwd', 'cat', 'clear', 'exit', 'nautilus', 'gnome-text-editor', 'whoami', 'uname', 'echo', 'sudo',
-  'logout',
-])
+export { ENV } from './run'
 
 /**
- * Runs one command line. Pure: side effects come back as descriptors for the caller to run.
- * The echoed prompt row is not included; the UI prints it before these lines.
- * @param {string} raw
- * @param {{ vfs: object, cwd: string, content: object }} context
- * @returns {{ lines: object[], effects: object[], cwd: string }}
+ * Every command takes `--help` (echo aside): it prints the synopsis and options from its man page instead of running.
+ * @param {Record<string, import('./builtins/result').Handler>} commands
  */
-export const exec = (raw, { vfs, cwd, content }) => {
-  const parsed = parse(raw)
-  if (!parsed.name) return { lines: [], effects: [], cwd }
-  const name = parsed.name.toLowerCase()
-  const handler = Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : null
-  if (!handler) return { lines: [error(`Command not found: '${parsed.name}'`)], effects: [], cwd }
-  const output = handler({ parsed, name, vfs, cwd, content })
-  return { lines: output.lines, effects: output.effects, cwd: output.cwd ?? cwd }
-}
+export const withHelp = (commands) =>
+  Object.fromEntries(
+    Object.entries(commands).map(([name, handler]) => {
+      const help = helpText(name)
+      if (help === null) return [name, handler]
+      return [name, (context) => (asksForHelp(name, context.argv) ? { stdout: `${help}\n` } : handler(context))]
+    }),
+  )
+
+/** Every command the shell knows, by its exact (case-sensitive) name. */
+export const COMMANDS = Object.freeze(
+  withHelp({
+    ...contentCommands,
+    ...fsCommands,
+    ...filesCommands,
+    ...gsettingsCommands,
+    ...launchCommands,
+    ...neofetchCommands,
+    ...processCommands,
+    ...resetHomeCommands,
+    ...systemCommands,
+    ...textCommands,
+  }),
+)
+
+// Commands tab leaves out; startx is deliberately hidden
+const UNLISTED = new Set(['startx'])
+
+/**
+ * What tab completes for the first word: every command in `registry`, in the shell's name order.
+ * @param {import('./run').Registry} registry
+ */
+export const completionCommands = (registry) =>
+  Object.freeze(
+    Object.keys(registry)
+      .filter((name) => !UNLISTED.has(name))
+      .sort(shellCollate),
+  )
+
+export const COMPLETION_COMMANDS = completionCommands(COMMANDS)
+
+/**
+ * Runs one command line against `context.commands`, or every command the shell knows. Files change through
+ * `context.fs`; every other side effect comes back as a descriptor for the caller to run. The echoed prompt row is
+ * not included; the UI prints it before these lines.
+ * @param {string} raw
+ * @param {import('./run').ExecContext} context
+ * @returns {import('./run').ExecResult}
+ */
+export const exec = (raw, context) => runLine(raw, context, context.commands ?? COMMANDS)

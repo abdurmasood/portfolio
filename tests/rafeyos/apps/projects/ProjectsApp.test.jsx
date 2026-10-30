@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, menuLabels, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { chooseMenuItem, clickDock, fakeServices, menuLabels, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
+import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
+import { ServicesContext, VfsContext, WindowManagerContext } from '@/components/rafeyos/state/logic/contexts'
+import { WindowChromeContext } from '@/components/rafeyos/wm/logic/WindowChromeContext'
+import { ProjectsApp } from '@/components/rafeyos/apps/projects/ProjectsApp'
 
 const { projects } = buildContent()
 const linked = projects.find((project) => project.link)
-const unlinked = projects.find((project) => !project.link)
 
 let context
 let frames
@@ -48,6 +51,23 @@ const openProjects = (overrides) => {
 
 const headerOf = (win) => win.querySelectorAll('.hb')[1]
 
+/** The app alone over the fixture content, which has a project without a link (every real one has one). */
+const renderWithFixtureProjects = () => {
+  const chrome = { startDrag: vi.fn(), toggleMax: vi.fn(), minimize: vi.fn(), close: vi.fn(), isMax: false, minimized: false }
+  const windowManager = { setTitle: vi.fn(), openApp: vi.fn() }
+  return render(
+    <ServicesContext.Provider value={fakeServices()}>
+      <VfsContext.Provider value={{ content: fixtureContent, vfs: {} }}>
+        <WindowManagerContext.Provider value={windowManager}>
+          <WindowChromeContext.Provider value={chrome}>
+            <ProjectsApp windowId={1} />
+          </WindowChromeContext.Provider>
+        </WindowManagerContext.Provider>
+      </VfsContext.Provider>
+    </ServicesContext.Provider>,
+  )
+}
+
 describe('Projects app', () => {
   it('lists every project, then Show in Files, beside the first project', () => {
     const { win, ui } = openProjects()
@@ -79,14 +99,18 @@ describe('Projects app', () => {
   })
 
   it('shows no link for a project without a case study', () => {
-    const { win, ui } = openProjects()
+    const { container } = renderWithFixtureProjects()
+    const unlinked = fixtureContent.projects.find((project) => !project.link)
+    const card = () => within(container.querySelector('.p3card'))
+    expect(card().getByRole('link')).toBeTruthy()
 
-    fireEvent.click(ui.getByRole('button', { name: unlinked.title }))
+    fireEvent.click(screen.getByRole('button', { name: unlinked.title }))
 
-    expect(within(win.querySelector('.p3card')).queryByRole('link')).toBeNull()
+    expect(card().getByText(unlinked.title)).toBeTruthy()
+    expect(card().queryByRole('link')).toBeNull()
   })
 
-  it('opens ~/projects in Files', () => {
+  it('opens Rafey\'s projects folder in Files', () => {
     const { container, ui } = openProjects()
 
     fireEvent.click(ui.getByRole('button', { name: 'Show in Files' }))
@@ -114,7 +138,7 @@ describe('Open in Projects', () => {
     const { container, files } = openProjectsFolder()
     const target = projects[projects.length - 1]
 
-    rightClick(files.querySelector(`[data-path="~/projects/${target.slug}.txt"]`))
+    rightClick(files.querySelector(`[data-path="/home/rafey/projects/${target.slug}.txt"]`))
     expect(menuLabels()).toContain('Open in Projects')
     chooseMenuItem('Open in Projects')
 
@@ -128,7 +152,7 @@ describe('Open in Projects', () => {
     clickDock('Projects')
     const target = projects[1]
 
-    rightClick(files.querySelector(`[data-path="~/projects/${target.slug}.txt"]`))
+    rightClick(files.querySelector(`[data-path="/home/rafey/projects/${target.slug}.txt"]`))
     chooseMenuItem('Open in Projects')
 
     expect(windowsOf(container, 'projects')).toHaveLength(1)
@@ -138,11 +162,11 @@ describe('Open in Projects', () => {
   it('is not offered for other files, and Open still uses the Text Editor', () => {
     const { container, files } = openProjectsFolder()
 
-    fireEvent.doubleClick(files.querySelector(`[data-path="~/projects/${projects[0].slug}.txt"]`))
+    fireEvent.doubleClick(files.querySelector(`[data-path="/home/rafey/projects/${projects[0].slug}.txt"]`))
     expect(windowsOf(container, 'editor')).toHaveLength(1)
 
-    fireEvent.click(within(within(files).getByRole('navigation', { name: 'Places' })).getByRole('button', { name: 'Home' }))
-    rightClick(files.querySelector('[data-path="~/bio.txt"]'))
+    fireEvent.click(within(files.querySelector('.pathbar')).getByRole('button', { name: 'rafey' }))
+    rightClick(files.querySelector('[data-path="/home/rafey/bio.txt"]'))
     expect(menuLabels()).not.toContain('Open in Projects')
   })
 })

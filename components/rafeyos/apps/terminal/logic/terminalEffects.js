@@ -1,6 +1,7 @@
 // @ts-check
 // Runs exec()'s effect descriptors. Pure apart from the injected handlers, so it's testable alone.
 import { EFFECTS } from '@/components/rafeyos/core/commands/exec'
+import { windowOfPid } from '@/components/rafeyos/core/commands/builtins/process'
 import { dim } from '@/components/rafeyos/core/commands/lines'
 import { handlerFor, isAudio, isWebLink, unavailableNote } from '@/components/rafeyos/core/catalog/apps'
 import { realPath } from '@/components/rafeyos/core/vfs/paths'
@@ -13,15 +14,18 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
  */
 
 /**
- * openLink shows the Open Link dialog; play starts the track without opening a window.
+ * openLink shows the Open Link dialog; play starts the track without opening a window; clearHistory empties the
+ * window's own history after `history -c`; ask puts a command's [y/N] question on the prompt.
  * @typedef {{
  *   vfs: Vfs,
- *   windowManager: Pick<WindowManager, 'openApp' | 'openPath'>,
+ *   windowManager: Pick<WindowManager, 'openApp' | 'openPath' | 'close' | 'forceClose'>,
  *   openExternal: (href: string) => void,
  *   openLink: () => void,
  *   play: () => void,
  *   closeSelf: () => void,
  *   logout: () => void,
+ *   clearHistory: () => void,
+ *   ask: (question: Extract<Effect, { type: 'ask' }>) => void,
  * }} EffectHandlers
  */
 
@@ -55,7 +59,7 @@ const openPathNote = (path, handlers) => {
     return null
   }
   if (isAudio(vfs, path)) handlers.play()
-  return windowManager.openPath(path) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
+  return windowManager.openPath(path, { vfs }) ? null : dim(unavailableNote(handlerFor(vfs[realPath(vfs, path)])))
 }
 
 /**
@@ -83,6 +87,17 @@ const runEffect = (effect, handlers) => {
       return null
     case EFFECTS.LOGOUT:
       handlers.logout()
+      return null
+    case EFFECTS.CLEAR_HISTORY:
+      handlers.clearHistory()
+      return null
+    case EFFECTS.ASK:
+      handlers.ask(effect)
+      return null
+    // The terminal's own PID closes it like exit, but kill prints no `logout`
+    case EFFECTS.KILL:
+      if (effect.force) handlers.windowManager.forceClose(windowOfPid(effect.pid))
+      else handlers.windowManager.close(windowOfPid(effect.pid))
       return null
     default:
       throw new Error(`Unknown terminal effect: ${effect.type}`)

@@ -7,7 +7,7 @@ describe('line constructors', () => {
     expect(error('b')).toEqual({ type: 'error', text: 'b' })
     expect(dim('c')).toEqual({ type: 'dim', text: 'c' })
     expect(link('d', '/d')).toEqual({ type: 'link', text: 'd', href: '/d' })
-    expect(prompt('~/Music', 'ls')).toEqual({ type: 'prompt', cwd: '~/Music', cmd: 'ls' })
+    expect(prompt('/home/rafey/Music', 'ls')).toEqual({ type: 'prompt', cwd: '/home/rafey/Music', cmd: 'ls' })
   })
 
   it('copies ls entries so callers cannot alias them', () => {

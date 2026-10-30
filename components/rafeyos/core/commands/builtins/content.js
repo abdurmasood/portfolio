@@ -1,11 +1,14 @@
 // Commands that print Rafey's content: help, bio, projects, blog, skills, music, contact
 import { pre, dim } from '@/components/rafeyos/core/commands/lines'
-import { result, EFFECTS } from './result'
+import { operands, result, EFFECTS } from './result'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
+import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 
 const PROJECT_NAME_WIDTH = 22
 const SUMMARY_WORDS = 7
 const EXAMPLE_PROJECT = 'leaf-line'
+const STORY = joinPath(RAFEY_HOME, 'Music/story.txt')
 
 const help = ({ content }) => result([pre(content.help.lines.join('\n')), dim(content.help.hint)])
 
@@ -16,8 +19,8 @@ const skills = ({ content }) => result([pre(content.skills)])
 const projectRow = (project) =>
   `  ${project.title.padEnd(PROJECT_NAME_WIDTH)}${project.description.split(' ').slice(0, SUMMARY_WORDS).join(' ')}…`
 
-const projects = ({ parsed, content }) => {
-  if (parsed.flags.includes('--3d')) {
+const projects = ({ argv, content }) => {
+  if (argv.includes('--3d')) {
     return result([pre('Opening Projects…')], [{ type: EFFECTS.OPEN_APP, app: APP.PROJECTS }])
   }
   const list = content.projects
@@ -43,13 +46,13 @@ const musicUsage = ({ track, blurb }) =>
     dim(blurb),
   ])
 
-const music = ({ parsed, vfs, content }) => {
+const music = ({ argv, fs, content }) => {
   const { track } = content.music
-  const subcommand = parsed.args[0]
+  const [subcommand] = operands(argv)
   if (subcommand === 'play') {
     return result([pre(`▶ playing   ${track.title} · ${track.artist}`)], [{ type: EFFECTS.PLAY }])
   }
-  if (subcommand === 'story') return result([pre(vfs['~/Music/story.txt'].text)])
+  if (subcommand === 'story') return result([pre(fs.vfs()[STORY].text)])
   return musicUsage(content.music)
 }
 

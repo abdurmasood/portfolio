@@ -1,9 +1,13 @@
 // Test helper: a vfs built from the real content, plus a small fixture content for edge cases
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
+import { mergeState, seedState } from '@/components/rafeyos/core/vfs/fsState'
 
 export const realContent = buildContent()
 export const realVfs = buildVfs(realContent)
+
+/** The shipped tree plus a first visit's Desktop, Documents and Downloads, as rafeyOS shows it. */
+export const visitorVfs = (content = realContent) => mergeState(buildVfs(content), seedState(0))
 
 export const fixtureContent = Object.freeze({
   bio: 'Bio text\n',

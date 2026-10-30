@@ -5,13 +5,15 @@ import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { belowElement, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
 import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
+import { reasonBody } from '@/components/rafeyos/ui/menus/logic/storageFailure'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
 import { WINDOW_PHASES } from '@/components/rafeyos/state/logic/windowsReducer'
 import { editorMenuItems, folderLabel, recentDocumentItems } from './logic/editorMenus'
-import { DOCUMENTS, placeLabel, saveChoice } from '@/components/rafeyos/core/vfs/documents'
+import { DOCUMENTS, isSaveFolder, placeLabel, saveChoice } from '@/components/rafeyos/core/vfs/documents'
 import { FolderDropdown } from './FolderDropdown'
 import { parentOf } from '@/components/rafeyos/core/vfs/paths'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { NODE_TYPES, TMP } from '@/components/rafeyos/core/vfs/buildVfs'
 import { KEEPS_POPUP_PROPS } from '@/components/rafeyos/ui/logic/domHooks'
 
 // The main menu sits at the end of the header, so it opens inwards (mockup offset)
@@ -113,6 +115,47 @@ const openPathsOf = (windows, windowId) =>
     .filter((win) => win.id !== windowId && win.phase !== WINDOW_PHASES.CLOSING && win.appId === APP.EDITOR && win.arg)
     .map((win) => win.arg)
 
+/** Where Save offers to put a file that was deleted under the editor: its old folder when Save can use it, else Documents. */
+const fallbackFolder = (path) => {
+  const folder = parentOf(path)
+  return isSaveFolder(folder) ? folder : DOCUMENTS
+}
+
+/** Everything in /tmp is the visitor's, though only their home's files carry `user` (Trash stays home-only). */
+const isTmpFile = (path) => path.startsWith(`${TMP}/`)
+
+/**
+ * Whether the window stays on its buffer after its file went: judged once, as the file goes, so a clean buffer never
+ * reads as unsaved while its window fades out, and typing a kept buffer back to the old text later does not close it.
+ */
+const useKeptAfterDelete = (deleted, unsaved) => {
+  const [seenDeleted, setSeenDeleted] = useState(deleted)
+  const [kept, setKept] = useState(false)
+  // Adjusted while rendering, like useBuffer, so the frame where the file goes already has the answer
+  if (deleted !== seenDeleted) {
+    setSeenDeleted(deleted)
+    setKept(deleted && unsaved)
+  }
+  return kept
+}
+
+/**
+ * The buffer and the file it came from. A clean buffer follows the file when something outside (the shell) writes it;
+ * an edited one keeps the typing. `synced` is the file's text the buffer last matched, and stays put while the file is
+ * gone, so a deleted file's buffer is still measured against what was last on disk.
+ */
+const useBuffer = (node) => {
+  const fileText = node?.text ?? ''
+  const [synced, setSynced] = useState(fileText)
+  const [text, setText] = useState(fileText)
+  // React's adjust-state-while-rendering pattern: no frame where a clean buffer shows the old text as edited
+  if (node && fileText !== synced) {
+    setSynced(fileText)
+    if (text === synced) setText(fileText)
+  }
+  return { text, setText, savedText: node ? fileText : synced }
+}
+
 /** A notepad for files the visitor creates. Shipped files open here, locked. */
 export const EditorApp = ({ windowId, arg }) => {
   const { vfs, saveDocument } = useVfs()
@@ -120,16 +163,22 @@ export const EditorApp = ({ windowId, arg }) => {
   const windows = useWindowsState()
   const notify = useNotify()
   const node = arg ? vfs[arg] : null
-  const missing = Boolean(arg) && !node
-  const editable = !missing && (!node || node.user === true) && !node?.trashedFrom
-  const savedText = node?.text ?? ''
-  const label = node?.name ?? (missing ? arg.slice(arg.lastIndexOf('/') + 1) : UNTITLED)
-  const [text, setText] = useState(savedText)
+  // Deleted while open: the typing stays editable and Save asks for a name
+  const deleted = Boolean(arg) && !node
+  const owned = node?.user === true || (Boolean(node) && isTmpFile(arg))
+  const editable = deleted || ((!node || owned) && !node?.trashedFrom)
+  const inPlace = owned && node.type === NODE_TYPES.TEXT && !node.trashedFrom
+  const label = node?.name ?? (deleted ? arg.slice(arg.lastIndexOf('/') + 1) : UNTITLED)
+  const { text, setText, savedText } = useBuffer(node)
   const [prompt, setPrompt] = useState(null)
-  const dirty = editable && text !== savedText
+  const unsaved = editable && text !== savedText
+  const kept = useKeptAfterDelete(deleted, unsaved)
+  // Once its file is gone, nothing on disk holds a kept buffer, so it counts as unsaved whatever it reads
+  const dirty = unsaved || kept
   const dirtyRef = useRef(dirty)
   const afterCloseRef = useRef(null)
   dirtyRef.current = dirty
+  const closing = windows.byId[windowId]?.phase === WINDOW_PHASES.CLOSING
 
   const dismiss = () => {
     afterCloseRef.current = null
@@ -155,7 +204,6 @@ export const EditorApp = ({ windowId, arg }) => {
       userPaths: userPathsOf(vfs),
       openPaths: openPathsOf(windows, windowId),
       blockedPaths: blockedPathsOf(vfs),
-      currentPath: node?.user ? arg : null,
     })
     if (choice.type === 'invalid') {
       setPrompt({ type: 'name', draft: raw, folder, error: 'Choose a file name.', thenClose })
@@ -175,7 +223,7 @@ export const EditorApp = ({ windowId, arg }) => {
     }
     const saved = saveDocument(choice.folder, choice.name, text)
     if (!saved.ok) {
-      notify({ appId: APP.EDITOR, title: "Couldn't save", body: 'This browser blocked saving the file.' })
+      notify({ appId: APP.EDITOR, title: "Couldn't save", body: reasonBody(saved.reason) })
       setPrompt({ type: 'name', draft: raw, folder, error: saved.reason === 'taken' ? `Can't replace ${choice.name}.` : SAVE_ERROR, thenClose })
       return
     }
@@ -183,8 +231,19 @@ export const EditorApp = ({ windowId, arg }) => {
     finish(thenClose)
   }
 
+  // The visitor's own file is written back at its exact path, whatever its folder and name
+  const saveInPlace = (thenClose) => {
+    const saved = saveDocument(parentOf(arg), node.name, text, { inPlace: true })
+    if (!saved.ok) {
+      notify({ appId: APP.EDITOR, title: "Couldn't save", body: reasonBody(saved.reason) })
+      return
+    }
+    finish(thenClose)
+  }
+
   const startSave = (thenClose) => {
-    if (node?.user) applySave(node.name, { folder: parentOf(arg), thenClose })
+    if (inPlace) saveInPlace(thenClose)
+    else if (deleted) setPrompt({ type: 'name', draft: label, folder: fallbackFolder(arg), error: '', thenClose })
     else setPrompt({ type: 'name', draft: UNTITLED_FILE, folder: DOCUMENTS, error: '', thenClose })
   }
 
@@ -201,12 +260,18 @@ export const EditorApp = ({ windowId, arg }) => {
     })
     return () => windowManager.setCloseGuard(windowId, null)
   }, [windowManager, windowId])
+  // A file deleted while its buffer matched it leaves nothing to show, as when Move to Trash closes a clean editor
+  useEffect(() => {
+    if (!deleted || kept || closing) return
+    windowManager.setCloseGuard(windowId, null)
+    windowManager.close(windowId)
+  }, [deleted, kept, closing, windowManager, windowId])
 
   return (
     <div className="editor-app">
       <EditorHeader
         title={editorTitle(label, dirty)}
-        subtitle={node ? (node.trashedFrom ? 'Trash' : node.user ? folderLabel(arg) : 'Read Only') : missing ? folderLabel(arg) : null}
+        subtitle={node ? (node.trashedFrom ? 'Trash' : owned ? folderLabel(arg) : 'Read Only') : kept ? 'Deleted' : null}
         menus={menus}
         onNew={() => windowManager.openApp(APP.EDITOR)}
       />
