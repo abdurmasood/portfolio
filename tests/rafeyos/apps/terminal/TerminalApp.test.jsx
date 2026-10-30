@@ -40,7 +40,7 @@ describe('Terminal app', () => {
     const { win } = openTerminal(container)
 
     expect(win.querySelector('.tline .pg').textContent).toBe('visitor@rafey.ai')
-    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: ~')
   })
 
   it('ctrl+c prints ^C, clears the input and sets $? to 130', () => {
@@ -52,7 +52,7 @@ describe('Terminal app', () => {
 
     expect(input.value).toBe('')
     // The prompt's space is a no-break one, so it survives in the DOM
-    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:/home/rafey$\u00a0echo oops^C')
+    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:~$\u00a0echo oops^C')
     typeCommand(input, 'echo $?')
     expect(log(win).lastElementChild.textContent).toBe('130')
   })
@@ -90,10 +90,10 @@ describe('Terminal app', () => {
     expect(windowsOf(container, 'editor').map((editor) => editor.getAttribute('aria-label'))).toEqual(['notes.txt'])
   })
 
-  it('a new terminal starts in rafey\'s home and New Window copies the cwd', () => {
+  it('a new terminal starts in the visitor\'s home and New Window copies the cwd', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
-    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+    expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: ~')
     typeCommand(input, 'cd ~/Documents')
 
     fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
@@ -102,20 +102,19 @@ describe('Terminal app', () => {
     expect(windowsOf(container, 'terminal').map((terminal) => terminal.getAttribute('aria-label'))).toEqual([
       'visitor@rafey.ai: ~/Documents',
       'visitor@rafey.ai: ~/Documents',
-      'visitor@rafey.ai: /home/rafey',
+      'visitor@rafey.ai: ~',
     ])
   })
 
-  it('starts in Rafey\'s home and lists it with folders in blue', () => {
+  it('starts in the visitor\'s home and lists it with folders in blue', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
 
     typeCommand(input, 'ls')
 
     const pre = log(win).querySelector('pre')
-    expect(pre.textContent).toContain('Music')
-    expect(pre.textContent).toContain('bio.txt')
-    expect([...pre.querySelectorAll('.pb')].map((node) => node.textContent)).toContain('projects')
+    expect(pre.textContent).toContain('Downloads')
+    expect([...pre.querySelectorAll('.pb')].map((node) => node.textContent)).toContain('Documents')
   })
 
   it('offers help as a ghost and runs it on Enter at an empty prompt', () => {
@@ -142,7 +141,7 @@ describe('Terminal app', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
 
-    typeCommand(input, 'cd projects')
+    typeCommand(input, 'cd /home/rafey/projects')
 
     expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/projects')
     expect(win.querySelector('.tline .pb').textContent).toBe('/home/rafey/projects')
@@ -208,7 +207,7 @@ describe('Terminal app', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
 
-    typeCommand(input, 'xdg-open projects')
+    typeCommand(input, 'xdg-open /home/rafey/projects')
     expect(windowsOf(container, 'files')).toHaveLength(1)
 
     typeCommand(input, 'projects --3d')
@@ -220,7 +219,7 @@ describe('Terminal app', () => {
     const { container } = renderDesktop()
     const { input } = openTerminal(container)
 
-    typeCommand(input, 'xdg-open projects/leaf-line.txt')
+    typeCommand(input, 'xdg-open /home/rafey/projects/leaf-line.txt')
 
     expect(windowsOf(container, 'editor')).toHaveLength(1)
     expect(windowsOf(container, 'projects')).toHaveLength(0)
@@ -243,7 +242,7 @@ describe('Terminal app', () => {
     const { container } = renderDesktop()
     const { input } = openTerminal(container)
 
-    typeCommand(input, 'xdg-open bio.txt')
+    typeCommand(input, 'xdg-open /home/rafey/bio.txt')
     typeCommand(input, 'open email')
 
     expect(windowsOf(container, 'editor')[0].getAttribute('aria-label')).toBe('bio.txt')
@@ -261,7 +260,7 @@ describe('Terminal app', () => {
   it('opens another terminal in the same folder from the header', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)
-    typeCommand(input, 'cd blog')
+    typeCommand(input, 'cd /home/rafey/blog')
 
     fireEvent.click(within(win).getByRole('button', { name: 'New Window' }))
 
@@ -540,7 +539,7 @@ describe('reset-home in the Terminal', () => {
     typeCommand(input, 'reset-home')
     expect(promptOf(win).textContent).toBe(`${QUESTION} `)
     expect(promptOf(win).querySelector('.pg')).toBeNull()
-    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:/home/rafey$ reset-home')
+    expect(log(win).lastElementChild.textContent).toBe('visitor@rafey.ai:~$ reset-home')
 
     typeCommand(input, '')
 

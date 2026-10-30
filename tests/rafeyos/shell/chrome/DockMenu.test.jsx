@@ -28,7 +28,7 @@ describe('dock menu', () => {
     chooseMenuItem('New Window')
 
     rightClickDock('Terminal')
-    expect(menuLabels()).toEqual(['visitor@rafey.ai: /home/rafey', 'visitor@rafey.ai: /home/rafey', 'New Window', 'App Details', 'Quit 2 Windows'])
+    expect(menuLabels()).toEqual(['visitor@rafey.ai: ~', 'visitor@rafey.ai: ~', 'New Window', 'App Details', 'Quit 2 Windows'])
     chooseMenuItem('Quit 2 Windows')
 
     expect(windowsOf(container, 'terminal')).toHaveLength(0)

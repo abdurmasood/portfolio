@@ -111,7 +111,7 @@ describe('Activities overview: windows', () => {
     fireEvent.pointerOver(files)
 
     const labels = [...container.querySelectorAll('.ovlab')]
-    expect(labels.map((label) => label.textContent).sort()).toEqual(['Home', 'visitor@rafey.ai: /home/rafey'])
+    expect(labels.map((label) => label.textContent).sort()).toEqual(['Home', 'visitor@rafey.ai: ~'])
     expect(container.querySelector('.ovlab.on').textContent).toBe('Home')
     fireEvent.pointerLeave(workspace(container))
     expect(container.querySelector('.ovlab.on')).toBeNull()

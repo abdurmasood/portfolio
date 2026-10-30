@@ -35,7 +35,7 @@ const openBio = () => {
   const view = renderDesktop()
   clickDock('Terminal')
   const input = within(windowsOf(view.container, 'terminal')[0]).getByLabelText('Terminal input')
-  fireEvent.change(input, { target: { value: 'xdg-open bio.txt' } })
+  fireEvent.change(input, { target: { value: 'xdg-open /home/rafey/bio.txt' } })
   fireEvent.keyDown(input, { key: 'Enter' })
   const [win] = windowsOf(view.container, 'editor')
   return { ...view, win, ui: within(win) }
@@ -93,7 +93,7 @@ describe('Text Editor', () => {
     const { container } = openBio()
 
     const input = within(windowsOf(container, 'terminal')[0]).getByLabelText('Terminal input')
-    fireEvent.change(input, { target: { value: 'xdg-open bio.txt' } })
+    fireEvent.change(input, { target: { value: 'xdg-open /home/rafey/bio.txt' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
     expect(windowsOf(container, 'editor')).toHaveLength(1)
@@ -132,7 +132,7 @@ describe('Text Editor', () => {
     fireEvent.click(ui.getByRole('button', { name: 'Main Menu' }))
     chooseMenuItem('Open in Terminal')
 
-    expect(windowsOf(container, 'terminal')[0].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
+    expect(windowsOf(container, 'terminal')[1].getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey')
   })
 
   it('keeps Save off for a shipped file and uses New to open a blank page', () => {
@@ -396,7 +396,7 @@ describe('Text Editor', () => {
     expect(ui.queryByRole('dialog', { name: "Can't replace" })).toBeNull()
     expect(fsFiles(disk)).toEqual({ '/home/visitor/bio.txt': 'mine' })
     const { input } = openTerminal(container)
-    typeCommand(input, 'cat bio.txt')
+    typeCommand(input, 'cat /home/rafey/bio.txt')
     expect(windowsOf(container, 'terminal')[0].querySelector('.tlog').textContent).toContain(realContent.bio.trim().slice(0, 20))
   })
 
