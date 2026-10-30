@@ -72,7 +72,7 @@ export const APPS = Object.freeze({
   [APP.EDITOR]: app({ id: APP.EDITOR, name: 'Text Editor', size: [620, 440], minSize: [360, 240] }),
   [APP.MUSIC]: app({ id: APP.MUSIC, name: 'Music', size: [380, 580], minSize: [340, 480] }),
   [APP.MAIL]: app({ id: APP.MAIL, name: 'Mail', size: [600, 460], minSize: [440, 360] }),
-  [APP.PROJECTS]: app({ id: APP.PROJECTS, name: 'Projects', size: [820, 520], minSize: [560, 380] }),
+  [APP.PROJECTS]: app({ id: APP.PROJECTS, name: 'Projects', size: [1140, 720], minSize: [560, 380] }),
   [APP.SETTINGS]: app({ id: APP.SETTINGS, name: 'Settings', size: [780, 540], minSize: [600, 420] }),
   [APP.PROPERTIES]: app({ id: APP.PROPERTIES, name: 'Properties', size: [340, 430], minSize: [340, 380], inDock: false }),
 })
