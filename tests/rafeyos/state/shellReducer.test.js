@@ -17,6 +17,13 @@ describe('shellReducer', () => {
     expect(state.menu).toBeNull()
   })
 
+  it('a popup that asks for input carries its prompt', () => {
+    const prompt = { title: 'New Folder' }
+    const state = reduce(initialShell, { type: 'openPopup', kind: 'name', anchor: { x: 1, y: 2, w: 0, h: 0 }, prompt })
+
+    expect(state.popup).toEqual({ kind: 'name', anchor: { x: 1, y: 2, w: 0, h: 0 }, prompt })
+  })
+
   it('opening a menu closes any popup', () => {
     const state = reduce(initialShell, { type: 'openPopup', kind: 'calendar' }, menu)
 

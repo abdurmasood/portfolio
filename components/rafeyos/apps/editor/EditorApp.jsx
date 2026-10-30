@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVfs, useWindowManager, useWindowsState } from '@/components/rafeyos/state/logic/contexts'
 import { HeaderBar } from '@/components/rafeyos/wm/HeaderBar'
 import { Sym } from '@/components/rafeyos/ui/icons/symbols'
 import { belowElement, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { useOpenPath } from '@/components/rafeyos/ui/popups/logic/useOpenPath'
+import { useNameSelection } from '@/components/rafeyos/ui/popups/logic/useNameSelection'
 import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
 import { reasonBody } from '@/components/rafeyos/ui/menus/logic/storageFailure'
 import { useNotify } from '@/components/rafeyos/state/logic/useNotify'
@@ -72,13 +73,7 @@ const EditorHeader = ({ title, subtitle, menus, onNew }) => (
 
 /** Opens with the name before the extension selected, so typing replaces "Untitled" but keeps ".txt". */
 const NameField = ({ value, onChange, onEnter }) => {
-  const ref = useRef(null)
-  useLayoutEffect(() => {
-    const input = ref.current
-    const dot = input.value.lastIndexOf('.')
-    input.focus()
-    input.setSelectionRange(0, dot > 0 ? dot : input.value.length)
-  }, [])
+  const ref = useNameSelection()
   return (
     <label className="where">
       Name

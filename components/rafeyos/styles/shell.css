@@ -81,6 +81,20 @@
 :where(.rafeyos) .msep { height: 1px; margin: 6px 4px; }
 :where(.rafeyos) .pop .msep { background: var(--line); } :where(.rafeyos) .shm .msep { background: rgba(255,255,255,.1); }
 :where(.rafeyos) .mhead { padding: 5px 10px 3px; font-size: 11.5px; opacity: .6; }
+/* New Folder and Rename's name popover (Nautilus): title, field beside its button, then the check's message */
+:where(.rafeyos) .namepop { width: 300px; max-width: calc(100vw - 12px); padding: 12px; display: grid; gap: 10px; margin: 0; }
+:where(.rafeyos) .namepop::before { content: ''; position: absolute; left: var(--arrow-x, 50%); top: -6px; width: 12px; height: 12px; background: var(--menu); transform: translateX(-50%) rotate(45deg); box-shadow: -1px -1px 0 rgba(0,0,0,.12); }
+:where(.rafeyos) .namepop.above::before { top: auto; bottom: -6px; box-shadow: 1px 1px 0 rgba(0,0,0,.12); }
+:where(.rafeyos) .namepop h3 { margin: 0; font-size: 13px; font-weight: 700; text-align: center; }
+:where(.rafeyos) .namepop .namerow { display: flex; gap: 8px; }
+:where(.rafeyos) .namepop input { all: unset; box-sizing: border-box; flex: 1; min-width: 0; height: 32px; padding: 0 10px; border-radius: 6px; background: var(--field); color: var(--fg); font-size: 13px; cursor: text; user-select: text; -webkit-user-select: text; }
+:where(.rafeyos) .namepop input:focus { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); }
+:where(.rafeyos) .namepop .btn { height: 32px; }
+:where(.rafeyos) .namepop .btn:disabled { opacity: .45; }
+:where(.rafeyos) .namepop .note { margin: 0; font-size: 12px; color: var(--fg2); }
+/* libadwaita's error colour for each theme: the light one is too dark to read on a dark popover */
+:where(.rafeyos) .namepop .note.err { color: #ff7b63; }
+.rafeyos.light .namepop .note.err { color: #c01c28; }
 
 /* quick settings */
 :where(.rafeyos) .qs { position: absolute; top: 33px; right: 6px; width: 330px; color: #fff; border-radius: 22px; padding: 12px; z-index: 600; display: grid; gap: 12px; box-sizing: border-box; }

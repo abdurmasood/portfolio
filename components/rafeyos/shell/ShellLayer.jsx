@@ -7,6 +7,7 @@ import { ContextMenu } from '@/components/rafeyos/shell/menus/ContextMenu'
 import { Banner } from '@/components/rafeyos/shell/popups/Banner'
 import { CalendarPopover } from '@/components/rafeyos/shell/calendar/CalendarPopover'
 import { CALENDAR_POPUP, QUICK_SETTINGS_POPUP } from '@/components/rafeyos/shell/logic/shellIds'
+import { NAME_POPUP, NamePopover } from '@/components/rafeyos/ui/popups/NamePopover'
 import { SnapPreview } from '@/components/rafeyos/wm/SnapPreview'
 
 const ShellDialog = ({ kind }) => {
@@ -23,6 +24,7 @@ export const ShellLayer = () => {
       <SnapPreview />
       {popup?.kind === QUICK_SETTINGS_POPUP && <QuickSettings />}
       {popup?.kind === CALENDAR_POPUP && <CalendarPopover />}
+      {popup?.kind === NAME_POPUP && <NamePopover anchor={popup.anchor} prompt={popup.prompt} />}
       {menu && <ContextMenu menu={menu} />}
       {banner && <Banner key={banner.title} banner={banner} />}
       {dialog && <ShellDialog key={dialog.kind} kind={dialog.kind} />}
