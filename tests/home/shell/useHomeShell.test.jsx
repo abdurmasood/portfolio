@@ -7,7 +7,7 @@ import { TerminalProvider } from '@/components/home/TerminalProvider'
 import { HOME_EFFECTS, HOME_PANELS } from '@/components/home/shell/homeCommands'
 import { HISTORY_FILE, historyLines, recordHistory } from '@/components/rafeyos/core/commands/history'
 import { LINE_TYPES, dim, pre, prompt } from '@/components/rafeyos/core/commands/lines'
-import { HOME, RAFEY_HOME, START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
+import { HOME, START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
 import { writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 import { SETTINGS_KEY, sharedSettingsStore } from '@/components/rafeyos/core/settings/settingsStore'
 import { announceWrite, otherTab, resetSharedStore, sharedVfs } from '@/tests/home/helpers/homeStore'
@@ -86,11 +86,11 @@ describe('useHomeShell: one filesystem with rafeyOS', () => {
 })
 
 describe('useHomeShell: folder', () => {
-  it('starts in /home/rafey', () => {
-    expect(load().result.current.cwd).toBe(RAFEY_HOME)
+  it('starts in ~', () => {
+    expect(load().result.current.cwd).toBe(HOME)
   })
 
-  it('folder is restored after a reload, or falls back to /home/rafey when it was deleted', () => {
+  it('folder is restored after a reload, or falls back to ~ when it was deleted', () => {
     const first = load()
     run(first, 'mkdir ~/keep && cd ~/keep')
     expect(window.localStorage.getItem(HOME_CWD_KEY)).toBe(`${HOME}/keep`)
@@ -178,7 +178,7 @@ describe('useHomeShell: keys and sessions', () => {
     expect(load().result.current.started).toBe(false)
   })
 
-  it('exit prints logout, then starts fresh in /home/rafey and saves that folder', () => {
+  it('exit prints logout, then starts fresh in ~ and saves that folder', () => {
     vi.useFakeTimers()
     const view = load()
     run(view, 'cd ~/Documents')

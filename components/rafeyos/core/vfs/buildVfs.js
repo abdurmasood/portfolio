@@ -43,9 +43,10 @@ export const NODE_TYPES = Object.freeze({
 export const ROOT = '/'
 /** The visitor's home: ~ in the shell, Home in Files. */
 export const HOME = '/home/visitor'
-/** Rafey's content, read-only. The terminal starts here. */
+/** Rafey's content, read-only. */
 export const RAFEY_HOME = '/home/rafey'
-export const START_DIR = RAFEY_HOME
+/** Where both terminals start: the visitor's home, as a fresh Ubuntu terminal would. */
+export const START_DIR = HOME
 export const TMP = '/tmp'
 export const BIN = '/usr/local/bin'
 /** The system commands' stubs; /bin links here. */

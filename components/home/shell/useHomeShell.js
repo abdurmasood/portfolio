@@ -36,7 +36,7 @@ const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)'
 // The saved folder changes only when this page saves it; the store's own subscription re-checks it still exists
 const noSubscription = () => () => {}
 
-/** The folder saved by the last visit, while it is still a folder; /home/rafey otherwise. */
+/** The folder saved by the last visit, while it is still a folder; ~ otherwise. */
 const savedCwd = (vfs) => {
   try {
     const saved = localStorageOrNull()?.getItem(HOME_CWD_KEY)
@@ -163,7 +163,7 @@ const useDelayedNewSession = (startFresh) => {
   }
 }
 
-/** A fresh login after `exit`: empty screen, back in /home/rafey, the ghost again. History stays. */
+/** A fresh login after `exit`: empty screen, back in ~, the ghost again. History stays. */
 const useNewSession = (terminal) =>
   useDelayedNewSession(() => {
     terminal.setEntries([])

@@ -1,4 +1,4 @@
-// A server render has no window: the homepage must still render, in /home/rafey
+// A server render has no window: the homepage must still render, in ~
 import { describe, expect, it, vi } from 'vitest'
 import { renderToString } from 'react-dom/server'
 
@@ -10,7 +10,7 @@ const { TerminalProvider } = await import('@/components/home/TerminalProvider')
 const text = (html) => html.replace(/<!-- -->/g, '').replace(/<[^>]+>/g, '')
 
 describe('home terminal: server render', () => {
-  it('server render uses /home/rafey without a window', () => {
+  it('server render starts in ~ without a window', () => {
     expect(globalThis.window).toBeUndefined()
 
     const html = renderToString(
@@ -19,6 +19,6 @@ describe('home terminal: server render', () => {
       </TerminalProvider>,
     )
 
-    expect(text(html)).toContain('visitor@rafey.ai:/home/rafey$')
+    expect(text(html)).toContain('visitor@rafey.ai:~$')
   })
 })

@@ -67,8 +67,8 @@ describe('hand-off from the homepage to rafeyOS', () => {
     expect(window.sessionStorage.getItem(HANDOFF_KEY)).toBeNull()
   })
 
-  it('xdg-open bio.txt on the homepage opens the Text Editor on it after the boot', () => {
-    handOffFromHome('xdg-open bio.txt')
+  it('xdg-open of Rafey\'s bio.txt on the homepage opens the Text Editor on it after the boot', () => {
+    handOffFromHome('xdg-open /home/rafey/bio.txt')
     const { container } = bootRafeyOS()
 
     flushTimers(BOOT_MS)
