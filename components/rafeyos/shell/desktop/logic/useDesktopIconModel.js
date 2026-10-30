@@ -17,8 +17,9 @@ const placedThatExist = (vfs, placed) => {
 /**
  * Which icons the desktop shows and where: the corner layout, overridden by any icon the
  * visitor dragged. Dragged positions last until the corner changes (Settings re-lays the
- * icons out), the desktop goes (a restart resets them) or the file does (one made again sits in the layout).
- * @returns {{ paths: string[], positions: {path, x, y}[], positionOf: Function, place: Function }}
+ * icons out), the desktop goes (a restart resets them) or the file does (one made again sits in the layout). A rename
+ * keeps the spot: rekey moves it to the new path.
+ * @returns {{ paths: string[], positions: {path, x, y}[], positionOf: Function, place: Function, rekey: Function }}
  */
 export const useDesktopIconModel = () => {
   const { vfs } = useVfs()
@@ -41,5 +42,11 @@ export const useDesktopIconModel = () => {
   )
   const positionOf = useCallback((path) => positions.find((position) => position.path === path), [positions])
   const place = useCallback((moved) => setDragged((current) => ({ ...current, placed: { ...current.placed, ...moved } })), [])
-  return { paths, positions, positionOf, place }
+  const rekey = useCallback((from, to) => setDragged((current) => {
+    if (!current.placed[from]) return current
+    const placedNow = { ...current.placed, [to]: current.placed[from] }
+    delete placedNow[from]
+    return { ...current, placed: placedNow }
+  }), [])
+  return { paths, positions, positionOf, place, rekey }
 }

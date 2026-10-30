@@ -104,6 +104,7 @@ describe('menus', () => {
 
     fireEvent.keyDown(document.activeElement, { key: 'Home' })
     fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+    fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
     expect(document.activeElement.textContent).toBe('Show Desktop in Files')
     fireEvent.keyDown(document.activeElement, { key: 'Enter' })
 

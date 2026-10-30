@@ -11,6 +11,7 @@ import { FilesSidebar } from './FilesSidebar'
 import { FilesHeader } from './FilesHeader'
 import { FilesEmpty, FilesGrid, FilesList } from './FilesItems'
 import { useFilesMenus } from './logic/useFilesMenus'
+import { isTrashed } from '@/components/rafeyos/ui/menus/logic/visitorItems'
 import { gridColumns, gridStep } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
 import { SidebarToggle, splitClassName, useSidebarToggle } from '@/components/rafeyos/wm/SidebarToggle'
 
@@ -33,9 +34,13 @@ import { SidebarToggle, splitClassName, useSidebarToggle } from '@/components/ra
  * @param {Dispatch<FilesAction>} dispatch
  * @returns {(path: string) => unknown}
  */
+// A trashed folder is one item to restore, not a place to go
 const useOpenItem = (vfs, dispatch) => {
   const openPath = useOpenPath()
-  return (path) => (isDir(vfs, path) ? dispatch({ type: FILES_ACTIONS.GO, path: realPath(vfs, path) }) : openPath(path))
+  return (path) => {
+    if (!isDir(vfs, path)) openPath(path)
+    else if (!isTrashed(vfs, path)) dispatch({ type: FILES_ACTIONS.GO, path: realPath(vfs, path) })
+  }
 }
 
 /**

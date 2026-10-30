@@ -3,32 +3,40 @@ import { useSettings, useShellDispatch, useVfs, useWindowManager } from '@/compo
 import { WALLS } from '@/components/rafeyos/core/theme/walls'
 import { DesktopIcons } from './DesktopIcons'
 import { DESKTOP, useDesktopIconModel } from './logic/useDesktopIconModel'
+import { DEFAULT_ICON_CELL } from './logic/iconLayout'
 import { useRubberBand } from './logic/useRubberBand'
 import { pointOfEvent, useMenu } from '@/components/rafeyos/ui/menus/logic/useMenu'
 import { wallMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
+import { useNameActions } from '@/components/rafeyos/ui/menus/logic/useNameActions'
 import { useOpenSettings } from '@/components/rafeyos/shell/logic/useOpenSettings'
 import { SETTINGS_PAGES } from '@/components/rafeyos/core/catalog/settingsPages'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 
-/** Right-click on the wallpaper. */
-const useWallMenu = (selectAll) => {
+/** Where an icon made by a right-click sits: centred on the point, as the desktop drops it there. */
+const cellAt = (point) => ({ x: point.x - DEFAULT_ICON_CELL.w / 2, y: point.y - DEFAULT_ICON_CELL.h / 2 })
+
+/** Right-click on the wallpaper. onCreated gets a folder New Folder made, and the point it was asked for at. */
+const useWallMenu = (selectAll, onCreated) => {
   const windowManager = useWindowManager()
   const openMenu = useMenu()
   const openSettings = useOpenSettings()
+  const { newFolderIn } = useNameActions()
   return useCallback(
     (event) => {
       event.preventDefault()
+      const point = pointOfEvent(event)
       const items = wallMenuItems({
+        newFolder: newFolderIn(DESKTOP, { ...point, w: 0, h: 0 }, (path) => onCreated(path, point)),
         selectAll,
         showDesktop: () => windowManager.openApp(APP.FILES, { path: DESKTOP }),
         openTerminal: () => windowManager.openApp(APP.TERMINAL, { path: DESKTOP }),
         changeBackground: () => openSettings(SETTINGS_PAGES.APPEARANCE),
         iconSettings: () => openSettings(SETTINGS_PAGES.DESKTOP),
       })
-      openMenu(items, pointOfEvent(event))
+      openMenu(items, point)
     },
-    [selectAll, windowManager, openMenu, openSettings],
+    [selectAll, onCreated, windowManager, openMenu, openSettings, newFolderIn],
   )
 }
 
@@ -45,9 +53,13 @@ export const Workspace = () => {
   const layerRef = useRef(null)
   const bandRef = useRef(null)
   const startBand = useRubberBand({ bandRef, layerRef, onSelect: setSelection })
-  const { paths } = model
+  const { paths, place } = model
   const selectAll = useMemo(() => () => setSelection(paths), [paths])
-  const openWallMenu = useWallMenu(selectAll)
+  const onCreated = useCallback((path, point) => {
+    place({ [path]: cellAt(point) })
+    setSelection([path])
+  }, [place])
+  const openWallMenu = useWallMenu(selectAll, onCreated)
   const pressWall = (event) => {
     if (event.button !== 0) return
     shellDispatch({ type: SHELL_ACTIONS.CLOSE_TRANSIENTS })

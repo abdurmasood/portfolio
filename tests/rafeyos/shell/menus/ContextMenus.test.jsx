@@ -37,8 +37,9 @@ describe('wallpaper menu', () => {
       'New Folder…', 'Paste', 'Select All', 'Show Desktop in Files', 'Open in Terminal',
       'Change Background…', 'Desktop Icons Settings', 'Display Settings',
     ])
-    const disabled = ['New Folder…', 'Paste', 'Display Settings']
+    const disabled = ['Paste', 'Display Settings']
     disabled.forEach((name) => expect(menuEntry(name).disabled).toBe(true))
+    expect(menuEntry('New Folder…').disabled).toBe(false)
   })
 
   it('does nothing for a disabled entry', () => {
