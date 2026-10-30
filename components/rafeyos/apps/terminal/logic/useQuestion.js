@@ -11,7 +11,7 @@ const FAILURE = 1
 // Keys that would complete or recall a line, inert while a question waits
 const INERT_WHILE_ASKING = new Set(['Tab', 'ArrowUp', 'ArrowDown'])
 
-/** The homepage's saved folder goes with the rest, so its next load starts in /home/rafey. */
+/** The homepage's saved folder goes with the rest, so its next load starts in ~. */
 const forgetHomeFolder = () => {
   try {
     localStorageOrNull()?.removeItem(HOME_CWD_KEY)

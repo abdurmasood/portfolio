@@ -102,7 +102,7 @@ describe('nano in the homepage terminal', () => {
 
   it('on Rafey\'s file reports permission denied and stays open', () => {
     const { container } = render(<Page />)
-    run('nano bio.txt')
+    run(`nano ${RAFEY_HOME}/bio.txt`)
     expect(buffer().value).toBe(sharedVfs()[`${RAFEY_HOME}/bio.txt`].text)
 
     edit('mine now')

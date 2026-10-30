@@ -55,21 +55,22 @@ afterEach(() => {
 })
 
 describe('home terminal: prompt and look', () => {
-  it('prompt shows /home/rafey, then ~ paths after cd, in the homepage colours', () => {
+  it('prompt shows ~, then ~ paths after cd, in the homepage colours', () => {
     const { container } = render(<Page />)
-    expect(container.querySelector('.prompt').textContent).toBe(`visitor@rafey.ai:/home/rafey$`)
+    expect(container.querySelector('.prompt').textContent).toBe(`visitor@rafey.ai:~$`)
 
     run('cd ~/Documents')
 
     expect(container.querySelector('.prompt').textContent).toBe('visitor@rafey.ai:~/Documents$')
     const echo = container.querySelector('.echo')
-    expect(echo.textContent).toBe(`${PROMPT}/home/rafey$ cd ~/Documents`)
+    expect(echo.textContent).toBe(`${PROMPT}~$ cd ~/Documents`)
     expect([...echo.querySelectorAll('span')].map((span) => span.className)).toEqual(['brown', 'base-color', 'green', 'base-color'])
   })
 
   it('ls colours folders blue and links cyan, and leaves files plain', () => {
     const { container } = render(<Page />)
 
+    run('cd /home/rafey')
     run('ls')
 
     const names = (selector) => [...lastRow(container).querySelectorAll(selector)].map((span) => span.textContent)
@@ -104,7 +105,7 @@ describe('home terminal: prompt and look', () => {
 
     run('echo <b>bold</b>')
 
-    expect(echoes(container)).toEqual([`${PROMPT}/home/rafey$ echo <b>bold</b>`])
+    expect(echoes(container)).toEqual([`${PROMPT}~$ echo <b>bold</b>`])
     expect(container.querySelector('.terminal-output b')).toBeNull()
   })
 })
@@ -130,7 +131,7 @@ describe('home terminal: keys', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Run help' }))
 
-    expect(echoes(container)).toEqual([`${PROMPT}/home/rafey$ help`])
+    expect(echoes(container)).toEqual([`${PROMPT}~$ help`])
     expect(container.querySelector('.ghost-suggestion')).toBeNull()
   })
 
@@ -141,7 +142,7 @@ describe('home terminal: keys', () => {
     press('c', { ctrlKey: true })
     run('echo $?')
 
-    expect(echoes(container)).toEqual([`${PROMPT}/home/rafey$ half typed^C`, `${PROMPT}/home/rafey$ echo $?`])
+    expect(echoes(container)).toEqual([`${PROMPT}~$ half typed^C`, `${PROMPT}~$ echo $?`])
     expect(lastRow(container).textContent).toBe('130')
   })
 
@@ -164,14 +165,14 @@ describe('home terminal: keys', () => {
     expect(fireEvent.keyDown(input(), { key: 'Enter' })).toBe(false)
   })
 
-  it('tab completes "cd Mu" to "cd Music/"', () => {
+  it('tab completes "cd Doc" to "cd Documents/"', () => {
     render(<Page />)
     run('help')
-    type('cd Mu')
+    type('cd Doc')
 
     press('Tab')
 
-    expect(input().value).toBe('cd Music/')
+    expect(input().value).toBe('cd Documents/')
   })
 
   it('double tab on "cd ~/D" lists Desktop, Documents and Downloads four spaces apart', () => {
@@ -182,7 +183,7 @@ describe('home terminal: keys', () => {
     press('Tab')
     press('Tab')
 
-    expect(echoes(container).at(-1)).toBe(`${PROMPT}/home/rafey$ cd ~/D`)
+    expect(echoes(container).at(-1)).toBe(`${PROMPT}~$ cd ~/D`)
     expect(lastRow(container).textContent).toBe('Desktop/    Documents/    Downloads/')
     expect(input().value).toBe('cd ~/D')
   })
@@ -222,7 +223,7 @@ describe('home terminal: panels', () => {
     })
     expect(queryInput()).not.toBeNull()
 
-    run(`cat blog/${post.slug}.md`)
+    run(`cat /home/rafey/blog/${post.slug}.md`)
     expect(container.querySelector('article.article h1').textContent).toBe(`# ${post.title}`)
   })
 
