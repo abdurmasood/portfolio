@@ -16,7 +16,7 @@ export const belowElement = (element, shiftLeft = 0) => {
 
 /**
  * Opens a context menu through the shell state (one menu at a time).
- * @returns {(items: object[], point: {x: number, y: number}, options?: { shell?: boolean, anchorBottom?: boolean }) => void}
+ * @returns {(items: object[], point: {x: number, y: number}, options?: { shell?: boolean, anchorBottom?: boolean, dockKey?: string }) => void}
  */
 export const useMenu = () => {
   const shellDispatch = useShellDispatch()

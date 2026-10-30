@@ -28,13 +28,19 @@ describe('shellReducer', () => {
     const state = reduce(initialShell, { type: 'openPopup', kind: 'calendar' }, menu)
 
     expect(state.popup).toBeNull()
-    expect(state.menu).toEqual({ items: [{ label: 'Open' }], x: 10, y: 20, shell: false, anchorBottom: false })
+    expect(state.menu).toEqual({ items: [{ label: 'Open' }], x: 10, y: 20, shell: false, anchorBottom: false, dockKey: null })
   })
 
   it('shell menus can hang from their bottom edge', () => {
     const state = reduce(initialShell, { ...menu, shell: true, anchorBottom: true })
 
     expect(state.menu).toMatchObject({ shell: true, anchorBottom: true })
+  })
+
+  it('dock menus remember the icon they came from', () => {
+    const state = reduce(initialShell, { ...menu, shell: true, dockKey: 'files' })
+
+    expect(state.menu.dockKey).toBe('files')
   })
 
   it('togglePopup closes the same popup and switches to another', () => {

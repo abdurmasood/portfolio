@@ -22,7 +22,7 @@ export const SHELL_ACTIONS = Object.freeze({
 /**
  * @typedef {{ kind: string, anchor?: object | null, prompt?: object | null }} PopupPayload prompt: what a popup that asks
  *   for input (the name popover) asks, and what it does with the answer
- * @typedef {{ items: readonly object[], x: number, y: number, shell?: boolean, anchorBottom?: boolean }} MenuPayload
+ * @typedef {{ items: readonly object[], x: number, y: number, shell?: boolean, anchorBottom?: boolean, dockKey?: string | null }} MenuPayload
  * @typedef {{ appId?: string, title: string, body: string }} Banner
  */
 
@@ -81,10 +81,13 @@ const openPopup = (state, { kind, anchor = null, prompt = null }) => ({
 const togglePopup = (state, action) =>
   state.popup?.kind === action.kind ? { ...state, popup: null } : openPopup(state, action)
 
-/** @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_MENU>} shell: the dark shell style (dock) rather than the app-themed popover; anchorBottom: y is the menu's bottom edge. */
-const openMenu = (state, { items, x, y, shell = false, anchorBottom = false }) => ({
+/**
+ * @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_MENU>} shell: the dark shell style (dock) rather than the app-themed
+ * popover; anchorBottom: y is the menu's bottom edge; dockKey: the dock icon it came from, held magnified while it's open.
+ */
+const openMenu = (state, { items, x, y, shell = false, anchorBottom = false, dockKey = null }) => ({
   ...withoutTransients(state),
-  menu: { items, x, y, shell, anchorBottom },
+  menu: { items, x, y, shell, anchorBottom, dockKey },
 })
 
 /** @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_DIALOG>} */
