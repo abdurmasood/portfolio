@@ -134,7 +134,7 @@ describe('remove', () => {
       '/tmp/t': text('t'),
     })
     const result = run(remove, state, { path: H, recursive: true })
-    expect(result).toEqual({ ok: true, state: { v: 2, nodes: { '/tmp/t': text('t') }, trash: {} }, errors: [{ errno: 'EACCES', path: H }] })
+    expect(result).toEqual({ ok: true, state: { v: 3, nodes: { '/tmp/t': text('t') }, trash: {} }, errors: [{ errno: 'EACCES', path: H }] })
     expect(mergeState(base, result.state)['/home/rafey/bio.txt']).toBeDefined()
   })
 

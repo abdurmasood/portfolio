@@ -26,13 +26,13 @@ const SEEDED = {
 }
 
 // A state as the store would read it back, built through parseState so the tests stay on the public API
-const stateWith = (nodes = {}, trash = {}) => parseState({ v: 2, nodes: { ...SEEDED, ...nodes }, trash })
+const stateWith = (nodes = {}, trash = {}) => parseState({ v: 3, nodes: { ...SEEDED, ...nodes }, trash })
 
 const text = (value, mtime = 1) => ({ type: 'text', text: value, mtime })
 const dir = (mtime = 1) => ({ type: 'dir', mtime })
 const symlink = (target, mtime = 1) => ({ type: 'symlink', target, mtime })
 const copy = (from, mtime = 1) => ({ type: 'copy', from, mtime })
-/** A v2 trash entry: the node as it was, plus when it was trashed. */
+/** A trash entry: the node as it was, plus when it was trashed. */
 const trashed = (node, mtime = 1) => ({ node, mtime })
 
 const SONG = '/home/rafey/Music/song.mp3'
@@ -41,7 +41,7 @@ const fixtureVfs = buildVfs(fixtureContent)
 describe('seedState', () => {
   it('seeds three empty folders on first visit', () => {
     const state = seedState(1)
-    expect(state).toEqual({ v: 2, nodes: SEEDED, trash: {} })
+    expect(state).toEqual({ v: 3, nodes: SEEDED, trash: {} })
     expect(Object.isFrozen(state)).toBe(true)
     expect(Object.isFrozen(state.nodes)).toBe(true)
     expect(Object.isFrozen(state.nodes['/home/visitor/Desktop'])).toBe(true)
@@ -49,25 +49,25 @@ describe('seedState', () => {
 })
 
 describe('parseState', () => {
-  it('returns null for anything but a version 1 or 2 envelope', () => {
-    ;[null, 'text', [], { nodes: {}, trash: {} }, { v: 3, nodes: {}, trash: {} }, { v: '2', nodes: {}, trash: {} }].forEach((raw) => {
+  it('returns null for anything but a version 1, 2 or 3 envelope', () => {
+    ;[null, 'text', [], { nodes: {}, trash: {} }, { v: 4, nodes: {}, trash: {} }, { v: '2', nodes: {}, trash: {} }].forEach((raw) => {
       expect(parseState(raw)).toBeNull()
     })
   })
 
   it('reads missing or junk lists as empty', () => {
-    expect(parseState({ v: 2 })).toEqual({ v: 2, nodes: {}, trash: {} })
-    expect(parseState({ v: 2, nodes: 'x', trash: [1] })).toEqual({ v: 2, nodes: {}, trash: {} })
+    expect(parseState({ v: 3 })).toEqual({ v: 3, nodes: {}, trash: {} })
+    expect(parseState({ v: 3, nodes: 'x', trash: [1] })).toEqual({ v: 3, nodes: {}, trash: {} })
   })
 
-  it('parses v1 and upgrades to v2', () => {
+  it('parses v1 and upgrades to v3', () => {
     const state = parseState({
       v: 1,
       nodes: { ...SEEDED, '/home/visitor/Desktop/a.txt': text('a', 2) },
       trash: { '/home/visitor/b.txt': { text: 'b', mtime: 3 } },
     })
     expect(state).toEqual({
-      v: 2,
+      v: 3,
       nodes: { ...SEEDED, '/home/visitor/Desktop/a.txt': text('a', 2) },
       trash: { '/home/visitor/b.txt': trashed(text('b', 3), 3) },
     })
@@ -125,12 +125,41 @@ describe('parseState', () => {
       {
         '/home/visitor/t.txt': { text: 1, mtime: 1 },
         '/home/visitor/u.txt': 'u',
-        '/home/visitor/v.txt': trashed(dir()),
+        '/home/visitor/v.txt': trashed({ type: 'dir' }),
         '/home/visitor/w.txt': trashed(text('w'), 'later'),
         '/home/visitor/x.txt': { node: 'x', mtime: 1 },
       },
     )
-    expect(state).toEqual({ v: 2, nodes: SEEDED, trash: {} })
+    expect(state).toEqual({ v: 3, nodes: SEEDED, trash: {} })
+  })
+
+  it('keeps a trashed folder and drops junk among its children', () => {
+    const state = stateWith({}, {
+      '/home/visitor/box': {
+        node: dir(),
+        mtime: 2,
+        children: {
+          'a.txt': text('a'),
+          sub: dir(),
+          'sub/b.txt': text('b'),
+          'gone/c.txt': text('orphan'),
+          'a.txt/d.txt': text('under a file'),
+          '../escape.txt': text('x'),
+          '/abs.txt': text('x'),
+          'e.txt': 'junk',
+        },
+      },
+      '/home/visitor/empty': { node: dir(), mtime: 2, children: 'junk' },
+    })
+    expect(state.trash).toEqual({
+      '/home/visitor/box': { node: dir(), mtime: 2, children: { 'a.txt': text('a'), sub: dir(), 'sub/b.txt': text('b') } },
+      '/home/visitor/empty': { node: dir(), mtime: 2, children: {} },
+    })
+  })
+
+  it('drops folder trash entries from a v2 envelope', () => {
+    const state = parseState({ v: 2, nodes: {}, trash: { '/home/visitor/box': trashed(dir()), '/home/visitor/a.txt': trashed(text('a')) } })
+    expect(state.trash).toEqual({ '/home/visitor/a.txt': trashed(text('a')) })
   })
 
   it('drops orphans whose parent folder is missing', () => {
@@ -165,7 +194,7 @@ describe('serializeState', () => {
 
   it('never serialises tmp', () => {
     const state = stateWith({ '/tmp/x': text('t'), '/tmp/d': dir(), '/tmp/d/y': text('y'), '/home/visitor/a.txt': text('a') })
-    expect(JSON.parse(serializeState(state))).toEqual({ v: 2, nodes: { ...SEEDED, '/home/visitor/a.txt': text('a') }, trash: {} })
+    expect(JSON.parse(serializeState(state))).toEqual({ v: 3, nodes: { ...SEEDED, '/home/visitor/a.txt': text('a') }, trash: {} })
   })
 })
 
@@ -173,7 +202,7 @@ describe('migrateLegacy', () => {
   it('migrates tilde paths and trash', () => {
     const legacy = readLegacy({ files: { '~/Desktop/a.txt': 'a', 'notes.txt': 'n' }, trash: { '~/old.txt': 'o' } })
     expect(migrateLegacy(legacy, 5)).toEqual({
-      v: 2,
+      v: 3,
       nodes: {
         '/home/visitor/Desktop': { type: 'dir', mtime: 5 },
         '/home/visitor/Documents': { type: 'dir', mtime: 5 },
@@ -323,15 +352,38 @@ describe('moveToTrash', () => {
     const result = moveToTrash(state, '/home/visitor/a.txt', 6)
     expect(result).toEqual({
       ok: true,
-      state: { v: 2, nodes: SEEDED, trash: { '/home/visitor/a.txt': trashed(text('new'), 6) } },
+      state: { v: 3, nodes: SEEDED, trash: { '/home/visitor/a.txt': trashed(text('new'), 6) } },
       path: '/home/visitor/a.txt',
     })
   })
 
-  it('trash refuses folders', () => {
-    const state = stateWith({ '/home/visitor/box.d': { type: 'dir', mtime: 1 } })
-    expect(moveToTrash(state, '/home/visitor/Desktop', 2)).toEqual({ ok: false, reason: 'invalid' })
-    expect(moveToTrash(state, '/home/visitor/box.d', 2)).toEqual({ ok: false, reason: 'invalid' })
+  it('moves a folder into trash with everything in it', () => {
+    const state = stateWith({
+      '/home/visitor/box.d': dir(),
+      '/home/visitor/box.d/a.txt': text('a'),
+      '/home/visitor/box.d/sub': dir(),
+      '/home/visitor/box.d/sub/l': symlink('../a.txt'),
+      '/home/visitor/box.dx': text('neighbour'),
+    })
+    const result = moveToTrash(state, '/home/visitor/box.d', 6)
+    expect(result).toEqual({
+      ok: true,
+      state: {
+        v: 3,
+        nodes: { ...SEEDED, '/home/visitor/box.dx': text('neighbour') },
+        trash: {
+          '/home/visitor/box.d': { node: dir(), mtime: 6, children: { 'a.txt': text('a'), sub: dir(), 'sub/l': symlink('../a.txt') } },
+        },
+      },
+      path: '/home/visitor/box.d',
+    })
+  })
+
+  it('trash refuses desktop documents and downloads', () => {
+    const state = stateWith({ '/home/visitor/Desktop/a.txt': text('a') })
+    ;['/home/visitor/Desktop', '/home/visitor/Documents', '/home/visitor/Downloads'].forEach((path) => {
+      expect(moveToTrash(state, path, 2)).toEqual({ ok: false, reason: 'invalid' })
+    })
   })
 
   it('refuses paths outside visitor home and reports a missing file', () => {
@@ -347,7 +399,7 @@ describe('restoreFromTrash', () => {
     const result = restoreFromTrash(state, '/home/visitor/Desktop/a.txt', 3)
     expect(result).toEqual({
       ok: true,
-      state: { v: 2, nodes: { ...SEEDED, '/home/visitor/Desktop/a.txt': text('a', 3) }, trash: {} },
+      state: { v: 3, nodes: { ...SEEDED, '/home/visitor/Desktop/a.txt': text('a', 3) }, trash: {} },
       path: '/home/visitor/Desktop/a.txt',
     })
   })
@@ -369,6 +421,38 @@ describe('restoreFromTrash', () => {
     expect(restoreFromTrash(fileInTheWay, '/home/visitor/a.txt/b.txt', 2)).toEqual({ ok: false, reason: 'taken' })
   })
 
+  it('restores a folder with its contents', () => {
+    const state = stateWith({ '/home/visitor/box.d': dir(), '/home/visitor/box.d/sub': dir(), '/home/visitor/box.d/sub/a.txt': text('a') })
+    const binned = moveToTrash(state, '/home/visitor/box.d', 2).state
+    const result = restoreFromTrash(binned, '/home/visitor/box.d', 3)
+    expect(result).toEqual({
+      ok: true,
+      state: {
+        v: 3,
+        nodes: { ...SEEDED, '/home/visitor/box.d': dir(3), '/home/visitor/box.d/sub': dir(), '/home/visitor/box.d/sub/a.txt': text('a') },
+        trash: {},
+      },
+      path: '/home/visitor/box.d',
+    })
+  })
+
+  it('restores a folder into recreated parent folders', () => {
+    const state = parseState({ v: 3, nodes: {}, trash: { '/home/visitor/a/box': { node: dir(), mtime: 1, children: { 'b.txt': text('b') } } } })
+    expect(restoreFromTrash(state, '/home/visitor/a/box', 4).state.nodes).toEqual({
+      '/home/visitor/a': dir(4),
+      '/home/visitor/a/box': dir(4),
+      '/home/visitor/a/box/b.txt': text('b'),
+    })
+  })
+
+  it('folder restore refuses when path taken', () => {
+    const entry = { node: dir(), mtime: 1, children: {} }
+    const taken = stateWith({ '/home/visitor/box': text('file now') }, { '/home/visitor/box': entry })
+    expect(restoreFromTrash(taken, '/home/visitor/box', 2)).toEqual({ ok: false, reason: 'taken' })
+    const fileInTheWay = stateWith({ '/home/visitor/a': text('file') }, { '/home/visitor/a/box': entry })
+    expect(restoreFromTrash(fileInTheWay, '/home/visitor/a/box', 2)).toEqual({ ok: false, reason: 'taken' })
+  })
+
   it('reports missing when there is nothing to restore', () => {
     expect(restoreFromTrash(seedState(1), '/home/visitor/a.txt', 2)).toEqual({ ok: false, reason: 'missing' })
     expect(restoreFromTrash(seedState(1), 'constructor', 2)).toEqual({ ok: false, reason: 'missing' })
@@ -388,13 +472,13 @@ describe('emptyTrash', () => {
 })
 
 describe('mergeState', () => {
-  it('merge leaves folders without user flag and marks files user', () => {
+  it('merge marks folders owned and files user', () => {
     const state = stateWith(
       { '/home/visitor/Downloads/a.txt': text('a', 2) },
       { '/home/visitor/Desktop/b.txt': trashed(text('b', 2), 3) },
     )
     const vfs = mergeState(realVfs, state)
-    expect(vfs['/home/visitor/Downloads']).toEqual({ path: '/home/visitor/Downloads', name: 'Downloads', type: 'dir', mtime: 1 })
+    expect(vfs['/home/visitor/Downloads']).toEqual({ path: '/home/visitor/Downloads', name: 'Downloads', type: 'dir', mtime: 1, owned: true })
     expect(vfs['/home/visitor/Downloads/a.txt']).toEqual({
       path: '/home/visitor/Downloads/a.txt', name: 'a.txt', type: 'text', text: 'a', mtime: 2, user: true,
     })
@@ -406,13 +490,27 @@ describe('mergeState', () => {
     expect(Object.isFrozen(vfs['/home/visitor/Downloads/a.txt'])).toBe(true)
   })
 
+  it('shows a trashed folder as one owned folder without its contents', () => {
+    const state = stateWith({ '/home/visitor/box': dir(), '/home/visitor/box/a.txt': text('a') })
+    const vfs = mergeState(realVfs, moveToTrash(state, '/home/visitor/box', 5).state)
+    const binned = trashItemPath('/home/visitor/box')
+    expect(vfs[binned]).toEqual({ path: binned, name: 'box', type: 'dir', mtime: 5, owned: true, trashedFrom: '/home/visitor/box' })
+    expect(Object.keys(vfs).filter((path) => path.startsWith(`${binned}/`))).toEqual([])
+    expect(vfs['/home/visitor/box/a.txt']).toBeUndefined()
+  })
+
+  it('never marks folders in tmp owned', () => {
+    const vfs = mergeState(realVfs, stateWith({ '/tmp/d': dir() }))
+    expect(vfs['/tmp/d'].owned).toBeUndefined()
+  })
+
   it('never covers a shipped node', () => {
     // The shipped tree no longer has a visitor folder, so one is planted to prove the shipped node wins
     const shipped = Object.freeze({ path: '/home/visitor/Desktop', name: 'Desktop', type: 'dir' })
     const vfs = mergeState(Object.freeze({ ...realVfs, [shipped.path]: shipped }), seedState(1))
     expect(vfs['/home/visitor/Desktop']).toBe(shipped)
     expect(vfs['/home/rafey/bio.txt']).toBe(realVfs['/home/rafey/bio.txt'])
-    expect(vfs['/home/visitor/Downloads']).toEqual({ path: '/home/visitor/Downloads', name: 'Downloads', type: 'dir', mtime: 1 })
+    expect(vfs['/home/visitor/Downloads']).toEqual({ path: '/home/visitor/Downloads', name: 'Downloads', type: 'dir', mtime: 1, owned: true })
   })
 })
 
