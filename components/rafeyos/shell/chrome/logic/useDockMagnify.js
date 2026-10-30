@@ -15,7 +15,9 @@ const writeSize = (element, size) => {
  * @param {{ groups: string[][], rest: number, reduced: () => boolean }} options - rest is the
  *   resting button size in px; groups swell independently of each other
  * @returns {{ hot: string | null, controls: { bindElement: (key: string, element: HTMLElement | null) => void,
- *   hover: (key: string | null) => void, leave: () => void } }} - controls keeps one identity, so
+ *   hover: (key: string | null) => void, point: (key: string) => void, leave: () => void, blur: () => void,
+ *   hold: (key: string | null) => void } }} - hover is focus's swell, point the pointer's; blur falls back to the
+ *   icon under the pointer; hold pins one icon swollen until hold(null). controls keeps one identity, so
  *   memoised buttons don't re-render on every hover
  */
 export const useDockMagnify = ({ groups, rest, reduced }) => {
@@ -55,7 +57,7 @@ export const useDockMagnify = ({ groups, rest, reduced }) => {
     frame.current = requestAnimationFrame(tick)
   }, [tickAll])
 
-  const hover = useCallback(
+  const show = useCallback(
     (key) => {
       if (hotRef.current === key) return
       hotRef.current = key
@@ -64,7 +66,37 @@ export const useDockMagnify = ({ groups, rest, reduced }) => {
     },
     [run],
   )
-  const leave = useCallback(() => hover(null), [hover])
+
+  // A held icon (its menu is open) stays swollen whatever the pointer does; hovering still records
+  // where the pointer is, so letting go settles on that
+  const hoverKey = useRef(null)
+  const held = useRef(null)
+  const hover = useCallback(
+    (key) => {
+      hoverKey.current = key
+      show(held.current ?? key)
+    },
+    [show],
+  )
+  const hold = useCallback(
+    (key) => {
+      held.current = key
+      show(key ?? hoverKey.current)
+    },
+    [show],
+  )
+  // The icon under the pointer, apart from focus: a right-click menu takes focus from the icon
+  // while the pointer stays on it, and that blur must not shrink it
+  const pointerKey = useRef(null)
+  const point = useCallback(
+    (key) => {
+      pointerKey.current = key
+      hover(key)
+    },
+    [hover],
+  )
+  const leave = useCallback(() => point(null), [point])
+  const blur = useCallback(() => hover(pointerKey.current), [hover])
 
   const bindElement = useCallback((key, element) => {
     if (!element) {
@@ -93,6 +125,9 @@ export const useDockMagnify = ({ groups, rest, reduced }) => {
     [],
   )
 
-  const controls = useMemo(() => ({ bindElement, hover, leave }), [bindElement, hover, leave])
+  const controls = useMemo(
+    () => ({ bindElement, hover, point, leave, blur, hold }),
+    [bindElement, hover, point, leave, blur, hold],
+  )
   return { hot, controls }
 }
