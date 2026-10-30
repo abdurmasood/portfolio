@@ -89,8 +89,7 @@ describe('compact layout', () => {
     expect(files.getAttribute('aria-label')).toBe('Music')
   })
 
-  it('does the same in Settings and Projects', () => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+  it('does the same in Settings', () => {
     const { container } = renderDesktop()
     clickDock('Settings')
     const [settings] = windowsOf(container, 'settings')
@@ -100,12 +99,6 @@ describe('compact layout', () => {
     fireEvent.click(within(settings).getByRole('button', { name: 'Sound' }))
     expect(settings.querySelector('.split').classList.contains('side-open')).toBe(false)
     expect(settings.getAttribute('aria-label')).toBe('Sound')
-
-    clickDock('Projects')
-    const [projects] = windowsOf(container, 'projects')
-    fireEvent.click(within(projects).getByRole('button', { name: 'Show sidebar' }))
-    fireEvent.click(within(projects).getByRole('button', { name: 'Hide sidebar' }))
-    expect(projects.querySelector('.split').classList.contains('side-open')).toBe(false)
   })
 })
 

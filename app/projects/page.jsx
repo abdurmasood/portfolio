@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { loadProjects } from '../../lib/loadProjects'
 
 function ProjectsChunkLoading() {
@@ -10,5 +11,10 @@ function ProjectsChunkLoading() {
 const Projects = dynamic(loadProjects, { ssr: false, loading: ProjectsChunkLoading })
 
 export default function Page() {
-  return <Projects />
+  const router = useRouter()
+  return (
+    <div className="w-screen h-screen">
+      <Projects onExit={() => router.back()} />
+    </div>
+  )
 }

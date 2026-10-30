@@ -14,8 +14,8 @@ export const fixtureContent = Object.freeze({
   skills: 'Skills text\n',
   readme: 'README\n',
   projects: [
-    { index: 0, title: 'Alpha Project', slug: 'alpha-project', description: 'one two three four five six seven eight', link: 'https://a.example/', linkLabel: 'a.example', shape: 'octa' },
-    { index: 2, title: 'Beta', slug: 'beta', description: 'short', link: null, linkLabel: null, shape: 'octa' },
+    { index: 0, id: 1, title: 'Alpha Project', slug: 'alpha-project', description: 'one two three four five six seven eight', link: 'https://a.example/', linkLabel: 'a.example' },
+    { index: 2, id: 3, title: 'Beta', slug: 'beta', description: 'short', link: null, linkLabel: null },
   ],
   posts: [{ slug: 'first-post', title: 'First Post', date: '2024-01-01', excerpt: 'x', content: '\nHello world\n', minutes: 1 }],
   music: {

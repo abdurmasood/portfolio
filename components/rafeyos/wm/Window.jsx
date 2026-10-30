@@ -29,7 +29,7 @@ const useSnapTransition = () => {
   return [animating, setAnimating]
 }
 
-const useChrome = ({ elementRef, winRef, isMax, minimized, setAnimating }) => {
+const useChrome = ({ elementRef, winRef, isMax, minimized, focused, setAnimating }) => {
   const windowManager = useWindowManager()
   const { reducedMotion } = useServices()
   const startDrag = useWindowDrag({ elementRef, winRef })
@@ -45,10 +45,12 @@ const useChrome = ({ elementRef, winRef, isMax, minimized, setAnimating }) => {
       isMax,
       // Apps that animate (Projects) pause while their window is minimized
       minimized,
+      // Apps with window-level keys (Projects' Escape) only act on the focused window
+      focused,
       minimize: () => windowManager.minimize(id()),
       close: () => windowManager.close(id()),
     }
-  }, [winRef, windowManager, reducedMotion, startDrag, isMax, minimized, setAnimating])
+  }, [winRef, windowManager, reducedMotion, startDrag, isMax, minimized, focused, setAnimating])
 }
 
 const classNameFor = ({ isMax, focused, animating }) =>
@@ -67,7 +69,7 @@ export const Window = memo(function Window({ win, zIndex, focused, overviewTarge
   const windowManager = useWindowManager()
   const [animating, setAnimating] = useSnapTransition()
   const isMax = win.mode !== SNAP_MODES.NORMAL
-  const chrome = useChrome({ elementRef, winRef, isMax, minimized: win.minimized, setAnimating })
+  const chrome = useChrome({ elementRef, winRef, isMax, minimized: win.minimized, focused, setAnimating })
   const startResize = useWindowResize({ elementRef, winRef })
   useRectStyle(elementRef, win.rect)
   useWindowLifecycle(elementRef, win)

@@ -101,14 +101,8 @@
 :where(.rafeyos) .infobar .sp { flex: 1; }
 
 /* projects */
-:where(.rafeyos) .p3 { position: absolute; inset: 0; background: #000; }
-:where(.rafeyos) .p3 canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
-:where(.rafeyos) .p3 canvas:active { cursor: grabbing; }
-:where(.rafeyos) .p3card { position: absolute; left: 16px; bottom: 16px; width: min(340px, calc(100% - 32px)); background: rgba(20,20,20,.88); color: #e6e6e6; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; box-sizing: border-box; }
-:where(.rafeyos) .p3card b { font-size: 15px; color: #fff; }
-:where(.rafeyos) .p3card p { margin: 0; color: #a8a8a8; font-size: 13.5px; line-height: 1.45; }
-:where(.rafeyos) .p3card a { color: #56d364; font-size: 13.5px; }
-:where(.rafeyos) .p3hint { position: absolute; right: 14px; top: 12px; color: #6e6e6e; font-size: 12.5px; }
+/* The /projects page's 3D scene (Tailwind-styled; base.css keeps its resets off it) */
+:where(.rafeyos) .p3d { flex: 1; min-height: 0; position: relative; background: #000; }
 
 /* settings */
 :where(.rafeyos) .styles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }

@@ -1,127 +1,91 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { chooseMenuItem, clickDock, fakeServices, menuLabels, renderDesktop, rightClick, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
-import { fixtureContent } from '@/tests/rafeyos/helpers/testVfs'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
+import { chooseMenuItem, clickDock, headerTitle, menuLabels, renderDesktop, rightClick, settle, windowsOf } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
-import { ServicesContext, VfsContext, WindowManagerContext } from '@/components/rafeyos/state/logic/contexts'
-import { WindowChromeContext } from '@/components/rafeyos/wm/logic/WindowChromeContext'
-import { ProjectsApp } from '@/components/rafeyos/apps/projects/ProjectsApp'
+
+// The real scene needs WebGL. This stand-in shows the props the window hands it.
+const scene = vi.hoisted(() => ({ openRequests: [] }))
+vi.mock('@/lib/loadProjects', () => ({
+  loadProjects: async () => ({
+    default: function FakeScene({ onExit, openProject, active, paused }) {
+      if (openProject && scene.openRequests.at(-1) !== openProject) scene.openRequests.push(openProject)
+      return (
+        <div
+          data-testid="projects-scene"
+          data-project={openProject?.id ?? ''}
+          data-active={String(active)}
+          data-paused={String(paused)}
+          data-exit={String(Boolean(onExit))}
+        />
+      )
+    },
+  }),
+}))
 
 const { projects } = buildContent()
-const linked = projects.find((project) => project.link)
-
-let context
-let frames
-let nextFrame
-
-/** requestAnimationFrame under the test's control: runFrames() plays one frame. */
-const controlFrames = () => {
-  frames = new Map()
-  nextFrame = 1
-  vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
-    frames.set(nextFrame, callback)
-    return nextFrame++
-  })
-  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => frames.delete(id))
-}
-
-const runFrames = () => {
-  const pending = [...frames.values()]
-  frames.clear()
-  pending.forEach((callback) => callback(0))
-}
-
-beforeEach(() => {
-  context = { clearRect: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn() }
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => context)
-})
 
 afterEach(() => {
   cleanup()
-  vi.restoreAllMocks()
+  scene.openRequests.length = 0
 })
 
-const openProjects = (overrides) => {
-  const view = renderDesktop(overrides)
+const sceneIn = (win) => within(win).getByTestId('projects-scene')
+
+const openProjects = async () => {
+  const view = renderDesktop()
   clickDock('Projects')
+  await settle()
   const [win] = windowsOf(view.container, 'projects')
   return { ...view, win, ui: within(win) }
 }
 
-const headerOf = (win) => win.querySelectorAll('.hb')[1]
-
-/** The app alone over the fixture content, which has a project without a link (every real one has one). */
-const renderWithFixtureProjects = () => {
-  const chrome = { startDrag: vi.fn(), toggleMax: vi.fn(), minimize: vi.fn(), close: vi.fn(), isMax: false, minimized: false }
-  const windowManager = { setTitle: vi.fn(), openApp: vi.fn() }
-  return render(
-    <ServicesContext.Provider value={fakeServices()}>
-      <VfsContext.Provider value={{ content: fixtureContent, vfs: {} }}>
-        <WindowManagerContext.Provider value={windowManager}>
-          <WindowChromeContext.Provider value={chrome}>
-            <ProjectsApp windowId={1} />
-          </WindowChromeContext.Provider>
-        </WindowManagerContext.Provider>
-      </VfsContext.Provider>
-    </ServicesContext.Provider>,
-  )
-}
-
 describe('Projects app', () => {
-  it('lists every project, then Show in Files, beside the first project', () => {
-    const { win, ui } = openProjects()
-    const sidebar = within(ui.getByRole('navigation', { name: 'Projects' }))
+  it('shows the 3D scene under a single "Projects" header bar', async () => {
+    const { container, win } = await openProjects()
 
-    expect(win.querySelector('.side .hb .ttl b').textContent).toBe('Projects')
-    expect(sidebar.getAllByRole('button').map((row) => row.textContent)).toEqual([...projects.map((p) => p.title), 'Show in Files'])
-    expect(headerOf(win).querySelector('.ttl b').textContent).toBe(projects[0].title)
-    expect(headerOf(win).querySelector('.ttl small').textContent).toBe(`1 of ${projects.length}`)
-    expect(win.getAttribute('aria-label')).toBe(projects[0].title)
-    expect(ui.getByText('drag to rotate')).toBeTruthy()
-    expect(win.querySelector('.p3card p').textContent).toBe(projects[0].description)
+    expect(windowsOf(container, 'projects')).toHaveLength(1)
+    expect(win.querySelectorAll('.hb')).toHaveLength(1)
+    expect(headerTitle(win)).toBe('Projects')
+    expect(win.getAttribute('aria-label')).toBe('Projects')
+    expect(sceneIn(win).dataset).toMatchObject({ project: '', active: 'true', paused: 'false' })
   })
 
-  it('turns to the picked project, with its case study link opening in a new tab', () => {
-    const { win, ui } = openProjects()
-    const index = projects.indexOf(linked)
+  it('has no way back to the terminal: the window has its own close button', async () => {
+    const { win, ui } = await openProjects()
 
-    fireEvent.click(ui.getByRole('button', { name: linked.title }))
-
-    const link = within(win.querySelector('.p3card')).getByRole('link')
-    expect(link.textContent).toBe(`${linked.linkName} · ${linked.linkLabel}`)
-    expect(link.getAttribute('href')).toBe(linked.link)
-    expect(link.getAttribute('target')).toBe('_blank')
-    expect(link.getAttribute('rel')).toBe('noopener')
-    expect(headerOf(win).querySelector('.ttl small').textContent).toBe(`${index + 1} of ${projects.length}`)
-    expect(ui.getByRole('button', { name: linked.title }).getAttribute('aria-current')).toBe('true')
-    expect(win.getAttribute('aria-label')).toBe(linked.title)
+    expect(sceneIn(win).dataset.exit).toBe('false')
+    expect(ui.getByRole('button', { name: 'Close' })).toBeTruthy()
   })
 
-  it('shows no link for a project without a case study', () => {
-    const { container } = renderWithFixtureProjects()
-    const unlinked = fixtureContent.projects.find((project) => !project.link)
-    const card = () => within(container.querySelector('.p3card'))
-    expect(card().getByRole('link')).toBeTruthy()
+  it('only lets the scene take Escape while its window is focused', async () => {
+    const { win } = await openProjects()
 
-    fireEvent.click(screen.getByRole('button', { name: unlinked.title }))
+    clickDock('Terminal')
+    expect(sceneIn(win).dataset.active).toBe('false')
 
-    expect(card().getByText(unlinked.title)).toBeTruthy()
-    expect(card().queryByRole('link')).toBeNull()
+    fireEvent.pointerDown(win)
+    expect(sceneIn(win).dataset.active).toBe('true')
   })
 
-  it('opens Rafey\'s projects folder in Files', () => {
-    const { container, ui } = openProjects()
+  it('leaves Escape to the Activities overview while it is open', async () => {
+    const { win } = await openProjects()
 
-    fireEvent.click(ui.getByRole('button', { name: 'Show in Files' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Activities' }))
+    expect(sceneIn(win).dataset.active).toBe('false')
 
-    expect(windowsOf(container, 'files')[0].getAttribute('aria-label')).toBe('projects')
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(sceneIn(win).dataset.active).toBe('true')
   })
 
-  it('names its wireframe for assistive tech', () => {
-    const { ui } = openProjects()
+  it('pauses the scene while minimized, and resumes when restored', async () => {
+    const { win, ui } = await openProjects()
 
-    expect(ui.getByRole('img', { name: `${projects[0].title} wireframe` })).toBeTruthy()
+    fireEvent.click(ui.getByRole('button', { name: 'Minimize' }))
+    expect(sceneIn(win).dataset.paused).toBe('true')
+
+    clickDock('Projects')
+    expect(sceneIn(win).dataset.paused).toBe('false')
   })
 })
 
@@ -134,29 +98,47 @@ describe('Open in Projects', () => {
     return { ...view, files }
   }
 
-  it('is offered for a project file and opens that project', () => {
+  const openInProjects = async (files, project) => {
+    rightClick(files.querySelector(`[data-path="/home/rafey/projects/${project.slug}.txt"]`))
+    chooseMenuItem('Open in Projects')
+    await settle()
+  }
+
+  it('is offered for a project file and opens that project in the scene', async () => {
     const { container, files } = openProjectsFolder()
     const target = projects[projects.length - 1]
 
     rightClick(files.querySelector(`[data-path="/home/rafey/projects/${target.slug}.txt"]`))
     expect(menuLabels()).toContain('Open in Projects')
     chooseMenuItem('Open in Projects')
+    await settle()
 
     const [win] = windowsOf(container, 'projects')
-    expect(win.getAttribute('aria-label')).toBe(target.title)
+    expect(sceneIn(win).dataset.project).toBe(String(target.id))
+    expect(win.getAttribute('aria-label')).toBe('Projects')
     expect(windowsOf(container, 'editor')).toHaveLength(0)
   })
 
-  it('turns the open Projects window rather than opening another', () => {
+  it('turns the open Projects window rather than opening another', async () => {
     const { container, files } = openProjectsFolder()
     clickDock('Projects')
     const target = projects[1]
 
-    rightClick(files.querySelector(`[data-path="/home/rafey/projects/${target.slug}.txt"]`))
-    chooseMenuItem('Open in Projects')
+    await openInProjects(files, target)
 
     expect(windowsOf(container, 'projects')).toHaveLength(1)
-    expect(windowsOf(container, 'projects')[0].getAttribute('aria-label')).toBe(target.title)
+    expect(sceneIn(windowsOf(container, 'projects')[0]).dataset.project).toBe(String(target.id))
+  })
+
+  it('asks again for a project the visitor already opened, so a closed panel reopens', async () => {
+    const { files } = openProjectsFolder()
+
+    await openInProjects(files, projects[0])
+    await openInProjects(files, projects[0])
+
+    const [first, second] = scene.openRequests
+    expect(second).not.toBe(first)
+    expect(second).toEqual({ id: projects[0].id })
   })
 
   it('is not offered for other files, and Open still uses the Text Editor', () => {
@@ -171,117 +153,15 @@ describe('Open in Projects', () => {
   })
 })
 
-describe('wireframe canvas', () => {
-  it('spins one frame at a time while shown', () => {
-    controlFrames()
-    openProjects({ reducedMotion: () => false })
-
-    expect(frames.size).toBe(1)
-    runFrames()
-    runFrames()
-
-    expect(context.stroke).toHaveBeenCalledTimes(2)
-    expect(frames.size).toBe(1)
-  })
-
-  it('stops while minimized, and starts again when restored', () => {
-    controlFrames()
-    const { ui } = openProjects({ reducedMotion: () => false })
-    runFrames()
-
-    fireEvent.click(ui.getAllByRole('button', { name: 'Minimize' })[0])
-    expect(frames.size).toBe(0)
-    expect(window.cancelAnimationFrame).toHaveBeenCalled()
-
-    clickDock('Projects')
-    expect(frames.size).toBe(1)
-  })
-
-  it('stops when the window closes', () => {
-    controlFrames()
-    const { container, ui } = openProjects({ reducedMotion: () => false })
-    runFrames()
-
-    fireEvent.click(ui.getAllByRole('button', { name: 'Close' })[0])
-
-    expect(windowsOf(container, 'projects')).toHaveLength(0)
-    expect(frames.size).toBe(0)
-  })
-
-  it('draws a single still frame when motion is reduced, and redraws on drag', () => {
-    controlFrames()
-    const { win } = openProjects()
-    const canvas = win.querySelector('canvas')
-
-    expect(frames.size).toBe(0)
-    const still = context.stroke.mock.calls.length
-    expect(still).toBeGreaterThan(0)
-
-    fireEvent.pointerDown(canvas, { button: 0, clientX: 0, clientY: 0, pointerId: 1 })
-    fireEvent.pointerMove(canvas, { clientX: 140, clientY: 0, pointerId: 1 })
-    runFrames()
-    fireEvent.pointerUp(canvas, { clientX: 140, clientY: 0, pointerId: 1 })
-
-    expect(context.stroke.mock.calls.length).toBeGreaterThan(still)
-  })
-
-  it('redraws the still frame when the window is resized, until it closes', () => {
-    controlFrames()
-    const observers = []
-    window.ResizeObserver = class {
-      constructor(callback) {
-        this.callback = callback
-        this.disconnect = vi.fn()
-        observers.push(this)
-      }
-
-      observe() {}
-    }
-    const { ui } = openProjects()
-    const still = context.stroke.mock.calls.length
-
-    observers.at(-1).callback()
-    expect(context.stroke.mock.calls.length).toBe(still + 1)
-    fireEvent.click(ui.getAllByRole('button', { name: 'Close' })[0])
-
-    expect(observers.at(-1).disconnect).toHaveBeenCalled()
-    delete window.ResizeObserver
-  })
-
-  it('ignores a right-button press on the canvas', () => {
-    controlFrames()
-    const { win } = openProjects()
-    const still = context.stroke.mock.calls.length
-
-    fireEvent.pointerDown(win.querySelector('canvas'), { button: 2, clientX: 0, clientY: 0 })
-    fireEvent.pointerMove(win.querySelector('canvas'), { clientX: 140, clientY: 0 })
-    runFrames()
-
-    expect(context.stroke.mock.calls.length).toBe(still)
-  })
-
-  it('sizes the bitmap to the element at the device pixel ratio, at most 2x', () => {
-    controlFrames()
-    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300)
-    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(200)
-    const ratio = vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(3)
-    const { win } = openProjects()
-    const canvas = win.querySelector('canvas')
-
-    expect([canvas.width, canvas.height]).toEqual([600, 400])
-    expect(context.lineWidth).toBe(2.4)
-    ratio.mockRestore()
-  })
-})
-
 describe('Projects from the terminal', () => {
-  it('projects --3d opens it', () => {
+  it('projects --3d opens it', async () => {
     const { container } = renderDesktop()
     clickDock('Terminal')
     const input = screen.getByLabelText('Terminal input')
 
     fireEvent.change(input, { target: { value: 'projects --3d' } })
     fireEvent.keyDown(input, { key: 'Enter' })
+    await settle()
 
     expect(windowsOf(container, 'projects')).toHaveLength(1)
   })

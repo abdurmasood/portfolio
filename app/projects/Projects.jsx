@@ -5,9 +5,9 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Float, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import TerminalIcon from '../../components/projects/TerminalIcon'
-import { linkName, projects } from '../../lib/projects'
+import { getProjectById, linkName, projects } from '../../lib/projects'
+import { cameraDistanceFor, isCompactWidth } from './sceneLayout'
 
 const geometries = [
   new THREE.OctahedronGeometry(0.9),
@@ -21,13 +21,13 @@ const geometries = [
 
 // Matches the home terminal (components/home/Terminal.css)
 const TERMINAL_FONT = 'var(--font-terminal), ui-monospace, monospace'
-const COMPACT_QUERY = '(max-width: 640px)'
 const PANEL_WIDTH = 262
 const PANEL_GAP = 48
 // Top of the panel sits just above the shape's centre, so it drops down past the
 // neighbour diagonally above instead of covering it
 const PANEL_TOP_OFFSET = -24
 const PANEL_EDGE_MARGIN = 16
+const FADE_STEP = 0.05
 
 const POINTER_CONTROLS = `  drag          rotate
   right-drag    pan
@@ -43,6 +43,7 @@ const QUIET_CONTROL = 'p-0 m-0 border-0 bg-transparent rounded-none font-normal 
 const PANEL_SURFACE = 'bg-black border border-solid border-[#2A2A2A] text-[12px] leading-[1.6] text-[#D0D0D0]'
 
 const stopPropagation = (event) => event.stopPropagation()
+const preventDefault = (event) => event.preventDefault()
 
 const ProjectDetails = ({ project, variant, onClose }) => {
   const isSheet = variant === 'sheet'
@@ -55,7 +56,7 @@ const ProjectDetails = ({ project, variant, onClose }) => {
       transition={{ duration: 0.15, ease: 'easeOut' }}
       onClick={stopPropagation}
       onPointerDown={stopPropagation}
-      className={`${PANEL_SURFACE} ${isSheet ? 'fixed left-3 right-3 bottom-14 px-3.5 pt-0.5 pb-3.5' : 'px-3.5 pt-3 pb-3.5'}`}
+      className={`${PANEL_SURFACE} ${isSheet ? 'absolute left-3 right-3 bottom-14 px-3.5 pt-0.5 pb-3.5' : 'px-3.5 pt-3 pb-3.5'}`}
       style={isSheet ? undefined : { width: PANEL_WIDTH }}
     >
       <div className={`flex justify-between ${isSheet ? 'items-center' : 'items-baseline mb-1.5'}`}>
@@ -202,6 +203,12 @@ const ProjectShape = React.memo(({ project, initialPosition, geometry, onProject
 
 ProjectShape.displayName = 'ProjectShape'
 
+// The scene used to mount two of these, so every drag, pan and wheel step moved the camera
+// twice. One instance at double speed keeps that feel.
+const WHEEL_STEP = 1
+const TOUCH_PAN_SPEED = 0.02
+const CONTROLS_SPEED = 2
+
 const CustomOrbitControls = () => {
   const { camera, gl } = useThree()
   const controlsRef = useRef()
@@ -222,14 +229,13 @@ const CustomOrbitControls = () => {
   useEffect(() => {
     const handleWheel = (event) => {
       if (controlsRef.current) {
-        const moveSpeed = 0.5
         const direction = new THREE.Vector3()
         camera.getWorldDirection(direction)
-        
+
         if (event.deltaY > 0) {
-          camera.position.addScaledVector(direction, -moveSpeed)
+          camera.position.addScaledVector(direction, -WHEEL_STEP)
         } else {
-          camera.position.addScaledVector(direction, moveSpeed)
+          camera.position.addScaledVector(direction, WHEEL_STEP)
         }
       }
     }
@@ -253,8 +259,8 @@ const CustomOrbitControls = () => {
         const touch = event.touches[0]
         const movementX = touch.clientX - touchStartRef.current.x
         const movementY = touch.clientY - touchStartRef.current.y
-        camera.position.x -= movementX * 0.01
-        camera.position.y += movementY * 0.01
+        camera.position.x -= movementX * TOUCH_PAN_SPEED
+        camera.position.y += movementY * TOUCH_PAN_SPEED
         touchStartRef.current = { x: touch.clientX, y: touch.clientY }
       }
     }
@@ -286,6 +292,8 @@ const CustomOrbitControls = () => {
       enableZoom={false}
       enableRotate={!isPanning}
       enablePan={!isTouchDevice}
+      rotateSpeed={CONTROLS_SPEED}
+      panSpeed={CONTROLS_SPEED}
       mouseButtons={{
         LEFT: THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
@@ -354,17 +362,16 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup, isCompact }) => {
     })
     setShapes(initialShapes)
 
-    // Animate opacity
+    // Animate opacity. Cancelled on unmount: a rafeyOS window can close mid-fade.
+    let frame
+    let step = 0
     const fadeIn = () => {
-      setOpacity(prevOpacity => {
-        const newOpacity = Math.min(prevOpacity + 0.05, 1)
-        if (newOpacity < 1) {
-          requestAnimationFrame(fadeIn)
-        }
-        return newOpacity
-      })
+      step += 1
+      setOpacity(Math.min(step * FADE_STEP, 1))
+      if (step * FADE_STEP < 1) frame = requestAnimationFrame(fadeIn)
     }
-    requestAnimationFrame(fadeIn)
+    frame = requestAnimationFrame(fadeIn)
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   return (
@@ -390,15 +397,48 @@ const Scene = ({ onProjectClick, activeProject, onClosePopup, isCompact }) => {
   )
 }
 
-const Projects = () => {
-  const router = useRouter()
+// The Canvas only reads its camera prop once, so resizes move the camera here
+const CameraDistance = ({ distance }) => {
+  const camera = useThree((state) => state.camera)
+  useEffect(() => {
+    camera.position.setLength(distance)
+  }, [camera, distance])
+  return null
+}
+
+const useContainerWidth = (containerRef) => {
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    const element = containerRef.current
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [containerRef])
+  return width
+}
+
+/**
+ * The 3D projects scene. It fills its container: the /projects page or a rafeyOS window.
+ * @param {{
+ *   onExit?: () => void,
+ *   openProject?: { id: number },
+ *   active?: boolean,
+ *   paused?: boolean,
+ * }} props -
+ *   onExit: shows the terminal icon, which calls it.
+ *   openProject: opens that project's details; pass a new object to reopen the same one.
+ *   active: false stops Escape closing panels (another window has focus).
+ *   paused: stops rendering frames (a minimized window).
+ */
+const Projects = ({ onExit, openProject, active = true, paused = false }) => {
+  const containerRef = useRef(null)
   const [showHelp, setShowHelp] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
-  const [isCompact, setIsCompact] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 })
+  const containerWidth = useContainerWidth(containerRef)
+  const isCompact = isCompactWidth(containerWidth)
 
   // Help and project details share the bottom of the screen on mobile, so only one is open at a time
   const toggleHelp = useCallback(() => {
@@ -415,9 +455,10 @@ const Projects = () => {
     setActiveProject(null)
   }, [])
 
-  const handleTerminalClick = useCallback(() => {
-    router.back()
-  }, [router])
+  useEffect(() => {
+    const project = openProject && getProjectById(openProject.id)
+    if (project) handleProjectClick(project)
+  }, [openProject, handleProjectClick])
 
   useEffect(() => {
     setMounted(true)
@@ -429,14 +470,7 @@ const Projects = () => {
   }, [])
 
   useEffect(() => {
-    const compactQuery = window.matchMedia(COMPACT_QUERY)
-    const updateCompact = () => setIsCompact(compactQuery.matches)
-    updateCompact()
-    compactQuery.addEventListener('change', updateCompact)
-    return () => compactQuery.removeEventListener('change', updateCompact)
-  }, [])
-
-  useEffect(() => {
+    if (!active) return undefined
     const handleEscape = (event) => {
       if (event.key !== 'Escape') return
       if (activeProject) {
@@ -447,46 +481,18 @@ const Projects = () => {
     }
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
-  }, [activeProject])
-
-  useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault()
-    document.addEventListener('contextmenu', handleContextMenu)
-    return () => document.removeEventListener('contextmenu', handleContextMenu)
-  }, [])
+  }, [activeProject, active])
 
   useEffect(() => {
     const checkTouchDevice = () => {
       setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)
     }
-    const handleResize = () => {
-      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    }
     checkTouchDevice()
-    handleResize()
-    window.addEventListener('resize', () => {
-      checkTouchDevice()
-      handleResize()
-    })
-    return () => window.removeEventListener('resize', handleResize)
+    window.addEventListener('resize', checkTouchDevice)
+    return () => window.removeEventListener('resize', checkTouchDevice)
   }, [])
 
-  const cameraPosition = useMemo(() => {
-    // Base zoom level
-    let zoomLevel = 20
-
-    // Adjust zoom level based on screen size
-    if (screenSize.width <= 480) {  // For very small screens (e.g., iPhone SE)
-      zoomLevel = 36
-    } else if (screenSize.width <= 768) {  // For general mobile screens
-      zoomLevel = 28
-    } else if (screenSize.width <= 1024) {  // For tablets and small laptops
-      zoomLevel = 25
-    }
-
-    // You might need to adjust these values based on your specific layout
-    return [0, 0, zoomLevel]
-  }, [screenSize])
+  const cameraDistance = cameraDistanceFor(containerWidth)
 
   const canvasVariants = {
     hidden: { opacity: 0 },
@@ -504,9 +510,14 @@ const Projects = () => {
   }
 
   return (
-    <div className="w-screen h-screen bg-black text-white font-mono" style={{ fontFamily: TERMINAL_FONT }}>
+    <div
+      ref={containerRef}
+      className="relative w-full h-full bg-black text-white font-mono"
+      style={{ fontFamily: TERMINAL_FONT }}
+      onContextMenu={preventDefault}
+    >
       <AnimatePresence>
-        {mounted && isLoaded && (
+        {mounted && isLoaded && containerWidth > 0 && (
           <motion.div
             key="canvas-container"
             initial="hidden"
@@ -514,20 +525,20 @@ const Projects = () => {
             variants={canvasVariants}
             className="w-full h-full"
           >
-            <Canvas camera={{ position: cameraPosition, fov: 60 }}>
-              <Scene 
-                onProjectClick={handleProjectClick} 
+            <Canvas camera={{ position: [0, 0, cameraDistance], fov: 60 }} frameloop={paused ? 'never' : 'always'}>
+              <CameraDistance distance={cameraDistance} />
+              <Scene
+                onProjectClick={handleProjectClick}
                 activeProject={activeProject}
                 onClosePopup={handleClosePopup}
                 isCompact={isCompact}
               />
-              <CustomOrbitControls />
             </Canvas>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <TerminalIcon onClick={handleTerminalClick} />
+      {onExit && <TerminalIcon onClick={onExit} />}
 
       {isCompact && activeProject && (
         <ProjectDetails

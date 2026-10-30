@@ -72,6 +72,8 @@ export default [
       'tests/rafeyos/**/*.{js,jsx}',
       'components/home/**/*.{js,jsx}',
       'tests/home/**/*.{js,jsx}',
+      'app/projects/**/*.{js,jsx}',
+      'tests/projects/**/*.{js,jsx}',
     ],
     rules: { 'react/prop-types': 'off' },
   },

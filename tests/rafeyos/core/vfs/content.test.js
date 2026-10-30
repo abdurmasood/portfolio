@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildContent, htmlToText, slugify, displayLink, shapeForIndex, deepFreeze, formatDuration } from '@/components/rafeyos/core/vfs/content'
+import { buildContent, htmlToText, slugify, displayLink, deepFreeze, formatDuration } from '@/components/rafeyos/core/vfs/content'
 import { age } from '@/lib/descriptions'
 import { projects } from '@/lib/projects'
 import { getPublishedPosts } from '@/lib/posts'
@@ -29,16 +29,6 @@ describe('slugify and displayLink', () => {
   })
 })
 
-describe('shapeForIndex', () => {
-  it('maps by index in the full project list', () => {
-    expect([0, 1, 3, 4, 6].map(shapeForIndex)).toEqual(['octa', 'torus', 'sphere', 'cylinder', 'knot'])
-  })
-
-  it('falls back to octa for icosa, tetra and out-of-range indexes', () => {
-    expect([2, 5, 99].map(shapeForIndex)).toEqual(['octa', 'octa', 'octa'])
-  })
-})
-
 describe('buildContent', () => {
   it('includes only visible projects, keeping their index in the full list', () => {
     const content = buildContent()
@@ -47,7 +37,7 @@ describe('buildContent', () => {
     expect(titles).not.toContain('Home-Work')
     expect(titles).not.toContain('Hotel Price Tracker')
     content.projects.forEach((p) => expect(projects[p.index].title).toBe(p.title))
-    expect(content.projects.find((p) => p.slug === 'rafey-shell')).toMatchObject({ index: 6, shape: 'knot', link: 'https://github.com/abdurmasood/rafey-shell', linkName: 'source' })
+    expect(content.projects.find((p) => p.slug === 'rafey-shell')).toMatchObject({ index: 6, id: 7, link: 'https://github.com/abdurmasood/rafey-shell', linkName: 'source' })
     expect(content.projects.find((p) => p.slug === 'leaf-line')).toMatchObject({ linkLabel: 'leaf.space/leaf-line', linkName: 'case study' })
     expect(content.projects.find((p) => p.slug === 'arrhythmia-detector').linkName).toBe('source')
   })
