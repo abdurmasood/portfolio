@@ -10,12 +10,6 @@ import { HELP_LINES, HELP_HINT } from '@/lib/help'
 // "2:38": track times as the home terminal's player shows them; the waveform's 0..1 bar levels
 export { formatTime as formatDuration, computeLevels } from '@/lib/music'
 
-// Indexed like the 3D /projects scene (app/projects/Projects.jsx): by position in the FULL list
-export const PROJECT_SHAPES = Object.freeze(['octa', 'torus', 'icosa', 'sphere', 'cylinder', 'tetra', 'knot'])
-// rafeyOS's 3D view only draws these; the others fall back to octa
-const RENDERED_SHAPES = new Set(['octa', 'torus', 'sphere', 'cylinder', 'knot'])
-const FALLBACK_SHAPE = 'octa'
-
 const ENTITIES = Object.freeze({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp: ' ' })
 
 /** Strips tags and decodes the handful of entities the terminal strings use. */
@@ -29,11 +23,6 @@ export const slugify = (title) =>
 
 // Shown like a path, not a URL: no scheme or trailing slash (matches ProjectsOutput.jsx)
 export const displayLink = (url) => url.replace(/^https?:\/\//, '').replace(/\/$/, '')
-
-export const shapeForIndex = (index) => {
-  const shape = PROJECT_SHAPES[index]
-  return RENDERED_SHAPES.has(shape) ? shape : FALLBACK_SHAPE
-}
 
 const withTrailingNewline = (text) => (text.endsWith('\n') ? text : `${text}\n`)
 
@@ -57,7 +46,6 @@ const buildProjects = () =>
       link: project.link ?? null,
       linkLabel: project.link ? displayLink(project.link) : null,
       linkName: project.link ? linkName(project.link) : null,
-      shape: shapeForIndex(index),
     }
   })
 
@@ -91,7 +79,7 @@ const buildContact = () => ({
 })
 
 /**
- * @typedef {{ index: number, id: number, title: string, slug: string, description: string, link: string | null, linkLabel: string | null, linkName: string | null, shape: string }} Project
+ * @typedef {{ index: number, id: number, title: string, slug: string, description: string, link: string | null, linkLabel: string | null, linkName: string | null }} Project
  * @typedef {{ slug: string, title: string, date: string, excerpt: string, content: string, minutes: number }} Post
  * @typedef {{ id: string, title: string, artist: string, src: string, sizeBytes: number, durationSeconds: number }} Track
  * @typedef {{ year: number, event: string, upcoming: boolean }} Milestone
