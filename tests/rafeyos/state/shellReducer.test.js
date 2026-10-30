@@ -17,17 +17,30 @@ describe('shellReducer', () => {
     expect(state.menu).toBeNull()
   })
 
+  it('a popup that asks for input carries its prompt', () => {
+    const prompt = { title: 'New Folder' }
+    const state = reduce(initialShell, { type: 'openPopup', kind: 'name', anchor: { x: 1, y: 2, w: 0, h: 0 }, prompt })
+
+    expect(state.popup).toEqual({ kind: 'name', anchor: { x: 1, y: 2, w: 0, h: 0 }, prompt })
+  })
+
   it('opening a menu closes any popup', () => {
     const state = reduce(initialShell, { type: 'openPopup', kind: 'calendar' }, menu)
 
     expect(state.popup).toBeNull()
-    expect(state.menu).toEqual({ items: [{ label: 'Open' }], x: 10, y: 20, shell: false, anchorBottom: false })
+    expect(state.menu).toEqual({ items: [{ label: 'Open' }], x: 10, y: 20, shell: false, anchorBottom: false, dockKey: null })
   })
 
   it('shell menus can hang from their bottom edge', () => {
     const state = reduce(initialShell, { ...menu, shell: true, anchorBottom: true })
 
     expect(state.menu).toMatchObject({ shell: true, anchorBottom: true })
+  })
+
+  it('dock menus remember the icon they came from', () => {
+    const state = reduce(initialShell, { ...menu, shell: true, dockKey: 'files' })
+
+    expect(state.menu.dockKey).toBe('files')
   })
 
   it('togglePopup closes the same popup and switches to another', () => {

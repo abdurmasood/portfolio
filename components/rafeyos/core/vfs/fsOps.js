@@ -300,6 +300,16 @@ export const move = (vfs, state, { from, to }) => {
 }
 
 /**
+ * The GUI's Rename: a move that never replaces what is already at `to`, as Files never overwrites on a rename.
+ * @param {Vfs} vfs
+ * @param {FsState} state
+ * @param {{ from: string, to: string }} args
+ * @returns {FsOpResult}
+ */
+export const rename = (vfs, state, { from, to }) =>
+  from !== to && vfs[to] ? fail('EEXIST', to) : move(vfs, state, { from, to })
+
+/**
  * The visitor's copy of one file: text stays text, a link stays a link, and a shipped file that isn't text
  * (the song, the .desktop links) becomes a copy node pointing at it.
  * @param {FsState} state

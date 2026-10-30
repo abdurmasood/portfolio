@@ -27,11 +27,14 @@ export const BOUNCE_MS = 900
 const buttonClassName = ({ focused = false, hot = false, bouncing = false }) =>
   ['dk', focused && 'focused', hot && 'hot', bouncing && 'bounce'].filter(Boolean).join(' ')
 
-/** Pointer and focus wiring that makes a dock button the hovered one. Touch never magnifies. */
-const magnifyHandlers = (key, { hover, leave }) => ({
-  onPointerEnter: (event) => event.pointerType !== 'touch' && hover(key),
-  onFocus: () => hover(key),
-  onBlur: leave,
+/**
+ * Pointer and focus wiring that makes a dock button the hovered one. Touch never magnifies, and nor does focus that
+ * isn't :focus-visible: a menu item picked with the mouse hands focus back to its dock icon, away from the pointer.
+ */
+const magnifyHandlers = (key, { hover, point, blur }) => ({
+  onPointerEnter: (event) => event.pointerType !== 'touch' && point(key),
+  onFocus: (event) => event.currentTarget.matches(':focus-visible') && hover(key),
+  onBlur: blur,
 })
 
 /** Favourites with a UI, then running apps that aren't favourites. */
@@ -92,7 +95,7 @@ const useDockMenu = (windows, dockPos) => {
         quit: () => appWindows.forEach((win) => windowManager.close(win.id)),
       })
       const { point, anchorBottom } = dockMenuPlacement(buttonRect, dockPos)
-      openMenu(items, point, { shell: true, anchorBottom })
+      openMenu(items, point, { shell: true, anchorBottom, dockKey: appId })
     },
     [windows, dockPos, windowManager, openMenu],
   )
@@ -142,7 +145,7 @@ const TrashButton = ({ hot, magnify, dockPos, onOpen }) => {
       onContextMenu={(event) => {
         event.preventDefault()
         const { point, anchorBottom } = dockMenuPlacement(rectOfElement(event.currentTarget), dockPos)
-        openMenu([menuItem('Empty Trash', emptyTrash)], point, { shell: true, anchorBottom })
+        openMenu([menuItem('Empty Trash', emptyTrash)], point, { shell: true, anchorBottom, dockKey: TRASH_KEY })
       }}
     >
       <span className="b">
@@ -162,6 +165,9 @@ export const Dock = () => {
   const focusedApp = windows.byId[windows.focusedId]?.appId ?? null
   const apps = dockApps(windows)
   const { hot, controls: magnify } = useDockMagnify({ groups: [apps, SYSTEM_KEYS], rest: iconSize + BUTTON_INSET, reduced: reducedMotion })
+  // A right-clicked icon stays swollen until its menu closes (an item chosen, or a click elsewhere)
+  const heldKey = useShellState().menu?.dockKey ?? null
+  useEffect(() => magnify.hold(heldKey), [magnify, heldKey])
   const [bouncing, setBouncing] = useState(null)
   // A timer, not animationend: that never fires in a hidden tab, which would leave the class stuck
   useEffect(() => {

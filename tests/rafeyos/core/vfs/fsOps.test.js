@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { copy, mkdir, move, remove, symlink, touch, writeFile } from '@/components/rafeyos/core/vfs/fsOps'
+import { copy, mkdir, move, remove, rename, symlink, touch, writeFile } from '@/components/rafeyos/core/vfs/fsOps'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { mergeState, parseState, seedState } from '@/components/rafeyos/core/vfs/fsState'
 import { resolve } from '@/components/rafeyos/core/vfs/paths'
@@ -134,7 +134,7 @@ describe('remove', () => {
       '/tmp/t': text('t'),
     })
     const result = run(remove, state, { path: H, recursive: true })
-    expect(result).toEqual({ ok: true, state: { v: 2, nodes: { '/tmp/t': text('t') }, trash: {} }, errors: [{ errno: 'EACCES', path: H }] })
+    expect(result).toEqual({ ok: true, state: { v: 3, nodes: { '/tmp/t': text('t') }, trash: {} }, errors: [{ errno: 'EACCES', path: H }] })
     expect(mergeState(base, result.state)['/home/rafey/bio.txt']).toBeDefined()
   })
 
@@ -192,6 +192,17 @@ describe('move', () => {
     expect(run(move, state, { from: `${H}/a.txt`, to: `${H}/Desktop` })).toEqual(fails('EISDIR', `${H}/Desktop`))
     expect(run(move, state, { from: `${H}/Desktop`, to: `${H}/a.txt` })).toEqual(fails('ENOTDIR', `${H}/a.txt`))
     expect(run(move, state, { from: `${H}/Documents`, to: `${H}/Documents/in` })).toEqual(fails('EINVAL', `${H}/Documents/in`))
+  })
+})
+
+describe('rename', () => {
+  it('renames a file or folder and never replaces what is there', () => {
+    const state = stateOf({ [`${H}/a.txt`]: text('a'), [`${H}/b.txt`]: text('b'), [`${H}/box`]: dir(), [`${H}/box/x`]: text('x'), [`${H}/empty`]: dir() })
+    expect(run(rename, state, { from: `${H}/box`, to: `${H}/crate` }).state.nodes).toMatchObject({ [`${H}/crate`]: dir(), [`${H}/crate/x`]: text('x') })
+    expect(run(rename, state, { from: `${H}/a.txt`, to: `${H}/b.txt` })).toEqual(fails('EEXIST', `${H}/b.txt`))
+    expect(run(rename, state, { from: `${H}/box`, to: `${H}/empty` })).toEqual(fails('EEXIST', `${H}/empty`))
+    expect(run(rename, state, { from: `${H}/a.txt`, to: `${H}/a.txt` })).toEqual({ ok: true, state })
+    expect(run(rename, state, { from: '/home/rafey/bio.txt', to: '/home/rafey/b.txt' })).toEqual(fails('EACCES', '/home/rafey/bio.txt'))
   })
 })
 

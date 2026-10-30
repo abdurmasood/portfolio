@@ -124,7 +124,7 @@ describe('createFsStore writes', () => {
   })
 
   it('unknown version is never overwritten', () => {
-    const future = JSON.stringify({ v: 3, tree: {} })
+    const future = JSON.stringify({ v: 4, tree: {} })
     const legacy = legacyValue({ '~/Documents/old.txt': 'x' })
     const storage = memoryStorage({ [FS_KEY]: future, [LEGACY_KEY]: legacy })
     const store = storeOn(storage)
@@ -297,7 +297,7 @@ describe('createFsStore commit', () => {
     const result = store.commit(op(mkdir, { path: '/home/visitor/notes' }))
 
     expect(result.ok).toBe(true)
-    expect(onDisk(storage)).toMatchObject({ v: 2, nodes: { '/home/visitor/notes': { type: 'dir', mtime: NOW } } })
+    expect(onDisk(storage)).toMatchObject({ v: 3, nodes: { '/home/visitor/notes': { type: 'dir', mtime: NOW } } })
     expect(store.getState()).toBe(result.state)
     expect(listener).toHaveBeenCalledTimes(1)
   })
@@ -331,7 +331,7 @@ describe('createFsStore commit', () => {
 
   it('tmp writes work when storage is blocked or full', () => {
     const quota = new DOMException('', 'QuotaExceededError')
-    const unknownVersion = memoryStorage({ [FS_KEY]: JSON.stringify({ v: 3 }) })
+    const unknownVersion = memoryStorage({ [FS_KEY]: JSON.stringify({ v: 4 }) })
     ;[
       [storeOn(null), 'blocked'],
       [storeOn(failingWrites(quota)), 'full'],
@@ -349,7 +349,7 @@ describe('createFsStore commit', () => {
       expect(store.commit(write(`${DESKTOP}/a.txt`, 'a'))).toEqual({ ok: false, reason })
       expect(store.getState().nodes['/tmp/x']).toEqual(text('x'))
     })
-    expect(unknownVersion.getItem(FS_KEY)).toBe(JSON.stringify({ v: 3 }))
+    expect(unknownVersion.getItem(FS_KEY)).toBe(JSON.stringify({ v: 4 }))
   })
 
   it('saves a /tmp file in place in memory, whatever storage is doing', () => {
@@ -418,7 +418,7 @@ describe('createFsStore commit', () => {
     expect(onDisk(storage).nodes[`${DESKTOP}/a.txt`]).toEqual(text('a'))
   })
 
-  it('v1 on disk loads and saves as v2', () => {
+  it('v1 on disk loads and saves as v3', () => {
     const v1 = JSON.stringify({
       v: 1,
       nodes: { ...seedState(1).nodes, [`${DESKTOP}/a.txt`]: text('a') },
@@ -427,12 +427,12 @@ describe('createFsStore commit', () => {
     const storage = memoryStorage({ [FS_KEY]: v1 })
     const store = storeOn(storage)
 
-    expect(store.getState()).toMatchObject({ v: 2, trash: { '/home/visitor/old.txt': { node: { type: 'text', text: 'o', mtime: 2 }, mtime: 2 } } })
+    expect(store.getState()).toMatchObject({ v: 3, trash: { '/home/visitor/old.txt': { node: { type: 'text', text: 'o', mtime: 2 }, mtime: 2 } } })
     expect(storage.getItem(FS_KEY)).toBe(v1)
 
     expect(store.commit(write(`${DESKTOP}/b.txt`, 'b')).ok).toBe(true)
     expect(onDisk(storage)).toMatchObject({
-      v: 2,
+      v: 3,
       nodes: { [`${DESKTOP}/a.txt`]: text('a'), [`${DESKTOP}/b.txt`]: text('b') },
       trash: { '/home/visitor/old.txt': { node: { type: 'text', text: 'o', mtime: 2 }, mtime: 2 } },
     })

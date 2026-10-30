@@ -15,7 +15,7 @@ export const NODE_TYPES = Object.freeze({
 
 /**
  * What a node holds, by type. `name` is the path's last segment unless the entry sets one (Trash).
- * @typedef {{ type: typeof NODE_TYPES.DIR }} DirFields
+ * @typedef {{ type: typeof NODE_TYPES.DIR, owned?: boolean, trashedFrom?: string }} DirFields owned: the visitor's own folder
  * @typedef {{ type: typeof NODE_TYPES.TEXT, text: string, projectIndex?: number, user?: boolean, trashedFrom?: string }} TextFields
  * @typedef {{
  *   type: typeof NODE_TYPES.AUDIO,

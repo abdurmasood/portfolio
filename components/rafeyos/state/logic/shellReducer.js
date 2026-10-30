@@ -20,8 +20,9 @@ export const SHELL_ACTIONS = Object.freeze({
 })
 
 /**
- * @typedef {{ kind: string, anchor?: object | null }} PopupPayload
- * @typedef {{ items: readonly object[], x: number, y: number, shell?: boolean, anchorBottom?: boolean }} MenuPayload
+ * @typedef {{ kind: string, anchor?: object | null, prompt?: object | null }} PopupPayload prompt: what a popup that asks
+ *   for input (the name popover) asks, and what it does with the answer
+ * @typedef {{ items: readonly object[], x: number, y: number, shell?: boolean, anchorBottom?: boolean, dockKey?: string | null }} MenuPayload
  * @typedef {{ appId?: string, title: string, body: string }} Banner
  */
 
@@ -49,7 +50,7 @@ export const SHELL_ACTIONS = Object.freeze({
 
 /**
  * @typedef {{
- *   popup: { kind: string, anchor: object | null } | null,
+ *   popup: { kind: string, anchor: object | null, prompt?: object } | null,
  *   menu: Required<MenuPayload> | null,
  *   dialog: { kind: string } | null,
  *   banner: Banner | null,
@@ -70,16 +71,23 @@ const withoutTransients = (state) => ({ ...state, popup: null, menu: null })
 
 // Top-bar popups leave the Activities overview, as GNOME's do
 /** @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_POPUP>} */
-const openPopup = (state, { kind, anchor = null }) => ({ ...withoutTransients(state), popup: { kind, anchor }, overview: null })
+const openPopup = (state, { kind, anchor = null, prompt = null }) => ({
+  ...withoutTransients(state),
+  popup: prompt ? { kind, anchor, prompt } : { kind, anchor },
+  overview: null,
+})
 
 /** @type {ShellHandler<typeof SHELL_ACTIONS.TOGGLE_POPUP>} Top-bar buttons: a second click on the same button closes its popup. */
 const togglePopup = (state, action) =>
   state.popup?.kind === action.kind ? { ...state, popup: null } : openPopup(state, action)
 
-/** @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_MENU>} shell: the dark shell style (dock) rather than the app-themed popover; anchorBottom: y is the menu's bottom edge. */
-const openMenu = (state, { items, x, y, shell = false, anchorBottom = false }) => ({
+/**
+ * @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_MENU>} shell: the dark shell style (dock) rather than the app-themed
+ * popover; anchorBottom: y is the menu's bottom edge; dockKey: the dock icon it came from, held magnified while it's open.
+ */
+const openMenu = (state, { items, x, y, shell = false, anchorBottom = false, dockKey = null }) => ({
   ...withoutTransients(state),
-  menu: { items, x, y, shell, anchorBottom },
+  menu: { items, x, y, shell, anchorBottom, dockKey },
 })
 
 /** @type {ShellHandler<typeof SHELL_ACTIONS.OPEN_DIALOG>} */

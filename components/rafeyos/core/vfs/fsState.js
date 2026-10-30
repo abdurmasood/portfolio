@@ -21,15 +21,20 @@ export const COPY = 'copy'
  * @typedef {Readonly<{ type: 'copy', from: string, mtime: number }>} CopyNode
  * @typedef {DirNode | TextNode | SymlinkNode | CopyNode} FsNode
  * @typedef {TextNode | SymlinkNode | CopyNode} FileNode
- * @typedef {Readonly<{ node: FileNode, mtime: number }>} TrashEntry keyed by the file's original path; `mtime` is when it was trashed
- * @typedef {Readonly<{ v: 2, nodes: Readonly<Record<string, FsNode>>, trash: Readonly<Record<string, TrashEntry>> }>} FsState
+ * @typedef {Readonly<{ node: FsNode, mtime: number, children?: Readonly<Record<string, FsNode>> }>} TrashEntry keyed by the
+ *   original path; `mtime` is when it was trashed. A folder keeps everything that was in it as `children`, keyed by path relative to it
+ * @typedef {Readonly<{ v: 3, nodes: Readonly<Record<string, FsNode>>, trash: Readonly<Record<string, TrashEntry>> }>} FsState
  * @typedef {'invalid' | 'taken' | 'missing' | 'empty'} FsFailure
  * @typedef {{ ok: true, state: FsState, path?: string, name?: string } | { ok: false, reason: FsFailure }} FsResult
  */
 
-const VERSION = 2
+// Version 3 lets trash hold folders; a tab on an older build reads it as another version and stops writing,
+// so it can't drop the folders it doesn't understand
+const VERSION = 3
+const FILE_TRASH_VERSION = 2
 const LEGACY_VERSION = 1
 const SEED_FOLDERS = Object.freeze(['Desktop', 'Documents', 'Downloads'])
+const SPECIAL_FOLDERS = Object.freeze(SEED_FOLDERS.map((name) => joinPath(HOME, name)))
 const HOME_PREFIX = `${HOME}/`
 const TMP_PREFIX = `${TMP}/`
 /** NAME_MAX on Linux. */
@@ -62,8 +67,14 @@ export const symlinkNode = (target, mtime) => Object.freeze({ type: NODE_TYPES.S
 /** @param {string} from @param {number} mtime @returns {CopyNode} */
 export const copyNode = (from, mtime) => Object.freeze({ type: COPY, from, mtime })
 
-/** @param {FileNode} node @param {number} mtime @returns {TrashEntry} */
-const trashEntry = (node, mtime) => Object.freeze({ node, mtime })
+/**
+ * @param {FsNode} node
+ * @param {number} mtime
+ * @param {Readonly<Record<string, FsNode>>} [children] a folder's, by relative path
+ * @returns {TrashEntry}
+ */
+const trashEntry = (node, mtime, children) =>
+  Object.freeze(children ? { node, mtime, children: Object.freeze(children) } : { node, mtime })
 
 /**
  * @param {Readonly<Record<string, FsNode>>} nodes
@@ -120,6 +131,13 @@ const isVisitorPath = (path) => isUnder(path, HOME_PREFIX)
  * @param {string} path
  */
 const isTmpPath = (path) => isUnder(path, TMP_PREFIX)
+
+/**
+ * Desktop, Documents and Downloads: the desktop shows one and Save offers all three, so the GUI never renames or
+ * trashes them. The shell still can, as on a real machine.
+ * @param {string} path
+ */
+export const isSpecialFolder = (path) => SPECIAL_FOLDERS.includes(path)
 
 /**
  * `nodes` with every folder from HOME (or TMP) down to `folder`, created at `now` where missing,
@@ -201,7 +219,26 @@ const parseNodes = (raw) => {
 }
 
 /**
- * A trash entry in either version: v1 held only text, v2 holds the file's node.
+ * A trashed folder's contents, keyed by path relative to it. As with parseNodes, a node is kept only when its
+ * parent folder was.
+ * @param {unknown} raw
+ * @returns {Record<string, FsNode>}
+ */
+const parseChildren = (raw) => {
+  /** @type {Record<string, FsNode>} */
+  const children = {}
+  if (!isRecord(raw)) return children
+  Object.keys(raw).sort((a, b) => depth(a) - depth(b)).forEach((path) => {
+    const node = parseNode(raw[path])
+    if (!node || !path.split('/').every(isValidName)) return
+    const cut = path.lastIndexOf('/')
+    if (cut === -1 || children[path.slice(0, cut)]?.type === NODE_TYPES.DIR) children[path] = node
+  })
+  return children
+}
+
+/**
+ * A trash entry in any version: v1 held only text, v2 a file's node, and v3 a folder's node with its children too.
  * @param {unknown} entry
  * @param {number} version
  * @returns {TrashEntry | null}
@@ -210,7 +247,9 @@ const parseTrashEntry = (entry, version) => {
   if (!isRecord(entry) || !isTime(entry.mtime)) return null
   if (version === LEGACY_VERSION) return typeof entry.text === 'string' ? trashEntry(textNode(entry.text, entry.mtime), entry.mtime) : null
   const node = parseNode(entry.node)
-  return node && node.type !== NODE_TYPES.DIR ? trashEntry(node, entry.mtime) : null
+  if (!node) return null
+  if (node.type !== NODE_TYPES.DIR) return trashEntry(node, entry.mtime)
+  return version === VERSION ? trashEntry(node, entry.mtime, parseChildren(entry.children)) : null
 }
 
 /**
@@ -230,13 +269,13 @@ const parseTrash = (raw, version) => {
 }
 
 /**
- * The stored value, already JSON-parsed. Null unless it is a version 1 or 2 envelope (version 1 is upgraded);
+ * The stored value, already JSON-parsed. Null unless it is a version 1, 2 or 3 envelope (older ones are upgraded);
  * inside one, any entry that breaks the rules is dropped and the rest kept.
  * @param {unknown} raw
  * @returns {FsState | null}
  */
 export const parseState = (raw) => {
-  if (!isRecord(raw) || (raw.v !== VERSION && raw.v !== LEGACY_VERSION)) return null
+  if (!isRecord(raw) || typeof raw.v !== 'number' || ![VERSION, FILE_TRASH_VERSION, LEGACY_VERSION].includes(raw.v)) return null
   return freezeState(parseNodes(raw.nodes), parseTrash(raw.trash, raw.v))
 }
 
@@ -328,14 +367,15 @@ export const migrateLegacy = (legacy, now) => mergeLegacy(seedState(now), legacy
 
 /**
  * The vfs fields a visitor node reads as, or null when it reads as nothing (a copy whose shipped file is gone).
- * A copy takes its shipped file's fields; the caller sets `path` and `name` over them. Files under HOME carry `user`, so the GUI offers them to Trash;
- * folders and everything in TMP never do.
+ * A copy takes its shipped file's fields; the caller sets `path` and `name` over them. Under HOME, files carry `user`
+ * and folders `owned`, so the GUI offers them to Rename and Trash; nothing in TMP carries either. Folders stay apart
+ * from `user` because Save reads it as a file it may replace.
  * @param {Vfs} base
  * @param {string} path
  * @param {FsNode} node
  */
 const nodeFields = (base, path, node) => {
-  if (node.type === NODE_TYPES.DIR) return { type: node.type, mtime: node.mtime }
+  if (node.type === NODE_TYPES.DIR) return { type: node.type, mtime: node.mtime, ...(isTmpPath(path) ? {} : { owned: true }) }
   const user = isTmpPath(path) ? {} : { user: true }
   if (node.type === NODE_TYPES.TEXT) return { type: node.type, text: node.text, mtime: node.mtime, ...user }
   if (node.type === NODE_TYPES.SYMLINK) return { type: node.type, target: node.target, mtime: node.mtime, ...user }
@@ -403,22 +443,30 @@ export const saveInPlace = (state, path, text, now) => {
 }
 
 /**
- * The visitor's file (text, copy or link) moves into trash, replacing an older entry for the same path.
+ * The visitor's file or folder moves into trash, replacing an older entry for the same path. A folder takes
+ * everything in it along. Desktop, Documents and Downloads stay put.
  * @param {FsState} state
  * @param {string} path
  * @param {number} now when it was trashed
  * @returns {FsResult}
  */
 export const moveToTrash = (state, path, now) => {
-  if (!isVisitorPath(path)) return fail('invalid')
+  if (!isVisitorPath(path) || isSpecialFolder(path)) return fail('invalid')
   const node = state.nodes[path]
   if (!node) return fail('missing')
-  if (node.type === NODE_TYPES.DIR) return fail('invalid')
-  return { ok: true, state: freezeState(without(state.nodes, path), { ...state.trash, [path]: trashEntry(node, now) }), path }
+  if (node.type !== NODE_TYPES.DIR) {
+    return { ok: true, state: freezeState(without(state.nodes, path), { ...state.trash, [path]: trashEntry(node, now) }), path }
+  }
+  const prefix = `${path}/`
+  const inside = Object.entries(state.nodes).filter(([key]) => key.startsWith(prefix))
+  const children = Object.fromEntries(inside.map(([key, child]) => [key.slice(prefix.length), child]))
+  const nodes = Object.fromEntries(Object.entries(state.nodes).filter(([key]) => key !== path && !key.startsWith(prefix)))
+  return { ok: true, state: freezeState(nodes, { ...state.trash, [path]: trashEntry(node, now, children) }), path }
 }
 
 /**
- * Puts a trashed file back at its original path, recreating any folder on the way.
+ * Puts a trashed file or folder back at its original path, recreating any folder on the way. A folder's contents
+ * come back with it, as they were.
  * @param {FsState} state
  * @param {string} path the original path
  * @param {number} now
@@ -427,8 +475,16 @@ export const moveToTrash = (state, path, now) => {
 export const restoreFromTrash = (state, path, now) => {
   if (!Object.hasOwn(state.trash, path)) return fail('missing')
   if (Object.hasOwn(state.nodes, path)) return fail('taken')
-  const nodes = withNode(state.nodes, path, Object.freeze({ ...state.trash[path].node, mtime: now }), now)
+  const { node, children = {} } = state.trash[path]
+  // withNode refuses a folder at the path, so a folder is placed as its parent's new child instead
+  const nodes = node.type === NODE_TYPES.DIR
+    ? withFolders(state.nodes, parentPath(path), now)
+    : withNode(state.nodes, path, Object.freeze({ ...node, mtime: now }), now)
   if (!nodes) return fail('taken')
+  if (node.type === NODE_TYPES.DIR) {
+    nodes[path] = dirNode(now)
+    Object.entries(children).forEach(([relative, child]) => { nodes[joinPath(path, relative)] = child })
+  }
   return { ok: true, state: freezeState(nodes, without(state.trash, path)), path }
 }
 

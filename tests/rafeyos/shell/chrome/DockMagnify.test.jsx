@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { BOUNCE_MS } from '@/components/rafeyos/shell/chrome/Dock'
 import { clickDock, dock, renderDesktop } from '@/tests/rafeyos/helpers/renderRafeyOS'
 
@@ -119,11 +119,92 @@ describe('dock magnification', () => {
   it('magnifies the icon focused from the keyboard', () => {
     renderDesktop({ reducedMotion: () => false })
 
-    fireEvent.focus(button('Mail'))
+    act(() => button('Mail').focus())
     settle()
 
     expect(widthOf('Mail')).toBe(79.12)
     expect(button('Mail').classList.contains('hot')).toBe(true)
+  })
+
+  it('stays swollen under the pointer while its right-click menu takes focus', () => {
+    renderDesktop({ reducedMotion: () => false })
+    pointAt('Music')
+    // Chrome focuses a button on right mouse down
+    act(() => button('Music').focus())
+    settle()
+
+    fireEvent.contextMenu(button('Music'))
+    settle()
+
+    expect(document.activeElement.getAttribute('role')).toBe('menuitem')
+
+    expect(widthOf('Music')).toBe(79.12)
+    expect(button('Music').classList.contains('hot')).toBe(true)
+  })
+
+  it('holds a right-clicked icon swollen while the pointer moves onto its menu', () => {
+    renderDesktop({ reducedMotion: () => false })
+    pointAt('Music')
+    settle()
+
+    fireEvent.contextMenu(button('Music'))
+    pointAway('Music')
+    settle()
+
+    expect(APPS.map(widthOf)).toEqual([46, 56.12, 67.16, 79.12, 67.16, 56.12, 46])
+  })
+
+  it('lets a held icon go once an item from its menu is chosen', () => {
+    renderDesktop({ reducedMotion: () => false })
+    pointAt('Music')
+    fireEvent.contextMenu(button('Music'))
+    pointAway('Music')
+    settle()
+
+    fireEvent.click(screen.getByRole('menuitem', { name: 'New Window' }))
+    settle()
+
+    expect(APPS.map(widthOf)).toEqual(APPS.map(() => REST))
+  })
+
+  it('lets a held icon go when a click elsewhere closes its menu', () => {
+    renderDesktop({ reducedMotion: () => false })
+    pointAt('Trash')
+    fireEvent.contextMenu(button('Trash'))
+    pointAway('Trash')
+    settle()
+    expect(widthOf('Trash')).toBe(79.12)
+
+    fireEvent.pointerDown(document.querySelector('.rafeyos'))
+    settle()
+
+    expect(widthOf('Trash')).toBe(REST)
+  })
+
+  it('leaves an icon at rest when a mouse-picked menu item hands focus back to it', () => {
+    renderDesktop({ reducedMotion: () => false })
+    // Chrome doesn't count focus restored after a mouse click as :focus-visible
+    const matches = Element.prototype.matches
+    vi.spyOn(Element.prototype, 'matches').mockImplementation(function matchesWithoutFocusVisible(selector) {
+      return selector === ':focus-visible' ? false : matches.call(this, selector)
+    })
+
+    act(() => button('Mail').focus())
+    settle()
+
+    expect(widthOf('Mail')).toBe(REST)
+    expect(button('Mail').classList.contains('hot')).toBe(false)
+  })
+
+  it('springs back to rest when keyboard focus leaves the dock', () => {
+    renderDesktop({ reducedMotion: () => false })
+    act(() => button('Mail').focus())
+    settle()
+
+    act(() => button('Mail').blur())
+    settle()
+
+    expect(APPS.map(widthOf)).toEqual(APPS.map(() => REST))
   })
 
   it('snaps straight to size with reduced motion', () => {

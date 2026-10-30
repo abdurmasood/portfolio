@@ -3,7 +3,8 @@ import { SEPARATOR, disabledItem, menuItem } from '@/components/rafeyos/ui/menus
 
 /**
  * Right-click on a file or folder, on the desktop or in Files (only the desktop offers "Show in Files").
- * commands.openInProjects, when present, adds "Open in Projects" (project .txt files in Files).
+ * commands.openInProjects, when present, adds "Open in Projects" (project .txt files in Files). Rename, Move to Trash
+ * and Open are disabled where their command is missing or null.
  */
 export const fileMenuItems = ({ commands, isFolder, onDesktop }) => [
   menuItem('Open', commands.open),
@@ -12,7 +13,7 @@ export const fileMenuItems = ({ commands, isFolder, onDesktop }) => [
   SEPARATOR,
   disabledItem('Cut'),
   disabledItem('Copy'),
-  disabledItem('Rename…'),
+  menuItem('Rename…', commands.rename),
   commands.restore ? menuItem('Restore', commands.restore) : menuItem('Move to Trash', commands.trash),
   SEPARATOR,
   ...(isFolder ? [menuItem('Open in Terminal', commands.openTerminal)] : []),
@@ -22,8 +23,8 @@ export const fileMenuItems = ({ commands, isFolder, onDesktop }) => [
 ]
 
 /** Right-click on the wallpaper. changeBackground and iconSettings open their Settings pages. */
-export const wallMenuItems = ({ selectAll, showDesktop, openTerminal, changeBackground, iconSettings }) => [
-  disabledItem('New Folder…'),
+export const wallMenuItems = ({ newFolder = null, selectAll, showDesktop, openTerminal, changeBackground, iconSettings }) => [
+  menuItem('New Folder…', newFolder),
   disabledItem('Paste'),
   menuItem('Select All', selectAll),
   SEPARATOR,

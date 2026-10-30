@@ -5,6 +5,8 @@ import { belowElement, pointOfEvent, useMenu } from '@/components/rafeyos/ui/men
 import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
 import { fileMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
 import { useEmptyTrash, useTrashActions } from '@/components/rafeyos/ui/menus/logic/useTrashActions'
+import { useNameActions } from '@/components/rafeyos/ui/menus/logic/useNameActions'
+import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
 import { TRASH } from '@/components/rafeyos/core/vfs/buildVfs'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { backgroundMenuItems, mainMenuItems, viewOptionsItems } from './filesMenus'
@@ -20,6 +22,9 @@ import { APP } from '@/components/rafeyos/core/catalog/apps'
 // View options sits near the window's right edge, so it opens inwards (mockup offset)
 const VIEW_OPTIONS_SHIFT = 120
 
+/** Rename's popover points at the item's name: a list row's name cell, or the whole grid item. */
+const nameAnchorOf = (/** @type {Element} */ item) => rectOfElement(item.querySelector('.n') ?? item)
+
 /**
  * Opens one Files window's menus: an item's, the folder background's, View options and the main menu.
  * @param {{ state: FilesState, dispatch: Dispatch<FilesAction>, items: string[] }} files - the window's reducer and listing
@@ -31,6 +36,9 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
   const openMenu = useMenu()
   const trashActions = useTrashActions()
   const emptyTrash = useEmptyTrash()
+  const { newFolderIn, renameFor } = useNameActions()
+  /** @param {string} path */
+  const select = (path) => dispatch({ type: FILES_ACTIONS.SELECT, path, mode: 'single' })
   const inTrash = state.path === TRASH
   /** @param {string} path */
   const commandsFor = (path) => ({ ...pathCommands({ vfs, windowManager, openPath }, path), ...trashActions(path) })
@@ -46,7 +54,10 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
    */
   const itemMenu = (path, event) => {
     if (!state.selection.includes(path)) dispatch({ type: FILES_ACTIONS.SELECT, path, mode: 'single' })
-    const commands = { ...commandsFor(path), openInProjects: openInProjectsFor(path), ...(inTrash ? { emptyTrash } : {}) }
+    /** @param {string} _from @param {string} to */
+    const onRenamed = (_from, to) => select(to)
+    const rename = renameFor(path, nameAnchorOf(/** @type {Element} */ (event.currentTarget)), onRenamed)
+    const commands = { ...commandsFor(path), rename, openInProjects: openInProjectsFor(path), ...(inTrash ? { emptyTrash } : {}) }
     const menu = fileMenuItems({ commands, isFolder: isDir(vfs, path), onDesktop: false })
     openMenu(menu, pointOfEvent(event))
   }
@@ -57,7 +68,9 @@ export const useFilesMenus = ({ state, dispatch, items }) => {
     if (!vfs[state.path]) return
     const { openTerminal, properties } = commandsFor(state.path)
     const selectAll = () => dispatch({ type: FILES_ACTIONS.SELECT_ALL, paths: items })
-    openMenu(backgroundMenuItems({ inTrash, selectAll, openTerminal, properties, emptyTrash }), pointOfEvent(event))
+    const point = pointOfEvent(event)
+    const newFolder = newFolderIn(state.path, { ...point, w: 0, h: 0 }, select)
+    openMenu(backgroundMenuItems({ inTrash, newFolder, selectAll, openTerminal, properties, emptyTrash }), point)
   }
   /** @param {MouseEvent} event */
   const viewOptions = (event) => {

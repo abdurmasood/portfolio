@@ -8,6 +8,7 @@ import { pointOfEvent, useMenu } from '@/components/rafeyos/ui/menus/logic/useMe
 import { pathCommands } from '@/components/rafeyos/ui/menus/logic/pathCommands'
 import { fileMenuItems } from '@/components/rafeyos/ui/menus/logic/menus'
 import { useTrashActions } from '@/components/rafeyos/ui/menus/logic/useTrashActions'
+import { useNameActions } from '@/components/rafeyos/ui/menus/logic/useNameActions'
 import { rectOfElement } from '@/components/rafeyos/ui/logic/dom'
 import { nearestInDirection } from '@/components/rafeyos/ui/menus/logic/keyboardNavigation'
 import { SHELL_ACTIONS } from '@/components/rafeyos/state/logic/shellReducer'
@@ -44,22 +45,28 @@ const DesktopIcon = memo(function DesktopIcon({ path, position, selected, handle
   )
 })
 
-/** Right-click: select just this icon and open its file menu. */
-const useIconMenu = (onSelect) => {
+/** Right-click: select just this icon and open its file menu. A rename keeps the icon's spot and selection. */
+const useIconMenu = (onSelect, rekey) => {
   const { vfs } = useVfs()
   const windowManager = useWindowManager()
   const openPath = useOpenPath()
   const openMenu = useMenu()
   const trashActions = useTrashActions()
+  const { renameFor } = useNameActions()
   return useCallback(
     (path, event) => {
       event.preventDefault()
       event.stopPropagation()
       onSelect([path])
-      const commands = { ...pathCommands({ vfs, windowManager, openPath }, path), ...trashActions(path) }
+      const onRenamed = (from, to) => {
+        rekey(from, to)
+        onSelect([to])
+      }
+      const rename = renameFor(path, rectOfElement(event.currentTarget), onRenamed)
+      const commands = { ...pathCommands({ vfs, windowManager, openPath }, path), ...trashActions(path), rename }
       openMenu(fileMenuItems({ commands, isFolder: isDir(vfs, path), onDesktop: true }), pointOfEvent(event))
     },
-    [vfs, windowManager, openPath, openMenu, onSelect, trashActions],
+    [vfs, windowManager, openPath, openMenu, onSelect, rekey, trashActions, renameFor],
   )
 }
 
@@ -107,7 +114,7 @@ export const DesktopIcons = forwardRef(function DesktopIcons({ model, selection,
   const openPath = useOpenPath()
   const drag = useIconDrag({ layerRef, positionOf: model.positionOf, onCommit: model.place })
   const press = usePress({ selection, onSelect, drag })
-  const menu = useIconMenu(onSelect)
+  const menu = useIconMenu(onSelect, model.rekey)
   const handlers = useMemo(() => ({ press, menu, open: openPath, dragged: drag.dragged }), [press, menu, openPath, drag])
   const onKeyDown = useIconKeys({ positions: model.positions, selection, onSelect, openPath })
   return (

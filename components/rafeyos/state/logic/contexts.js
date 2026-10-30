@@ -10,6 +10,7 @@ import { createContext, useContext } from 'react'
  * @import { Vfs } from '@/components/rafeyos/core/vfs/buildVfs'
  * @import { Content } from '@/components/rafeyos/core/vfs/content'
  * @import { FsFailure } from '@/components/rafeyos/core/vfs/fsState'
+ * @import { Errno } from '@/components/rafeyos/core/vfs/fsOps'
  * @import { ShellFs } from '@/components/rafeyos/core/vfs/shellFs'
  * @import { ShellAction, ShellState } from './shellReducer'
  * @import { WindowAction, WindowsState } from './windowsReducer'
@@ -46,7 +47,8 @@ import { createContext, useContext } from 'react'
  * What RafeyOSRoot provides: the merged tree and the visitor's file operations, which go through the fs store.
  * saveDocument with `inPlace` writes the visitor's existing file at folder/name as it is; without, it saves into a
  * save folder, adding .txt to a bare name. shellFs is the terminal's: the same store, read and changed through fsOps.
- * @typedef {{ ok: false, reason: FsFailure | 'full' | 'blocked' }} VfsFailure
+ * createFolder and renamePath go through it too, so a refusal comes back as the errno the shell would print.
+ * @typedef {{ ok: false, reason: FsFailure | Errno | 'full' | 'blocked' }} VfsFailure
  * @typedef {Readonly<{
  *   vfs: Vfs,
  *   content: Content,
@@ -55,6 +57,8 @@ import { createContext, useContext } from 'react'
  *   trashDocument: (path: string) => { ok: true } | VfsFailure,
  *   restoreDocument: (path: string) => { ok: true, path: string } | VfsFailure,
  *   emptyTrashDocument: () => { ok: true } | VfsFailure,
+ *   createFolder: (path: string) => { ok: true, path: string } | VfsFailure,
+ *   renamePath: (from: string, to: string) => { ok: true, path: string } | VfsFailure,
  * }>} VfsApi
  */
 

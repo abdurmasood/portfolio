@@ -3,11 +3,14 @@ import { SEPARATOR, disabledItem, menuItem } from '@/components/rafeyos/ui/menus
 import { FILE_VIEWS } from './filesReducer'
 
 /**
- * Right-click on empty space in a folder. Trash has no terminal.
- * @param {{ inTrash: boolean, selectAll: () => void, openTerminal: () => void, properties: () => void, emptyTrash?: (() => void) | null }} options
+ * Right-click on empty space in a folder. Trash has no terminal; New Folder is null where the visitor can't make one.
+ * @param {{
+ *   inTrash: boolean, newFolder?: (() => void) | null, selectAll: () => void, openTerminal: (() => void) | null, properties: () => void,
+ *   emptyTrash?: (() => void) | null,
+ * }} options
  */
-export const backgroundMenuItems = ({ inTrash, selectAll, openTerminal, properties, emptyTrash = null }) => [
-  disabledItem('New Folder…'),
+export const backgroundMenuItems = ({ inTrash, newFolder = null, selectAll, openTerminal, properties, emptyTrash = null }) => [
+  menuItem('New Folder…', newFolder),
   disabledItem('Paste'),
   menuItem('Select All', selectAll),
   SEPARATOR,

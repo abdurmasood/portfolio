@@ -42,6 +42,17 @@ describe('file and wall menus', () => {
     expect(fileMenuItems({ commands, isFolder: false, onDesktop: false }).find((item) => item.label === 'Move to Trash').disabled).toBe(true)
   })
 
+  it('renames only with a rename command', () => {
+    const rename = vi.fn()
+    const renameItem = (extra) => fileMenuItems({ commands: { ...commands, ...extra }, isFolder: false, onDesktop: false })
+      .find((item) => item.label === 'Rename…')
+
+    expect(renameItem({}).disabled).toBe(true)
+    expect(renameItem({ rename: null }).disabled).toBe(true)
+    renameItem({ rename }).action()
+    expect(rename).toHaveBeenCalled()
+  })
+
   it('wires the wall actions', () => {
     const actions = { selectAll: vi.fn(), showDesktop: vi.fn(), openTerminal: vi.fn(), changeBackground: vi.fn(), iconSettings: vi.fn() }
     const items = wallMenuItems(actions)
@@ -55,6 +66,16 @@ describe('file and wall menus', () => {
     expect(actions.changeBackground).toHaveBeenCalled()
     expect(actions.iconSettings).toHaveBeenCalled()
     expect(items.find((item) => item.label === 'Display Settings').disabled).toBe(true)
+    expect(items.find((item) => item.label === 'New Folder…').disabled).toBe(true)
+  })
+
+  it('offers New Folder on the wall when given one', () => {
+    const newFolder = vi.fn()
+    const items = wallMenuItems({ newFolder, selectAll: vi.fn(), showDesktop: vi.fn(), openTerminal: vi.fn(), changeBackground: vi.fn(), iconSettings: vi.fn() })
+
+    items.find((item) => item.label === 'New Folder…').action()
+
+    expect(newFolder).toHaveBeenCalled()
   })
 })
 

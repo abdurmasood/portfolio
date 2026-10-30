@@ -3,13 +3,14 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { ServicesContext, VfsContext } from './state/logic/contexts'
 import { buildContent } from '@/components/rafeyos/core/vfs/content'
 import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
+import { mkdir, rename } from '@/components/rafeyos/core/vfs/fsOps'
 import { mergeState } from '@/components/rafeyos/core/vfs/fsState'
 import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { SessionGate } from './session/SessionGate'
 
-/** A failed store result as the GUI sees it: only the reason, never the state. */
-const failure = (result) => ({ ok: false, reason: result.reason })
+/** A failed store or fsOps result as the GUI sees it: only the reason (an fsOps errno), never the state. */
+const failure = (result) => ({ ok: false, reason: result.errno ?? result.reason })
 
 /** @param {{ services: object }} props - see services/createServices.js */
 export const RafeyOSRoot = ({ services }) => {
@@ -37,9 +38,20 @@ export const RafeyOSRoot = ({ services }) => {
     const result = fs.restoreFromTrash(path)
     return result.ok ? { ok: true, path } : failure(result)
   }, [fs])
+  // Files' New Folder and Rename: the shell's mkdir and a mv that never replaces, so both follow its rules
+  const createFolder = useCallback((path) => {
+    const result = shellFs.apply(mkdir, { path })
+    return result.ok ? { ok: true, path } : failure(result)
+  }, [shellFs])
+  const renamePath = useCallback((from, to) => {
+    const result = shellFs.apply(rename, { from, to })
+    return result.ok ? { ok: true, path: to } : failure(result)
+  }, [shellFs])
   const vfsValue = useMemo(
-    () => Object.freeze({ content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument }),
-    [content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument],
+    () => Object.freeze({
+      content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument, createFolder, renamePath,
+    }),
+    [content, vfs, shellFs, saveDocument, trashDocument, restoreDocument, emptyTrashDocument, createFolder, renamePath],
   )
   return (
     <ServicesContext.Provider value={services}>

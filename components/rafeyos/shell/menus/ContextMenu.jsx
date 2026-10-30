@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useLayout, useShellDispatch } from '@/components/rafeyos/state/logic/contexts'
 import { MENU_ITEM_KINDS } from '@/components/rafeyos/ui/menus/logic/menuItems'
 import { menuPosition } from './logic/menuPosition'
@@ -24,13 +24,19 @@ const usePlacement = (ref, menu) => {
 
 const ENABLED_ITEM = ':is([role="menuitem"], [role="menuitemradio"]):not(:disabled)'
 
-/** The first item takes focus; arrows, Home and End move it (wrapping); Tab closes the menu. */
+/**
+ * The first item takes focus; arrows, Home and End move it (wrapping); Tab closes the menu. `keyboard` turns on with
+ * the first key, so the focused item is only highlighted once the visitor steers by keyboard: a right-click shows
+ * nothing lit, as in GTK, though Chrome counts that first focus as :focus-visible.
+ */
 const useMenuKeys = (ref, close) => {
+  const [keyboard, setKeyboard] = useState(false)
   useReturnFocus({ onlyIfLost: true })
   useLayoutEffect(() => {
     ref.current.querySelector(ENABLED_ITEM)?.focus({ preventScroll: true })
   }, [ref])
-  return (event) => {
+  const onKeyDown = (event) => {
+    setKeyboard(true)
     if (event.key === 'Tab') {
       event.preventDefault()
       close()
@@ -47,6 +53,7 @@ const useMenuKeys = (ref, close) => {
     event.preventDefault()
     items[next].focus()
   }
+  return { onKeyDown, keyboard }
 }
 
 const Entry = ({ entry, onChoose }) => {
@@ -77,13 +84,13 @@ export const ContextMenu = ({ menu }) => {
   const close = useCallback(() => shellDispatch({ type: SHELL_ACTIONS.CLOSE_MENU }), [shellDispatch])
   usePlacement(ref, menu)
   useEscapeKey(close)
-  const onKeyDown = useMenuKeys(ref, close)
+  const { onKeyDown, keyboard } = useMenuKeys(ref, close)
   const choose = (entry) => {
     close()
     entry.action()
   }
   return (
-    <div ref={ref} className={menu.shell ? 'shm' : 'pop'} {...KEEPS_POPUP_PROPS} role="menu" style={{ left: menu.x, top: menu.y }} onKeyDown={onKeyDown}>
+    <div ref={ref} className={`${menu.shell ? 'shm' : 'pop'}${keyboard ? ' kbd' : ''}`} {...KEEPS_POPUP_PROPS} role="menu" style={{ left: menu.x, top: menu.y }} onKeyDown={onKeyDown}>
       {menu.items.map((entry, i) => (
         <Entry key={`${i}-${entry.label ?? entry.kind}`} entry={entry} onChoose={choose} />
       ))}
