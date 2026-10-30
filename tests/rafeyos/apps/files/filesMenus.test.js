@@ -17,6 +17,15 @@ describe('Files menus', () => {
     expect(run).toHaveBeenCalled()
   })
 
+  it('offers New Folder only when given one', () => {
+    const actions = { inTrash: false, selectAll: vi.fn(), openTerminal: vi.fn(), properties: vi.fn() }
+    const newFolder = vi.fn()
+
+    expect(backgroundMenuItems(actions).find((item) => item.label === 'New Folder…').disabled).toBe(true)
+    backgroundMenuItems({ ...actions, newFolder }).find((item) => item.label === 'New Folder…').action()
+    expect(newFolder).toHaveBeenCalled()
+  })
+
   it('sets the view from View options', () => {
     const setView = vi.fn()
     const [grid, list] = viewOptionsItems(setView)
