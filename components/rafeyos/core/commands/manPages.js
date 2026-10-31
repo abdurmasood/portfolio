@@ -32,7 +32,7 @@ const opener = (name) => ({
   synopsis: [name === 'gio' ? 'gio open {FILE | email | linkedin}' : `${name} {FILE | email | linkedin}`],
   description: [
     'Open FILE in the app that handles it: folders in Files, text in the Text Editor.',
-    'email opens Mail; linkedin offers to open Rafey\'s LinkedIn profile in a new tab.',
+    'email opens Mail; linkedin opens Rafey\'s LinkedIn profile in a new tab.',
   ],
 })
 

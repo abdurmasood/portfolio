@@ -249,12 +249,15 @@ describe('Terminal app', () => {
     expect(windowsOf(container, 'mail')).toHaveLength(1)
   })
 
-  it('asks before opening LinkedIn', () => {
-    const { container } = renderDesktop()
-    const { input } = openTerminal(container)
+  it('opens LinkedIn in a new tab', () => {
+    const { container, services } = renderDesktop()
+    const { win, input } = openTerminal(container)
 
     typeCommand(input, 'open linkedin')
-    expect(screen.getByRole('dialog', { name: 'Open Link' })).toBeTruthy()
+
+    expect(log(win).textContent).toContain('Opening LinkedIn profile in a new tab...')
+    expect(services.openExternal).toHaveBeenCalledWith('https://www.linkedin.com/in/arafeymasood/')
+    expect(screen.queryByRole('dialog', { name: 'Open Link' })).toBeNull()
   })
 
   it('opens another terminal in the same folder from the header', () => {
