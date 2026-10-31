@@ -128,6 +128,18 @@ describe('Terminal app', () => {
     expect(win.querySelector('.ghost')).toBeNull()
   })
 
+  // Otherwise the same Enter clicks whatever the line focused, e.g. Cancel in the Open Link dialog
+  it('blocks Enter\'s default action when it runs a line', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+    fireEvent.change(input, { target: { value: 'xdg-open /home/rafey/contact/linkedin.desktop' } })
+
+    const notCancelled = fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(notCancelled).toBe(false)
+    expect(screen.getByRole('dialog', { name: 'Open Link' })).toBeTruthy()
+  })
+
   it('runs the ghost when tapped', () => {
     const { container } = renderDesktop()
     const { win } = openTerminal(container)
