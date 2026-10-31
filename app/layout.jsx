@@ -11,7 +11,7 @@ const terminalFont = JetBrains_Mono({
 })
 
 export const metadata = {
-  title: 'Jarvis',
+  title: 'rafeyOS',
   icons: { icon: '/cmd.png' },
 }
 
