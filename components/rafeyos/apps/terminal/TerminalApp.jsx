@@ -8,6 +8,7 @@ import { STARTER_COMMAND, useTerminalKeys } from './logic/useTerminalKeys'
 import { useCursor } from './logic/useCursor'
 import { TerminalLine, TerminalPrompt } from './TerminalLine'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
+import { LINE_TYPES } from '@/components/rafeyos/core/commands/lines'
 
 // The mockup focuses the prompt just after the open animation starts
 const FOCUS_DELAY_MS = 60
@@ -19,6 +20,19 @@ const useAutoFocus = (inputRef) => {
     const timer = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), FOCUS_DELAY_MS)
     return () => clearTimeout(timer)
   }, [inputRef])
+}
+
+// Back to the prompt once nano exits; the prompt was gone while it ran, so it focuses as it returns
+const useFocusAfterForeground = (inputRef, foregroundId) => {
+  const hadForeground = useRef(false)
+  useEffect(() => {
+    if (foregroundId !== null) {
+      hadForeground.current = true
+      return
+    }
+    if (hadForeground.current) inputRef.current?.focus({ preventScroll: true })
+    hadForeground.current = false
+  }, [inputRef, foregroundId])
 }
 
 const TerminalHeader = ({ title, onNewWindow }) => (
@@ -90,13 +104,20 @@ export const TerminalApp = ({ windowId, arg }) => {
   const keys = useTerminalKeys({ session, input, setInput, shellFs, vfs })
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
-  const cursor = useCursor(inputRef, { input })
+  const cursor = useCursor(inputRef, { input, foregroundId: session.foregroundId })
   const title = terminalTitle(session.cwd)
   useAutoFocus(inputRef)
+  useFocusAfterForeground(inputRef, session.foregroundId)
   useEffect(() => windowManager.setTitle(windowId, title), [windowManager, windowId, title])
   useLayoutEffect(() => {
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [session.entries])
+  const panelFor = (entry) => ({
+    active: entry.id === session.foregroundId,
+    onDone: (props) => session.finish(entry.id, props),
+    cwd: session.cwd,
+    shellFs,
+  })
   const focusInput = () => {
     if (!String(window.getSelection?.() ?? '')) inputRef.current?.focus({ preventScroll: true })
   }
@@ -106,10 +127,13 @@ export const TerminalApp = ({ windowId, arg }) => {
       <div className="term pane" ref={scrollRef} onClick={focusInput}>
         <div className="tlog">
           {session.entries.map((entry) => (
-            <TerminalLine key={entry.id} line={entry.line} />
+            <TerminalLine key={entry.id} line={entry.line} panel={entry.line.type === LINE_TYPES.PANEL ? panelFor(entry) : undefined} />
           ))}
         </div>
-        <PromptLine cwd={session.cwd} question={session.question} input={input} keys={keys} cursor={cursor} inputRef={inputRef} />
+        {/* nano owns the terminal while it runs */}
+        {session.foregroundId === null && (
+          <PromptLine cwd={session.cwd} question={session.question} input={input} keys={keys} cursor={cursor} inputRef={inputRef} />
+        )}
       </div>
     </>
   )

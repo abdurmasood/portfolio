@@ -58,6 +58,20 @@
 /* Real terminals hold the cursor solid while keys are pressed */
 :where(.rafeyos) .tline .tcursor.is-typing { animation: none; }
 @keyframes rafeyos-term-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+/* nano (the homepage's NanoEditor): the buffer and file name prompt type in the terminal's own font and colours */
+:where(.rafeyos) .term .nano > p { margin: 0; }
+:where(.rafeyos) .term .nano .dim { opacity: .55; }
+:where(.rafeyos) .term .nano-buffer, :where(.rafeyos) .term .nano-file-name { all: unset; color: inherit; font: inherit; caret-color: var(--tfg); }
+:where(.rafeyos) .term .nano-buffer { display: block; width: 100%; overflow: hidden; white-space: pre-wrap; }
+:where(.rafeyos) .term .nano-file-name { width: 32ch; max-width: 100%; }
+/* Phones have no Ctrl: nano's taps stand in for its keys there, as on the homepage */
+:where(.rafeyos) .term .player-taps { display: none; flex-wrap: wrap; column-gap: 2ch; }
+:where(.rafeyos) .term .player-taps button { all: unset; min-height: 44px; cursor: pointer; }
+:where(.rafeyos) .term .player-taps button:active, :where(.rafeyos) .term .player-taps button:focus-visible { color: var(--thost); }
+@media (max-width: 640px) {
+  :where(.rafeyos) .term .player-keys { display: none; }
+  :where(.rafeyos) .term .player-taps { display: flex; }
+}
 
 /* text editor */
 :where(.rafeyos) .editor-app { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }

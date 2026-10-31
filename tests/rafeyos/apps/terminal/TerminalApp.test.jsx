@@ -128,6 +128,67 @@ describe('Terminal app', () => {
     expect(win.querySelector('.ghost')).toBeNull()
   })
 
+  it('nano runs in the terminal in place of the prompt, and ^X brings the prompt back', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'nano notes.txt')
+
+    expect(win.querySelector('.nano-title').textContent).toBe('──── notes.txt ────')
+    expect(win.querySelector('.nano-status').textContent).toBe('[ New File ]')
+    expect(win.querySelector('.tline')).toBeNull()
+    expect(windowsOf(container, 'editor')).toEqual([])
+
+    fireEvent.keyDown(win.querySelector('.nano-buffer'), { key: 'x', ctrlKey: true })
+
+    expect(win.querySelector('.nano')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
+  })
+
+  it('nano writes to the visitor\'s files with ^O', () => {
+    const { container, services } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'nano notes.txt')
+    const buffer = win.querySelector('.nano-buffer')
+
+    fireEvent.change(buffer, { target: { value: 'hello' } })
+    fireEvent.keyDown(buffer, { key: 'o', ctrlKey: true })
+
+    expect(services.fs.getState().nodes['/home/visitor/notes.txt'].text).toBe('hello\n')
+    expect(win.querySelector('.nano-status').textContent).toBe('[ Wrote 1 line ]')
+  })
+
+  it('vim notes that it opened nano instead', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'vim notes.txt')
+
+    expect(log(win).querySelector('.dm').textContent).toBe("vim isn't installed here, opened nano instead")
+    expect(win.querySelector('.nano-buffer')).toBeTruthy()
+  })
+
+  it('gedit still opens the Text Editor', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+
+    typeCommand(input, 'gedit /home/rafey/bio.txt')
+
+    expect(windowsOf(container, 'editor').map((editor) => editor.getAttribute('aria-label'))).toEqual(['bio.txt'])
+  })
+
+  // Otherwise the same Enter clicks whatever the line focused, e.g. Cancel in the Open Link dialog
+  it('blocks Enter\'s default action when it runs a line', () => {
+    const { container } = renderDesktop()
+    const { input } = openTerminal(container)
+    fireEvent.change(input, { target: { value: 'xdg-open /home/rafey/contact/linkedin.desktop' } })
+
+    const notCancelled = fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(notCancelled).toBe(false)
+    expect(screen.getByRole('dialog', { name: 'Open Link' })).toBeTruthy()
+  })
+
   it('runs the ghost when tapped', () => {
     const { container } = renderDesktop()
     const { win } = openTerminal(container)

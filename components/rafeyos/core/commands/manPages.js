@@ -43,11 +43,18 @@ const textEditor = (name) => ({
   description: ['Open FILE in the Text Editor.'],
 })
 
+/** @type {Page} */
+const NANO = {
+  summary: 'edit a text file in the terminal',
+  synopsis: ['nano [FILE]'],
+  description: ['Edit FILE, or a new buffer, in the terminal. ^O writes it out; ^X exits, asking first if it changed.'],
+}
+
 /** @param {string} name @returns {Page} */
 const missingEditor = (name) => ({
   summary: 'edit a text file',
-  synopsis: [`${name} FILE`],
-  description: [`${name} isn't installed here: FILE opens in the Text Editor instead.`],
+  synopsis: [`${name} [FILE]`],
+  description: [`${name} isn't installed here: FILE opens in nano instead.`],
 })
 
 /** @type {Page} */
@@ -108,7 +115,7 @@ const PAGES = Object.freeze({
   },
   gedit: textEditor('gedit'),
   'gnome-text-editor': textEditor('gnome-text-editor'),
-  nano: missingEditor('nano'),
+  nano: NANO,
   vim: missingEditor('vim'),
   vi: missingEditor('vi'),
   os: ROS,

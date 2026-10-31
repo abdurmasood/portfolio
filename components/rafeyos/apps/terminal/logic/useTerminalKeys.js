@@ -71,7 +71,8 @@ export const useTerminalKeys = ({ session, input, setInput, shellFs, vfs }) => {
     }
     const handler = keys[event.key]
     if (!handler) return undefined
-    if (event.key !== 'Enter') event.preventDefault()
+    // Enter too, as on the homepage: otherwise it goes on to click what the line focused (Open Link's Cancel)
+    event.preventDefault()
     return handler()
   }
   const onChange = (event) => {
