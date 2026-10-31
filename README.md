@@ -1,6 +1,6 @@
-# rafeyOS — Rafey Masood's portfolio, as a Linux machine in the browser
+# rafeyOS — Web based Linux + Mac OS
 
-A terminal and an Ubuntu 24.04-style desktop that share one shell and one filesystem. Type commands at `/`, or point and click at `/os`. Projects open as a 3D scene. Everything you make stays in your browser.
+A terminal and an Ubuntu 24.04-style + Mac desktop that share one shell and one filesystem. Type commands at `/`, or point and click at `/os`. Projects open as a 3D scene. Everything you make stays in your browser.
 
 **[Open rafeyOS](https://rafey.ai)** — the terminal is the front door; run `os` for the desktop
 
@@ -97,5 +97,6 @@ Every script also has a `just` recipe.
 MIT — see [LICENSE](LICENSE). The Ubuntu Sans fonts in `app/os/fonts/` keep their own [Ubuntu Font Licence](app/os/fonts/LICENSE.txt).
 
 ---
+
 rafeyOS, made by Rafey Masood
 https://rafey.ai
