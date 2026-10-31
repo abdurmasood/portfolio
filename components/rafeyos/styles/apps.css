@@ -41,16 +41,23 @@
 :where(.rafeyos:not(.light)) .floatbar { right: 18px; bottom: 18px; }
 
 /* terminal */
-:where(.rafeyos) .term { flex: 1; background: var(--tbg); color: var(--tfg); font-family: var(--mono); font-size: 13px; line-height: 1.38; padding: 6px 8px; overflow: auto; cursor: text; }
+/* Text set like the homepage terminal: JetBrains Mono (app/layout.jsx, regular weight only), so nothing here is bold */
+:where(.rafeyos) .term { flex: 1; background: var(--tbg); color: var(--tfg); font-family: var(--font-terminal), ui-monospace, monospace; font-size: 13px; line-height: 1.5; font-variant-ligatures: none; padding: 6px 8px; overflow: auto; cursor: text; }
 :where(.rafeyos) .term pre { margin: 0; white-space: pre-wrap; font: inherit; }
-:where(.rafeyos) .term .pg { color: var(--tgreen); font-weight: 700; } :where(.rafeyos) .term .pb { color: var(--tblue); font-weight: 700; }
-:where(.rafeyos) .term .lc { color: var(--tcyan); font-weight: 700; } :where(.rafeyos) .term .er { color: var(--tred); } :where(.rafeyos) .term .dm { opacity: .55; }
+:where(.rafeyos) .term .pu { color: var(--tuser); } :where(.rafeyos) .term .ph { color: var(--thost); }
+:where(.rafeyos) .term .pb { color: var(--tblue); }
+:where(.rafeyos) .term .lc { color: var(--tcyan); } :where(.rafeyos) .term .er { color: var(--tred); } :where(.rafeyos) .term .dm { opacity: .55; }
 :where(.rafeyos) .term .ac { color: var(--accent); }
 :where(.rafeyos) .term a { color: inherit; }
 :where(.rafeyos) .tline { display: flex; flex-wrap: wrap; }
 :where(.rafeyos) .tline .inp { position: relative; flex: 1; min-width: 40px; }
-:where(.rafeyos) .tline input { all: unset; width: 100%; font: inherit; color: inherit; caret-color: currentColor; cursor: text; }
+/* The native caret is replaced by .tcursor, the homepage terminal's block */
+:where(.rafeyos) .tline input { all: unset; width: 100%; font: inherit; color: inherit; caret-color: transparent; cursor: text; }
 :where(.rafeyos) .tline .ghost { position: absolute; left: 0; top: 0; opacity: .4; pointer-events: none; white-space: pre; }
+:where(.rafeyos) .tline .tcursor { position: absolute; top: 50%; width: 1ch; height: 1.25em; line-height: 1.25em; text-align: center; transform: translateY(-50%); background: var(--tfg); color: var(--tbg); pointer-events: none; animation: rafeyos-term-blink 1.1s steps(1) infinite; }
+/* Real terminals hold the cursor solid while keys are pressed */
+:where(.rafeyos) .tline .tcursor.is-typing { animation: none; }
+@keyframes rafeyos-term-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
 /* text editor */
 :where(.rafeyos) .editor-app { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
