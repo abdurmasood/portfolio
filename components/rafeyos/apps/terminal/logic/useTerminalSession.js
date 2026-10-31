@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMusicControls, useServices, useSessionDispatch, useVfs, useWindowManager } from '@/components/rafeyos/state/logic/contexts'
 import { ENV, exec } from '@/components/rafeyos/core/commands/exec'
 import { recordHistory } from '@/components/rafeyos/core/commands/history'
-import { prompt } from '@/components/rafeyos/core/commands/lines'
+import { LINE_TYPES, prompt } from '@/components/rafeyos/core/commands/lines'
 import { SESSION_EVENTS } from '@/components/rafeyos/state/logic/sessionMachine'
 import { isDir } from '@/components/rafeyos/core/vfs/queries'
 import { START_DIR } from '@/components/rafeyos/core/vfs/buildVfs'
@@ -16,7 +16,11 @@ import { useOpenLinkDialog } from '@/components/rafeyos/ui/popups/OpenLinkDialog
 // Lets "Returning to the rafey.ai terminal…" show before the session ends (as in the mockup)
 export const LOGOUT_DELAY_MS = 300
 
-/** Output rows with stable keys, appended to or cleared. */
+/** The id of the last entry holding a foreground panel (nano), or null. */
+const lastForeground = (entries) =>
+  entries.findLast((entry) => entry.line.type === LINE_TYPES.PANEL && entry.line.foreground)?.id ?? null
+
+/** Output rows with stable keys, appended to or cleared; `append` returns the entries it added. */
 const useLog = () => {
   const [entries, setEntries] = useState([])
   const nextId = useRef(1)
@@ -24,9 +28,22 @@ const useLog = () => {
   const append = useCallback((lines, { clearFirst = false } = {}) => {
     const added = toEntries(lines)
     setEntries((current) => (clearFirst ? added : [...current, ...added]))
+    return added
   }, [toEntries])
   const clear = useCallback(() => setEntries([]), [])
-  return { entries, append, clear }
+  return { entries, setEntries, append, clear }
+}
+
+/** The panel holding the keyboard, as the homepage's: the prompt hides until it finishes and writes its result in. */
+const useForeground = (setEntries) => {
+  const [foregroundId, setForegroundId] = useState(null)
+  const finish = useCallback((entryId, props) => {
+    setEntries((current) =>
+      current.map((entry) => (entry.id === entryId ? { ...entry, line: { ...entry.line, props: { ...entry.line.props, ...props } } } : entry)),
+    )
+    setForegroundId(null)
+  }, [setEntries])
+  return { foregroundId, setForegroundId, finish }
 }
 
 const useDelayedLogout = () => {
@@ -110,6 +127,8 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   const ownLines = useOwnLines(vfs)
   const log = useLog()
   const { append } = log
+  const foreground = useForeground(log.setEntries)
+  const { setForegroundId } = foreground
   const { ask, ...question } = useWindowQuestion({ context, shell, append })
   // Tells the caller whether the line ran `history -c`, so the ↑ list can forget too
   const run = useCallback((raw) => {
@@ -128,9 +147,9 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
     const { notes, clear } = applyTerminalEffects(result.effects, { ...handlers, clearHistory, ask, vfs: context.fs.vfs() })
     setCwd(result.cwd)
     const echoed = clear ? [] : [prompt(before.cwd, raw)]
-    append([...echoed, ...result.lines, ...notes], { clearFirst: clear })
+    setForegroundId(lastForeground(append([...echoed, ...result.lines, ...notes], { clearFirst: clear })))
     return { historyCleared }
-  }, [context, startedAt, handlers, append, windowId, ask, ownLines])
+  }, [context, startedAt, handlers, append, setForegroundId, windowId, ask, ownLines])
   // Ctrl+C at the prompt: the abandoned line is echoed with ^C and $? becomes 130
   const interrupt = useCallback((input) => {
     shell.current = { ...shell.current, lastCode: INTERRUPTED_CODE }
@@ -138,5 +157,16 @@ export const useTerminalSession = ({ windowId, initialCwd }) => {
   }, [append])
   // The window's variables and $? as they are now, for Tab to fill in a typed `$HOME/` or `$OLDPWD/`
   const variables = useCallback(() => ({ env: { ...ENV, ...shell.current.env }, lastCode: shell.current.lastCode }), [])
-  return { cwd, entries: log.entries, run, interrupt, variables, append, clear: log.clear, ...question }
+  return {
+    cwd,
+    entries: log.entries,
+    foregroundId: foreground.foregroundId,
+    finish: foreground.finish,
+    run,
+    interrupt,
+    variables,
+    append,
+    clear: log.clear,
+    ...question,
+  }
 }

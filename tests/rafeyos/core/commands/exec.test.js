@@ -4,6 +4,7 @@ import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { fsStoreOn, memoryStorage } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
+import { PANEL_KINDS, dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
 
 const fixtureVfs = buildVfs(fixtureContent)
 
@@ -303,16 +304,29 @@ describe('launch commands', () => {
     expect(run('gnome-text-editor skills.txt').effects[0].path).toBe('/home/rafey/skills.txt')
   })
 
-  it.each(['nano', 'vim', 'vi'])('%s opens the editor with a note', (editor) => {
-    const out = run(`${editor} skills.txt`)
-
-    expect(out.lines).toEqual([{ type: 'dim', text: `${editor} isn't installed here, opened Text Editor instead` }])
-    expect(out.effects).toEqual([{ type: 'openApp', app: 'editor', path: '/home/rafey/skills.txt' }])
+  it('nano opens in the terminal on the path against cwd, which may not exist yet', () => {
+    expect(run('nano skills.txt')).toMatchObject({ lines: [panel(PANEL_KINDS.NANO, { path: '/home/rafey/skills.txt' }, { foreground: true })], effects: [], code: 0 })
+    expect(run('nano ../visitor/./new.txt').lines).toEqual([panel(PANEL_KINDS.NANO, { path: '/home/visitor/new.txt' }, { foreground: true })])
   })
 
-  it('editors refuse folders and missing files', () => {
-    expect(texts(run('vim Music'))).toEqual(['vim: Music: No such file'])
-    expect(texts(run('nano'))).toEqual(['nano: missing file: No such file'])
+  it('nano with no name opens a new buffer', () => {
+    expect(run('nano').lines).toEqual([panel(PANEL_KINDS.NANO, { path: null }, { foreground: true })])
+  })
+
+  it.each(['vim', 'vi'])('%s prints a note and opens nano instead', (editor) => {
+    expect(run(`${editor} skills.txt`).lines).toEqual([
+      dim(`${editor} isn't installed here, opened nano instead`),
+      panel(PANEL_KINDS.NANO, { path: '/home/rafey/skills.txt' }, { foreground: true }),
+    ])
+  })
+
+  it('nano in a pipe prints nothing', () => {
+    expect(run('nano skills.txt | wc -l').lines).toEqual([pre('0')])
+  })
+
+  it('the text editors refuse folders and missing files', () => {
+    expect(texts(run('gedit Music'))).toEqual(['gedit: Music: No such file'])
+    expect(texts(run('gnome-text-editor'))).toEqual(['gnome-text-editor: missing file: No such file'])
   })
 })
 

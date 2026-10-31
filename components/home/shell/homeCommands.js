@@ -3,7 +3,7 @@
 // plain output in a pipe or file stay as they are.
 import { COMMANDS, withHelp } from '@/components/rafeyos/core/commands/exec'
 import { EFFECTS, failure, operands, result } from '@/components/rafeyos/core/commands/builtins/result'
-import { dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
+import { PANEL_KINDS, dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 import { NODE_TYPES, RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { htmlToText } from '@/components/rafeyos/core/vfs/content'
@@ -31,7 +31,8 @@ export const HOME_PANELS = Object.freeze({
   ARTICLE: 'article',
   MUSIC_STORY: 'music-story',
   MUSIC_PLAYER: 'music-player',
-  NANO: 'nano',
+  // The engine's nano, which rafeyOS's terminal draws too
+  NANO: PANEL_KINDS.NANO,
 })
 
 const STARTING_ROS = 'starting rOS…'
@@ -144,17 +145,6 @@ const launch = (context) => {
   return screenOnly([pre(STARTING_ROS)], homeEffects(output, context))
 }
 
-/** nano's panel on the file it was given, against the folder; the file may not exist yet. */
-const nanoPanel = ({ argv, cwd }) => {
-  const [file] = operands(argv)
-  return panel(HOME_PANELS.NANO, { path: file === undefined ? null : normalize(file, cwd) }, FOREGROUND)
-}
-
-// Not the engine's nano: that one refuses a file that isn't there yet
-const nano = (context) => result([nanoPanel(context)])
-
-const vim = (context) => result([dim(`${context.name} isn't installed here, opened nano instead`), nanoPanel(context)])
-
 const startRafeyOS = () => screenOnly([pre(STARTING_ROS)], [{ type: HOME_EFFECTS.HANDOFF }])
 
 const newSession = () => screenOnly([pre('logout')], [{ type: HOME_EFFECTS.NEW_SESSION }])
@@ -183,9 +173,6 @@ const OVERRIDES = {
   nautilus: launch,
   gedit: launch,
   'gnome-text-editor': launch,
-  nano,
-  vim,
-  vi: vim,
   os: startRafeyOS,
   rafeyos: startRafeyOS,
   startx: startRafeyOS,

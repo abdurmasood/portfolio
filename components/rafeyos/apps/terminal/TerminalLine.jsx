@@ -1,6 +1,7 @@
 import { memo } from 'react'
-import { LINE_TYPES, ENTRY_KINDS, fetchRows } from '@/components/rafeyos/core/commands/lines'
+import { LINE_TYPES, ENTRY_KINDS, PANEL_KINDS, fetchRows } from '@/components/rafeyos/core/commands/lines'
 import { tilde } from '@/components/rafeyos/core/vfs/paths'
+import { NanoEditor } from '@/components/home/NanoEditor'
 
 /** The homepage terminal's prompt: user and host coloured, @ and the path plain. */
 export const TerminalPrompt = ({ cwd }) => (
@@ -39,6 +40,19 @@ const FetchLine = ({ line }) => (
   </div>
 )
 
+// The homepage's own panels, drawn here too; `onDone` writes what the panel ended with into its entry
+const PANELS = Object.freeze({
+  [PANEL_KINDS.NANO]: ({ props, panel }) => (
+    <NanoEditor path={props.path} cwd={panel.cwd} shellFs={panel.shellFs} active={panel.active} onDone={panel.onDone} />
+  ),
+})
+
+const PanelLine = ({ line, panel }) => {
+  const Panel = PANELS[line.kind]
+  if (!Panel) throw new Error(`Unknown terminal panel: ${line.kind}`)
+  return <Panel props={line.props} panel={panel} />
+}
+
 const RENDERERS = Object.freeze({
   [LINE_TYPES.PRE]: ({ line }) => <pre>{shownText(line.text)}</pre>,
   [LINE_TYPES.ERROR]: ({ line }) => <div className="er">{line.text}</div>,
@@ -58,11 +72,17 @@ const RENDERERS = Object.freeze({
     </div>
   ),
   [LINE_TYPES.FETCH]: FetchLine,
+  [LINE_TYPES.PANEL]: PanelLine,
 })
 
-/** One structured output line as React elements (no HTML strings). */
-export const TerminalLine = memo(function TerminalLine({ line }) {
+/**
+ * One structured output line as React elements (no HTML strings).
+ * @param {{ line: import('@/components/rafeyos/core/commands/lines').Line, panel?: { active: boolean, onDone: Function,
+ *   cwd: string, shellFs: import('@/components/rafeyos/core/vfs/shellFs').ShellFs } }} props
+ *   `panel`, for a panel line only: whether it holds the keyboard, its finish, and the folder and files nano works in
+ */
+export const TerminalLine = memo(function TerminalLine({ line, panel }) {
   const Render = RENDERERS[line.type]
   if (!Render) throw new Error(`Unknown terminal line type: ${line.type}`)
-  return <Render line={line} />
+  return <Render line={line} panel={panel} />
 })
