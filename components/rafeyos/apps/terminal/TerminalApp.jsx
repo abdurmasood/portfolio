@@ -23,8 +23,8 @@ const useAutoFocus = (inputRef) => {
 }
 
 /**
- * Focus while a panel holds the window: the pane takes it as the prompt goes, so the blog picker hears this window's
- * keys (nano focuses its own buffer, inside the pane); the prompt takes it back once the panel finishes.
+ * Focus while a panel holds the window: the pane takes it as the prompt goes, so the pickers hear this window's keys
+ * (nano focuses its own buffer, inside the pane); the prompt takes it back once the panel finishes.
  */
 const useForegroundFocus = ({ paneRef, inputRef, foregroundId }) => {
   const hadForeground = useRef(false)
@@ -122,6 +122,7 @@ export const TerminalApp = ({ windowId, arg }) => {
     cwd: session.cwd,
     shellFs,
     ownsKey: (event) => Boolean(scrollRef.current?.contains(event.target)),
+    openProjects3d: () => windowManager.openApp(APP.PROJECTS),
   })
   const focusInput = () => {
     if (!String(window.getSelection?.() ?? '')) inputRef.current?.focus({ preventScroll: true })

@@ -23,10 +23,10 @@ export const HOME_EFFECTS = Object.freeze({
   NEW_SESSION: 'newSession',
 })
 
-/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. The engine's own (nano, the blog picker) rafeyOS's terminal draws too. */
+/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. The engine's own (nano, the pickers) rafeyOS's terminal draws too. */
 export const HOME_PANELS = Object.freeze({
   HTML: 'html',
-  PROJECTS_PICKER: 'projects-picker',
+  PROJECTS_PICKER: PANEL_KINDS.PROJECTS_PICKER,
   BLOG_PICKER: PANEL_KINDS.BLOG_PICKER,
   ARTICLE: 'article',
   MUSIC_STORY: 'music-story',
@@ -59,11 +59,11 @@ const onScreen = (context, display) => (context.tty ? result(display) : engine(c
 
 const help = () => ({ stdout: `${HELP_TEXT}\n${HELP_HINT_TEXT}\n`, display: [pre(HELP_TEXT), dim(HELP_HINT_TEXT)] })
 
+// The engine's picker and errors; only --3d differs, taking the LoadingBar path to the /projects page, not a window
 const projects = (context) => {
-  const unknown = context.argv.find((word) => word !== '--3d')
-  if (unknown !== undefined) return failure(`projects: unknown option '${unknown}'. Usage: projects [--3d]`)
-  if (context.argv.length) return result([], [{ type: HOME_EFFECTS.PROJECTS_3D }])
-  return onScreen(context, [panel(HOME_PANELS.PROJECTS_PICKER, {}, FOREGROUND)])
+  const output = engine(context)
+  if (output.stderr?.length || !context.argv.length) return output
+  return result([], [{ type: HOME_EFFECTS.PROJECTS_3D }])
 }
 
 const playerFor = (track) => panel(HOME_PANELS.MUSIC_PLAYER, { trackId: track.id }, FOREGROUND)

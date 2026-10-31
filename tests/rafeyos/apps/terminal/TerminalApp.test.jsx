@@ -204,6 +204,44 @@ describe('Terminal app', () => {
     expect(win.querySelector('.tline input')).toBeTruthy()
   })
 
+  it('projects opens the picker in place of the prompt, and Enter prints the project', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'projects')
+
+    expect(within(win).getByRole('list', { name: 'Projects' })).toBeTruthy()
+    expect(win.querySelector('.tline')).toBeNull()
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'Enter' })
+    })
+
+    expect(win.querySelector('.project-printed .project-card h1').textContent).toMatch(/^# /)
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
+  })
+
+  // The one difference from the homepage: there, v leaves for the /projects page
+  it('v in the projects picker opens the Projects window', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'projects')
+
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'v' })
+    })
+    expect(windowsOf(container, 'projects')).toEqual([])
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'v' })
+    })
+
+    expect(windowsOf(container, 'projects')).toHaveLength(1)
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('.project-printed')).toBeNull()
+  })
+
   it('gedit still opens the Text Editor', () => {
     const { container } = renderDesktop()
     const { input } = openTerminal(container)

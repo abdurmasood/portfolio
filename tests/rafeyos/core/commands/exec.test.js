@@ -4,7 +4,7 @@ import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { fsStoreOn, memoryStorage } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { PANEL_KINDS, dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
+import { PANEL_KINDS, dim, error, panel, pre } from '@/components/rafeyos/core/commands/lines'
 
 const fixtureVfs = buildVfs(fixtureContent)
 
@@ -96,26 +96,22 @@ describe('content commands', () => {
     expect(texts(run('skills'))).toEqual(['Skills text\n'])
   })
 
-  it('projects lists titles with a seven-word summary and a hint', () => {
-    const out = run('projects')
+  it('projects opens the picker on a terminal', () => {
+    expect(run('projects')).toMatchObject({ lines: [panel(PANEL_KINDS.PROJECTS_PICKER, {}, { foreground: true })], effects: [], code: 0 })
+  })
 
-    expect(out.lines[0].text).toBe(
+  it('projects in a pipe lists titles with a seven-word summary', () => {
+    expect(texts(run('projects | cat'))).toEqual([
       `  ${'Alpha Project'.padEnd(22)}one two three four five six seven…\n  ${'Beta'.padEnd(22)}short…`,
-    )
-    expect(out.lines[1]).toEqual({ type: 'dim', text: 'Open one with: xdg-open projects/alpha-project.txt   ·   3D view: projects --3d' })
-    expect(out.effects).toEqual([])
+    ])
   })
 
-  it('projects prefers leaf-line in the hint, as the mockup does', () => {
-    expect(run('projects', '/home/rafey', { content: realContent }).lines[1].text).toBe(
-      'Open one with: xdg-open projects/leaf-line.txt   ·   3D view: projects --3d',
-    )
-  })
-
-  it('projects without any projects only mentions the 3D view', () => {
-    const empty = { ...fixtureContent, projects: [] }
-
-    expect(run('projects', '/home/rafey', { content: empty, base: fixtureVfs }).lines[1].text).toBe('3D view: projects --3d')
+  it('projects refuses anything but --3d, as on the homepage', () => {
+    expect(run('projects grid')).toMatchObject({
+      lines: [error("projects: unknown option 'grid'. Usage: projects [--3d]")],
+      effects: [],
+      code: 1,
+    })
   })
 
   it('projects --3d opens the Projects app', () => {
