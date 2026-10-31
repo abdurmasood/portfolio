@@ -14,7 +14,7 @@ import { realPath } from '@/components/rafeyos/core/vfs/paths'
  */
 
 /**
- * openLink shows the Open Link dialog; play starts the track without opening a window; clearHistory empties the
+ * openLink shows the Open Link dialog for a web-link file; `open linkedin` opens its url; play starts the track without opening a window; clearHistory empties the
  * window's own history after `history -c`; ask puts a command's [y/N] question on the prompt.
  * @typedef {{
  *   vfs: Vfs,
@@ -74,7 +74,7 @@ const runEffect = (effect, handlers) => {
     case EFFECTS.OPEN_PATH:
       return openPathNote(effect.path, handlers)
     case EFFECTS.OPEN_LINK:
-      handlers.openLink()
+      handlers.openExternal(effect.href)
       return null
     case EFFECTS.OPEN_EXTERNAL:
       handlers.openExternal(effect.href)
