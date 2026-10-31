@@ -91,9 +91,14 @@ describe('content commands', () => {
     expect(out.lines[1]).toEqual({ type: 'dim', text: "Use ↑ for history, tab to autocomplete, 'clear' to reset." })
   })
 
-  it('bio and skills print their text', () => {
+  it('bio prints its text', () => {
     expect(texts(run('bio'))).toEqual(['Bio text\n'])
-    expect(texts(run('skills'))).toEqual(['Skills text\n'])
+  })
+
+  // The panel draws each tool as a link; text can't
+  it('skills is its panel on a terminal and its text in a pipe', () => {
+    expect(run('skills').lines).toEqual([panel(PANEL_KINDS.SKILLS, {})])
+    expect(texts(run('skills | cat'))).toEqual(['Skills text'])
   })
 
   it('projects opens the picker on a terminal', () => {

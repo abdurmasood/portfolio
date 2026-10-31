@@ -13,7 +13,8 @@ const help = ({ content }) => result([pre(content.help.lines.join('\n')), dim(co
 
 const bio = ({ content }) => result([pre(content.bio)])
 
-const skills = ({ content }) => result([pre(content.skills)])
+// On a terminal, the panel draws each tool as a link; in a pipe or file, the text
+const skills = ({ content, tty }) => result([tty ? panel(PANEL_KINDS.SKILLS, {}) : pre(content.skills)])
 
 const projectRow = (project) =>
   `  ${project.title.padEnd(PROJECT_NAME_WIDTH)}${project.description.split(' ').slice(0, SUMMARY_WORDS).join(' ')}…`

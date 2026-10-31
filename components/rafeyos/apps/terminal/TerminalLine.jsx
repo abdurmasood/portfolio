@@ -4,6 +4,7 @@ import { tilde } from '@/components/rafeyos/core/vfs/paths'
 import { NanoEditor } from '@/components/home/NanoEditor'
 import { BlogPicker } from '@/components/home/BlogOutput'
 import { ProjectPicker } from '@/components/home/ProjectsOutput'
+import { SkillRows } from '@/components/home/SkillsOutput'
 
 /** The homepage terminal's prompt: user and host coloured, @ and the path plain. */
 export const TerminalPrompt = ({ cwd }) => (
@@ -50,6 +51,7 @@ const PANELS = Object.freeze({
   [PANEL_KINDS.BLOG_PICKER]: ({ props, panel }) => (
     <BlogPicker active={panel.active} slug={props.slug} onDone={({ slug }) => panel.onDone({ slug })} ownsKey={panel.ownsKey} />
   ),
+  [PANEL_KINDS.SKILLS]: () => <SkillRows />,
   // v opens the Projects window here; on the homepage it leaves for the /projects page
   [PANEL_KINDS.PROJECTS_PICKER]: ({ props, panel }) => (
     <ProjectPicker

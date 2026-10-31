@@ -242,6 +242,17 @@ describe('Terminal app', () => {
     expect(win.querySelector('.project-printed')).toBeNull()
   })
 
+  it('skills lists each tool as a link that opens in a new tab', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'skills')
+
+    const links = [...win.querySelectorAll('.skill-rows a.skill')]
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.every((link) => link.target === '_blank' && link.rel === 'noopener noreferrer' && link.href.startsWith('https://'))).toBe(true)
+  })
+
   it('gedit still opens the Text Editor', () => {
     const { container } = renderDesktop()
     const { input } = openTerminal(container)

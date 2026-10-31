@@ -8,6 +8,7 @@ import { BlogArticle, BlogPicker } from '@/components/home/BlogOutput'
 import { MusicPlayer, MusicStory } from '@/components/home/MusicOutput'
 import { NanoEditor } from '@/components/home/NanoEditor'
 import { ProjectPicker } from '@/components/home/ProjectsOutput'
+import { SkillRows } from '@/components/home/SkillsOutput'
 
 // A block drops the newline it ends with, so one more keeps a trailing blank row on screen, as a terminal shows it
 const shownText = (text) => (text.endsWith('\n') ? `${text}\n` : text)
@@ -52,7 +53,7 @@ const FetchLine = ({ line }) => (
 
 // `onDone` writes what the panel ended with into its entry; a picker's 3D choice comes as the second argument
 const PANELS = Object.freeze({
-  // Trusted lib HTML only (bio, skills, contact, README, music usage), never anything typed
+  // Trusted lib HTML only (bio, contact, README, music usage), never anything typed
   [HOME_PANELS.HTML]: ({ props }) => <div dangerouslySetInnerHTML={{ __html: props.html }} />,
   [HOME_PANELS.PROJECTS_PICKER]: ({ props, active, onDone }) => (
     <ProjectPicker active={active} chosenId={props.chosenId} onDone={({ chosenId, view3d }) => onDone({ chosenId }, { view3d })} />
@@ -61,6 +62,7 @@ const PANELS = Object.freeze({
     <BlogPicker active={active} slug={props.slug} onDone={({ slug }) => onDone({ slug })} />
   ),
   [HOME_PANELS.ARTICLE]: ({ props }) => <BlogArticle slug={props.slug} />,
+  [HOME_PANELS.SKILLS]: () => <SkillRows />,
   [HOME_PANELS.MUSIC_STORY]: () => <MusicStory />,
   [HOME_PANELS.MUSIC_PLAYER]: ({ props, active, onDone }) => (
     <MusicPlayer

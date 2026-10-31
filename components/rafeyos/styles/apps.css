@@ -58,7 +58,7 @@
 /* Real terminals hold the cursor solid while keys are pressed */
 :where(.rafeyos) .tline .tcursor.is-typing { animation: none; }
 @keyframes rafeyos-term-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-/* The homepage's panels (nano, the blog and projects pickers and what they print), in this terminal's own colours */
+/* The homepage's panels (nano, skills, the blog and projects pickers and what they print), in this terminal's own colours */
 :where(.rafeyos) .term { --tdim: color-mix(in srgb, var(--tfg) 55%, var(--tbg)); --tmarker: color-mix(in srgb, var(--tfg) 40%, var(--tbg)); --tsel: color-mix(in srgb, var(--tfg) 8%, var(--tbg)); --trule: color-mix(in srgb, var(--tfg) 30%, var(--tbg)); }
 /* Holds focus while a panel has the window, so the pickers hear only this window's keys */
 :where(.rafeyos) .term:focus { outline: none; }
@@ -94,6 +94,10 @@
 :where(.rafeyos) .term .md strong { font-weight: 400; }
 :where(.rafeyos) .term .md a { color: inherit; text-decoration: underline; text-decoration-color: var(--trule); text-underline-offset: 3px; }
 :where(.rafeyos) .term .md a:hover { color: var(--thost); text-decoration-color: var(--thost); }
+/* skills: dim category column, each tool a link, wrapping under its own column */
+:where(.rafeyos) .term .skill-rows { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 3ch; }
+:where(.rafeyos) .term .skill-rows .skill { white-space: nowrap; color: inherit; text-decoration: underline; text-decoration-color: var(--trule); text-underline-offset: 3px; }
+:where(.rafeyos) .term .skill-rows .skill:hover { color: var(--thost); text-decoration-color: var(--thost); }
 /* projects: the list beside the selected project's card, and the card a choice prints */
 :where(.rafeyos) .term .picker { display: grid; grid-template-columns: 28ch minmax(0, 1fr); column-gap: 2ch; row-gap: .75em; align-items: start; max-width: 120ch; }
 :where(.rafeyos) .term .picker-row { display: flex; gap: 1ch; width: 100%; margin: 0; padding: 0 1ch 0 0; color: var(--tdim); white-space: nowrap; pointer-events: none; cursor: default; }

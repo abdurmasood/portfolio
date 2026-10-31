@@ -9,7 +9,7 @@ import { NODE_TYPES, RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { htmlToText } from '@/components/rafeyos/core/vfs/content'
 import { joinPath, normalize, parentOf, resolve } from '@/components/rafeyos/core/vfs/paths'
 import { PROJECTS_FOLDER, projectForPath } from '@/components/rafeyos/core/vfs/projectPaths'
-import { bioDescription, readMeDescription, skillsDescription } from '@/lib/descriptions'
+import { bioDescription, readMeDescription } from '@/lib/descriptions'
 import { HELP_HINT, HOME_HELP_LINES } from '@/lib/help'
 import { contactHtml } from '@/lib/contact'
 import { musicUsage } from '@/lib/music'
@@ -23,10 +23,11 @@ export const HOME_EFFECTS = Object.freeze({
   NEW_SESSION: 'newSession',
 })
 
-/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. The engine's own (nano, the pickers) rafeyOS's terminal draws too. */
+/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. The engine's own (nano, the pickers, skills) rafeyOS's terminal draws too. */
 export const HOME_PANELS = Object.freeze({
   HTML: 'html',
   PROJECTS_PICKER: PANEL_KINDS.PROJECTS_PICKER,
+  SKILLS: PANEL_KINDS.SKILLS,
   BLOG_PICKER: PANEL_KINDS.BLOG_PICKER,
   ARTICLE: 'article',
   MUSIC_STORY: 'music-story',
@@ -39,11 +40,11 @@ const FOREGROUND = Object.freeze({ foreground: true })
 const HELP_TEXT = HOME_HELP_LINES.join('\n')
 const HELP_HINT_TEXT = htmlToText(HELP_HINT)
 const STORY = joinPath(RAFEY_HOME, 'Music/story.txt')
+const SKILLS_FILE = joinPath(RAFEY_HOME, 'skills.txt')
 
 // Shipped files the homepage already shows as HTML
 const SHIPPED_HTML = Object.freeze({
   [joinPath(RAFEY_HOME, 'bio.txt')]: () => bioDescription(),
-  [joinPath(RAFEY_HOME, 'skills.txt')]: () => skillsDescription,
   [joinPath(RAFEY_HOME, 'README.txt')]: () => `<span class='ascii'>${readMeDescription}</span>`,
 })
 
@@ -83,6 +84,7 @@ const shippedForm = ({ fs, content }, path) => {
   const project = parentOf(path) === PROJECTS_FOLDER ? projectForPath({ vfs, content }, path) : null
   if (project) return panel(HOME_PANELS.PROJECTS_PICKER, { chosenId: project.id })
   if (path === STORY) return panel(HOME_PANELS.MUSIC_STORY, {})
+  if (path === SKILLS_FILE) return panel(HOME_PANELS.SKILLS, {})
   const post = content.posts.find(({ slug }) => path === joinPath(RAFEY_HOME, `blog/${slug}.md`))
   if (post) return panel(HOME_PANELS.ARTICLE, { slug: post.slug })
   return Object.hasOwn(SHIPPED_HTML, path) ? html(SHIPPED_HTML[path]()) : null
@@ -156,7 +158,6 @@ const kill = (context) => {
 const OVERRIDES = {
   help,
   bio: (context) => onScreen(context, [html(bioDescription())]),
-  skills: (context) => onScreen(context, [html(skillsDescription)]),
   contact: (context) => onScreen(context, [html(contactHtml)]),
   projects,
   music,
