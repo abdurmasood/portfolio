@@ -158,6 +158,28 @@ describe('Terminal app', () => {
     expect(prompt.querySelector('.pb')).toBeNull()
   })
 
+  it('draws a block cursor on the ghost\'s first letter, as the homepage does', () => {
+    const { container } = renderDesktop()
+    const { win } = openTerminal(container)
+
+    const cursor = win.querySelector('.tline .tcursor')
+    expect(cursor.textContent).toBe('h')
+    expect(cursor.style.left).toBe('calc(0ch - 0px)')
+  })
+
+  it('moves the block cursor with the typed text and holds it solid while typing', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    fireEvent.keyDown(input, { key: 'l' })
+    fireEvent.change(input, { target: { value: 'ls' } })
+
+    const cursor = win.querySelector('.tline .tcursor')
+    expect(cursor.textContent).toBe('')
+    expect(cursor.style.left).toBe('calc(2ch - 0px)')
+    expect(cursor.classList.contains('is-typing')).toBe(true)
+  })
+
   it('keeps the blank row a block ends with, as the homepage does', () => {
     const { container } = renderDesktop()
     const { win, input } = openTerminal(container)

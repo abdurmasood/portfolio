@@ -39,9 +39,17 @@ describe('terminal text matches the homepage terminal', () => {
   })
 
   it('styles the prompt classes only inside the terminal, so no other rafeyOS rule reaches them', () => {
-    for (const name of ['pg', 'pu', 'ph', 'cwd']) {
+    for (const name of ['pg', 'pu', 'ph', 'cwd', 'tcursor']) {
       const outside = allSelectors().filter((selector) => new RegExp(`\\.${name}\\b`).test(selector) && !/\.(term|tline)\b/.test(selector))
       expect(outside, `.${name}`).toEqual([])
     }
+  })
+
+  it('hides the native caret behind a block cursor in the text colour', () => {
+    const input = termRules().find(([selector]) => selector === ':where(.rafeyos) .tline input')[1]
+    const cursor = termRules().find(([selector]) => selector === ':where(.rafeyos) .tline .tcursor')[1]
+    expect(input).toMatch(/caret-color:\s*transparent/)
+    expect(cursor).toMatch(/background:\s*var\(--tfg\)/)
+    expect(cursor).toMatch(/color:\s*var\(--tbg\)/)
   })
 })
