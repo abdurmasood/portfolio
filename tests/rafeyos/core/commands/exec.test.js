@@ -125,15 +125,17 @@ describe('content commands', () => {
     expect(out.effects).toEqual([{ type: 'openApp', app: 'projects' }])
   })
 
-  it('blog lists posts with reading time and a hint', () => {
-    const out = run('blog')
-
-    expect(out.lines[0].text).toBe('total 1\n2024-01-01   1 min   First Post')
-    expect(out.lines[1].text).toBe('Read it: xdg-open blog/first-post.md')
+  it('blog opens the picker on a terminal, and says total 0 with no posts', () => {
+    expect(run('blog').lines).toEqual([panel(PANEL_KINDS.BLOG_PICKER, {}, { foreground: true })])
+    expect(run('blog', '/home/rafey', { content: { ...fixtureContent, posts: [] }, base: fixtureVfs }).lines).toEqual([dim('total 0')])
   })
 
-  it('blog with no posts prints total 0 and no hint', () => {
-    const out = run('blog', '/home/rafey', { content: { ...fixtureContent, posts: [] }, base: fixtureVfs })
+  it('blog in a pipe lists posts with reading time', () => {
+    expect(texts(run('blog | cat'))).toEqual(['total 1\n2024-01-01   1 min   First Post'])
+  })
+
+  it('blog in a pipe with no posts prints total 0', () => {
+    const out = run('blog | cat', '/home/rafey', { content: { ...fixtureContent, posts: [] }, base: fixtureVfs })
 
     expect(texts(out)).toEqual(['total 0'])
   })

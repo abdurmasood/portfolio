@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import {
   clickDock,
   desktopIcon,
@@ -166,6 +166,42 @@ describe('Terminal app', () => {
 
     expect(log(win).querySelector('.dm').textContent).toBe("vim isn't installed here, opened nano instead")
     expect(win.querySelector('.nano-buffer')).toBeTruthy()
+  })
+
+  it('blog opens the picker in place of the prompt, and Enter prints the post', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'blog')
+
+    expect(within(win).getByRole('list', { name: 'Posts' })).toBeTruthy()
+    expect(win.querySelector('.tline')).toBeNull()
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'Enter' })
+    })
+
+    expect(win.querySelector('article.article h1').textContent).toMatch(/^# /)
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
+  })
+
+  it('the blog picker ignores keys typed in other windows, and esc quits it', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'blog')
+
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'Enter' })
+    })
+    expect(win.querySelector('.picker-list')).toBeTruthy()
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'Escape' })
+    })
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('article')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
   })
 
   it('gedit still opens the Text Editor', () => {

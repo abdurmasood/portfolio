@@ -1,5 +1,5 @@
 // Commands that print Rafey's content: help, bio, projects, blog, skills, music, contact
-import { pre, dim } from '@/components/rafeyos/core/commands/lines'
+import { PANEL_KINDS, dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
 import { operands, result, EFFECTS } from './result'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 import { RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
@@ -29,11 +29,11 @@ const projects = ({ argv, content }) => {
   return result([pre(list.map(projectRow).join('\n')), dim(`${hint}3D view: projects --3d`)])
 }
 
-const blog = ({ content }) => {
+// On a terminal, the picker the homepage has always shown; in a pipe or file, the list
+const blog = ({ content, tty }) => {
+  if (tty) return result([content.posts.length ? panel(PANEL_KINDS.BLOG_PICKER, {}, { foreground: true }) : dim('total 0')])
   const rows = content.posts.map((post) => `${post.date}   ${post.minutes} min   ${post.title}`)
-  const lines = [pre([`total ${rows.length}`, ...rows].join('\n'))]
-  if (content.posts.length) lines.push(dim(`Read it: xdg-open blog/${content.posts[0].slug}.md`))
-  return result(lines)
+  return result([pre([`total ${rows.length}`, ...rows].join('\n'))])
 }
 
 const musicUsage = ({ track, blurb }) =>

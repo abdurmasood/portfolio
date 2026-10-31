@@ -23,15 +23,14 @@ export const HOME_EFFECTS = Object.freeze({
   NEW_SESSION: 'newSession',
 })
 
-/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. */
+/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. The engine's own (nano, the blog picker) rafeyOS's terminal draws too. */
 export const HOME_PANELS = Object.freeze({
   HTML: 'html',
   PROJECTS_PICKER: 'projects-picker',
-  BLOG_PICKER: 'blog-picker',
+  BLOG_PICKER: PANEL_KINDS.BLOG_PICKER,
   ARTICLE: 'article',
   MUSIC_STORY: 'music-story',
   MUSIC_PLAYER: 'music-player',
-  // The engine's nano, which rafeyOS's terminal draws too
   NANO: PANEL_KINDS.NANO,
 })
 
@@ -66,9 +65,6 @@ const projects = (context) => {
   if (context.argv.length) return result([], [{ type: HOME_EFFECTS.PROJECTS_3D }])
   return onScreen(context, [panel(HOME_PANELS.PROJECTS_PICKER, {}, FOREGROUND)])
 }
-
-const blog = (context) =>
-  onScreen(context, [context.content.posts.length ? panel(HOME_PANELS.BLOG_PICKER, {}, FOREGROUND) : dim('total 0')])
 
 const playerFor = (track) => panel(HOME_PANELS.MUSIC_PLAYER, { trackId: track.id }, FOREGROUND)
 
@@ -163,7 +159,6 @@ const OVERRIDES = {
   skills: (context) => onScreen(context, [html(skillsDescription)]),
   contact: (context) => onScreen(context, [html(contactHtml)]),
   projects,
-  blog,
   music,
   cat: reader,
   less: reader,

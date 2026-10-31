@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { LINE_TYPES, ENTRY_KINDS, PANEL_KINDS, fetchRows } from '@/components/rafeyos/core/commands/lines'
 import { tilde } from '@/components/rafeyos/core/vfs/paths'
 import { NanoEditor } from '@/components/home/NanoEditor'
+import { BlogPicker } from '@/components/home/BlogOutput'
 
 /** The homepage terminal's prompt: user and host coloured, @ and the path plain. */
 export const TerminalPrompt = ({ cwd }) => (
@@ -45,6 +46,9 @@ const PANELS = Object.freeze({
   [PANEL_KINDS.NANO]: ({ props, panel }) => (
     <NanoEditor path={props.path} cwd={panel.cwd} shellFs={panel.shellFs} active={panel.active} onDone={panel.onDone} />
   ),
+  [PANEL_KINDS.BLOG_PICKER]: ({ props, panel }) => (
+    <BlogPicker active={panel.active} slug={props.slug} onDone={({ slug }) => panel.onDone({ slug })} ownsKey={panel.ownsKey} />
+  ),
 })
 
 const PanelLine = ({ line, panel }) => {
@@ -78,8 +82,9 @@ const RENDERERS = Object.freeze({
 /**
  * One structured output line as React elements (no HTML strings).
  * @param {{ line: import('@/components/rafeyos/core/commands/lines').Line, panel?: { active: boolean, onDone: Function,
- *   cwd: string, shellFs: import('@/components/rafeyos/core/vfs/shellFs').ShellFs } }} props
- *   `panel`, for a panel line only: whether it holds the keyboard, its finish, and the folder and files nano works in
+ *   cwd: string, shellFs: import('@/components/rafeyos/core/vfs/shellFs').ShellFs, ownsKey: (event: KeyboardEvent) => boolean } }} props
+ *   `panel`, for a panel line only: whether it holds the keyboard, its finish, the folder and files nano works in, and
+ *   whether a key was typed in this window (the picker listens on the whole page)
  */
 export const TerminalLine = memo(function TerminalLine({ line, panel }) {
   const Render = RENDERERS[line.type]
