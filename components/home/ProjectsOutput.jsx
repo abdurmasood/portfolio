@@ -23,7 +23,10 @@ function ProjectCard({ project }) {
 
 const isPlainKey = (event, key) => event.key === key && !event.metaKey && !event.ctrlKey && !event.altKey
 
-function ActivePicker({ onDone }) {
+// The homepage has one terminal, so every key is the picker's
+const everyKey = () => true
+
+function ActivePicker({ onDone, ownsKey }) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const selectedIndexRef = useRef(0)
   const doneRef = useRef(false)
@@ -55,14 +58,14 @@ function ActivePicker({ onDone }) {
 
   // Read through a ref so the window listener below is attached once and never sees stale state
   const keyActionsRef = useRef(null)
-  keyActionsRef.current = { move, open, finish }
+  keyActionsRef.current = { move, open, finish, ownsKey }
 
   useEffect(() => {
     // The Enter that ran `projects` is still bubbling when this mounts; without this it would open the first project
     const mountedAt = performance.now()
     const handleKey = (event) => {
-      if (event.timeStamp < mountedAt) return
-      const { move, open, finish } = keyActionsRef.current
+      const { move, open, finish, ownsKey } = keyActionsRef.current
+      if (event.timeStamp < mountedAt || !ownsKey(event)) return
       if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         event.preventDefault()
         move(event.key === 'ArrowUp' ? -1 : 1)
@@ -119,9 +122,13 @@ function ActivePicker({ onDone }) {
   )
 }
 
-export function ProjectPicker({ active, chosenId, onDone }) {
+/**
+ * @param {{ active: boolean, chosenId?: number, onDone: Function, ownsKey?: (event: KeyboardEvent) => boolean }} props
+ *   `ownsKey`: whether a key is the picker's; on rafeyOS, only keys typed in its own window
+ */
+export function ProjectPicker({ active, chosenId, onDone, ownsKey = everyKey }) {
   if (active) {
-    return <ActivePicker onDone={onDone} />
+    return <ActivePicker onDone={onDone} ownsKey={ownsKey} />
   }
   const chosen = chosenId === undefined ? null : getProjectById(chosenId)
   // Quitting prints nothing, like fzf on esc

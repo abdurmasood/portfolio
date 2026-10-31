@@ -22,17 +22,21 @@ const useAutoFocus = (inputRef) => {
   }, [inputRef])
 }
 
-// Back to the prompt once nano exits; the prompt was gone while it ran, so it focuses as it returns
-const useFocusAfterForeground = (inputRef, foregroundId) => {
+/**
+ * Focus while a panel holds the window: the pane takes it as the prompt goes, so the pickers hear this window's keys
+ * (nano focuses its own buffer, inside the pane); the prompt takes it back once the panel finishes.
+ */
+const useForegroundFocus = ({ paneRef, inputRef, foregroundId }) => {
   const hadForeground = useRef(false)
   useEffect(() => {
     if (foregroundId !== null) {
       hadForeground.current = true
+      if (!paneRef.current?.contains(document.activeElement)) paneRef.current?.focus({ preventScroll: true })
       return
     }
     if (hadForeground.current) inputRef.current?.focus({ preventScroll: true })
     hadForeground.current = false
-  }, [inputRef, foregroundId])
+  }, [paneRef, inputRef, foregroundId])
 }
 
 const TerminalHeader = ({ title, onNewWindow }) => (
@@ -107,7 +111,7 @@ export const TerminalApp = ({ windowId, arg }) => {
   const cursor = useCursor(inputRef, { input, foregroundId: session.foregroundId })
   const title = terminalTitle(session.cwd)
   useAutoFocus(inputRef)
-  useFocusAfterForeground(inputRef, session.foregroundId)
+  useForegroundFocus({ paneRef: scrollRef, inputRef, foregroundId: session.foregroundId })
   useEffect(() => windowManager.setTitle(windowId, title), [windowManager, windowId, title])
   useLayoutEffect(() => {
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -117,6 +121,8 @@ export const TerminalApp = ({ windowId, arg }) => {
     onDone: (props) => session.finish(entry.id, props),
     cwd: session.cwd,
     shellFs,
+    ownsKey: (event) => Boolean(scrollRef.current?.contains(event.target)),
+    openProjects3d: () => windowManager.openApp(APP.PROJECTS),
   })
   const focusInput = () => {
     if (!String(window.getSelection?.() ?? '')) inputRef.current?.focus({ preventScroll: true })
@@ -124,7 +130,7 @@ export const TerminalApp = ({ windowId, arg }) => {
   return (
     <>
       <TerminalHeader title={title} onNewWindow={() => windowManager.openApp(APP.TERMINAL, { path: session.cwd })} />
-      <div className="term pane" ref={scrollRef} onClick={focusInput}>
+      <div className="term pane" ref={scrollRef} onClick={focusInput} tabIndex={-1}>
         <div className="tlog">
           {session.entries.map((entry) => (
             <TerminalLine key={entry.id} line={entry.line} panel={entry.line.type === LINE_TYPES.PANEL ? panelFor(entry) : undefined} />

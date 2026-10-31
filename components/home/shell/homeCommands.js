@@ -9,7 +9,7 @@ import { NODE_TYPES, RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { htmlToText } from '@/components/rafeyos/core/vfs/content'
 import { joinPath, normalize, parentOf, resolve } from '@/components/rafeyos/core/vfs/paths'
 import { PROJECTS_FOLDER, projectForPath } from '@/components/rafeyos/core/vfs/projectPaths'
-import { bioDescription, readMeDescription, skillsDescription } from '@/lib/descriptions'
+import { bioDescription, readMeDescription } from '@/lib/descriptions'
 import { HELP_HINT, HOME_HELP_LINES } from '@/lib/help'
 import { contactHtml } from '@/lib/contact'
 import { musicUsage } from '@/lib/music'
@@ -23,15 +23,15 @@ export const HOME_EFFECTS = Object.freeze({
   NEW_SESSION: 'newSession',
 })
 
-/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. */
+/** The blocks the homepage terminal draws; `html` holds trusted lib HTML only. The engine's own (nano, the pickers, skills) rafeyOS's terminal draws too. */
 export const HOME_PANELS = Object.freeze({
   HTML: 'html',
-  PROJECTS_PICKER: 'projects-picker',
-  BLOG_PICKER: 'blog-picker',
+  PROJECTS_PICKER: PANEL_KINDS.PROJECTS_PICKER,
+  SKILLS: PANEL_KINDS.SKILLS,
+  BLOG_PICKER: PANEL_KINDS.BLOG_PICKER,
   ARTICLE: 'article',
   MUSIC_STORY: 'music-story',
   MUSIC_PLAYER: 'music-player',
-  // The engine's nano, which rafeyOS's terminal draws too
   NANO: PANEL_KINDS.NANO,
 })
 
@@ -40,11 +40,11 @@ const FOREGROUND = Object.freeze({ foreground: true })
 const HELP_TEXT = HOME_HELP_LINES.join('\n')
 const HELP_HINT_TEXT = htmlToText(HELP_HINT)
 const STORY = joinPath(RAFEY_HOME, 'Music/story.txt')
+const SKILLS_FILE = joinPath(RAFEY_HOME, 'skills.txt')
 
 // Shipped files the homepage already shows as HTML
 const SHIPPED_HTML = Object.freeze({
   [joinPath(RAFEY_HOME, 'bio.txt')]: () => bioDescription(),
-  [joinPath(RAFEY_HOME, 'skills.txt')]: () => skillsDescription,
   [joinPath(RAFEY_HOME, 'README.txt')]: () => `<span class='ascii'>${readMeDescription}</span>`,
 })
 
@@ -60,15 +60,12 @@ const onScreen = (context, display) => (context.tty ? result(display) : engine(c
 
 const help = () => ({ stdout: `${HELP_TEXT}\n${HELP_HINT_TEXT}\n`, display: [pre(HELP_TEXT), dim(HELP_HINT_TEXT)] })
 
+// The engine's picker and errors; only --3d differs, taking the LoadingBar path to the /projects page, not a window
 const projects = (context) => {
-  const unknown = context.argv.find((word) => word !== '--3d')
-  if (unknown !== undefined) return failure(`projects: unknown option '${unknown}'. Usage: projects [--3d]`)
-  if (context.argv.length) return result([], [{ type: HOME_EFFECTS.PROJECTS_3D }])
-  return onScreen(context, [panel(HOME_PANELS.PROJECTS_PICKER, {}, FOREGROUND)])
+  const output = engine(context)
+  if (output.stderr?.length || !context.argv.length) return output
+  return result([], [{ type: HOME_EFFECTS.PROJECTS_3D }])
 }
-
-const blog = (context) =>
-  onScreen(context, [context.content.posts.length ? panel(HOME_PANELS.BLOG_PICKER, {}, FOREGROUND) : dim('total 0')])
 
 const playerFor = (track) => panel(HOME_PANELS.MUSIC_PLAYER, { trackId: track.id }, FOREGROUND)
 
@@ -87,6 +84,7 @@ const shippedForm = ({ fs, content }, path) => {
   const project = parentOf(path) === PROJECTS_FOLDER ? projectForPath({ vfs, content }, path) : null
   if (project) return panel(HOME_PANELS.PROJECTS_PICKER, { chosenId: project.id })
   if (path === STORY) return panel(HOME_PANELS.MUSIC_STORY, {})
+  if (path === SKILLS_FILE) return panel(HOME_PANELS.SKILLS, {})
   const post = content.posts.find(({ slug }) => path === joinPath(RAFEY_HOME, `blog/${slug}.md`))
   if (post) return panel(HOME_PANELS.ARTICLE, { slug: post.slug })
   return Object.hasOwn(SHIPPED_HTML, path) ? html(SHIPPED_HTML[path]()) : null
@@ -160,10 +158,8 @@ const kill = (context) => {
 const OVERRIDES = {
   help,
   bio: (context) => onScreen(context, [html(bioDescription())]),
-  skills: (context) => onScreen(context, [html(skillsDescription)]),
   contact: (context) => onScreen(context, [html(contactHtml)]),
   projects,
-  blog,
   music,
   cat: reader,
   less: reader,

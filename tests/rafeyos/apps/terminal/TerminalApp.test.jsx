@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import {
   clickDock,
   desktopIcon,
@@ -166,6 +166,91 @@ describe('Terminal app', () => {
 
     expect(log(win).querySelector('.dm').textContent).toBe("vim isn't installed here, opened nano instead")
     expect(win.querySelector('.nano-buffer')).toBeTruthy()
+  })
+
+  it('blog opens the picker in place of the prompt, and Enter prints the post', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'blog')
+
+    expect(within(win).getByRole('list', { name: 'Posts' })).toBeTruthy()
+    expect(win.querySelector('.tline')).toBeNull()
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'Enter' })
+    })
+
+    expect(win.querySelector('article.article h1').textContent).toMatch(/^# /)
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
+  })
+
+  it('the blog picker ignores keys typed in other windows, and esc quits it', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'blog')
+
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'Enter' })
+    })
+    expect(win.querySelector('.picker-list')).toBeTruthy()
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'Escape' })
+    })
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('article')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
+  })
+
+  it('projects opens the picker in place of the prompt, and Enter prints the project', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'projects')
+
+    expect(within(win).getByRole('list', { name: 'Projects' })).toBeTruthy()
+    expect(win.querySelector('.tline')).toBeNull()
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'Enter' })
+    })
+
+    expect(win.querySelector('.project-printed .project-card h1').textContent).toMatch(/^# /)
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('.tline input')).toBeTruthy()
+  })
+
+  // The one difference from the homepage: there, v leaves for the /projects page
+  it('v in the projects picker opens the Projects window', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+    typeCommand(input, 'projects')
+
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'v' })
+    })
+    expect(windowsOf(container, 'projects')).toEqual([])
+
+    act(() => {
+      fireEvent.keyDown(win.querySelector('.term'), { key: 'v' })
+    })
+
+    expect(windowsOf(container, 'projects')).toHaveLength(1)
+    expect(win.querySelector('.picker-list')).toBeNull()
+    expect(win.querySelector('.project-printed')).toBeNull()
+  })
+
+  it('skills lists each tool as a link that opens in a new tab', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'skills')
+
+    const links = [...win.querySelectorAll('.skill-rows a.skill')]
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.every((link) => link.target === '_blank' && link.rel === 'noopener noreferrer' && link.href.startsWith('https://'))).toBe(true)
   })
 
   it('gedit still opens the Text Editor', () => {

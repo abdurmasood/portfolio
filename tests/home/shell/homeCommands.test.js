@@ -8,7 +8,7 @@ import { htmlToText } from '@/components/rafeyos/core/vfs/content'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { fsStoreOn, memoryStorage } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { bioDescription, readMeDescription, skillsDescription } from '@/lib/descriptions'
+import { bioDescription, readMeDescription } from '@/lib/descriptions'
 import { HELP_HINT, HOME_HELP_LINES } from '@/lib/help'
 import { contactHtml } from '@/lib/contact'
 import { musicUsage } from '@/lib/music'
@@ -59,9 +59,9 @@ describe('help', () => {
 })
 
 describe('content commands', () => {
-  it('bio and skills are html panels on screen and plain text in a pipe', () => {
+  it('bio is an html panel and skills its own panel on screen, both plain text in a pipe', () => {
     expect(shown('bio')).toEqual([panel(HOME_PANELS.HTML, { html: bioDescription() })])
-    expect(shown('skills')).toEqual([panel(HOME_PANELS.HTML, { html: skillsDescription })])
+    expect(shown('skills')).toEqual([panel(HOME_PANELS.SKILLS, {})])
     expect(texts(run('bio | cat'))).toEqual([realContent.bio.slice(0, -1)])
     expect(texts(run('skills | cat'))).toEqual([realContent.skills.slice(0, -1)])
   })
@@ -109,7 +109,7 @@ describe('content commands', () => {
 describe('cat and less', () => {
   it('shows each shipped file with a homepage form in that form', () => {
     expect(shown('cat bio.txt')).toEqual([panel(HOME_PANELS.HTML, { html: bioDescription() })])
-    expect(shown('less skills.txt')).toEqual([panel(HOME_PANELS.HTML, { html: skillsDescription })])
+    expect(shown('less skills.txt')).toEqual([panel(HOME_PANELS.SKILLS, {})])
     expect(shown('cat README.txt')).toEqual([panel(HOME_PANELS.HTML, { html: `<span class='ascii'>${readMeDescription}</span>` })])
     expect(shown('cat projects/leaf-line.txt')).toEqual([panel(HOME_PANELS.PROJECTS_PICKER, { chosenId: 4 })])
     expect(shown('less Music/story.txt')).toEqual([panel(HOME_PANELS.MUSIC_STORY, {})])

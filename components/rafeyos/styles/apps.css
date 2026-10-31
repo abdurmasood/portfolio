@@ -58,20 +58,77 @@
 /* Real terminals hold the cursor solid while keys are pressed */
 :where(.rafeyos) .tline .tcursor.is-typing { animation: none; }
 @keyframes rafeyos-term-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-/* nano (the homepage's NanoEditor): the buffer and file name prompt type in the terminal's own font and colours */
-:where(.rafeyos) .term .nano > p { margin: 0; }
-:where(.rafeyos) .term .nano .dim { opacity: .55; }
+/* The homepage's panels (nano, skills, the blog and projects pickers and what they print), in this terminal's own colours */
+:where(.rafeyos) .term { --tdim: color-mix(in srgb, var(--tfg) 55%, var(--tbg)); --tmarker: color-mix(in srgb, var(--tfg) 40%, var(--tbg)); --tsel: color-mix(in srgb, var(--tfg) 8%, var(--tbg)); --trule: color-mix(in srgb, var(--tfg) 30%, var(--tbg)); }
+/* Holds focus while a panel has the window, so the pickers hear only this window's keys */
+:where(.rafeyos) .term:focus { outline: none; }
+:where(.rafeyos) .term .dim { color: var(--tdim); }
+:where(.rafeyos) .term .error-text { color: var(--tred); }
+:where(.rafeyos) .term .terminal-block > p { margin: 0; }
+:where(.rafeyos) .term .gap { height: 1.5em; }
+:where(.rafeyos) .term .gap-half { height: .75em; }
+:where(.rafeyos) .term .player-key { color: var(--tfg); }
+:where(.rafeyos) .term .music-line { white-space: pre; overflow-wrap: normal; }
+/* nano: the buffer and file name prompt type in the terminal's own font and colours */
 :where(.rafeyos) .term .nano-buffer, :where(.rafeyos) .term .nano-file-name { all: unset; color: inherit; font: inherit; caret-color: var(--tfg); }
 :where(.rafeyos) .term .nano-buffer { display: block; width: 100%; overflow: hidden; white-space: pre-wrap; }
 :where(.rafeyos) .term .nano-file-name { width: 32ch; max-width: 100%; }
-/* Phones have no Ctrl: nano's taps stand in for its keys there, as on the homepage */
+/* blog: the picker's rows, and a post as markdown with its # markers */
+:where(.rafeyos) .term .picker-list { margin: 0; padding: 0; list-style: none; }
+:where(.rafeyos) .term .post-row { margin: 0; padding: 0; pointer-events: none; cursor: default; }
+:where(.rafeyos) .term .post-row.is-selected { background: var(--tsel); }
+:where(.rafeyos) .term .post-tap { all: unset; display: grid; grid-template-columns: 1ch 10ch 6ch minmax(0, 1fr); column-gap: 2ch; align-items: baseline; width: 100%; }
+:where(.rafeyos) .term .picker-mark { color: var(--thost); }
+:where(.rafeyos) .term .article { max-width: 72ch; }
+:where(.rafeyos) .term :is(h1, h2, h3) { margin: 0; font-size: inherit; font-weight: 400; line-height: inherit; }
+:where(.rafeyos) .term :is(.marker, .md h2::before, .md h3::before, .md li::before) { color: var(--tmarker); }
+:where(.rafeyos) .term .md > * { margin: 1.5em 0 0; }
+:where(.rafeyos) .term .md h2::before { content: '## '; }
+:where(.rafeyos) .term .md h3::before { content: '### '; }
+:where(.rafeyos) .term :is(.md h2, .md h3) + * { margin-top: .5em; }
+:where(.rafeyos) .term :is(.md ul, .md ol) { padding: 0; list-style: none; }
+:where(.rafeyos) .term .md ol { counter-reset: md-item; }
+:where(.rafeyos) .term .md li { display: flex; gap: 1ch; }
+:where(.rafeyos) .term .md ul > li::before { content: '-'; flex-shrink: 0; }
+:where(.rafeyos) .term .md ol > li::before { counter-increment: md-item; content: counter(md-item) '.'; flex-shrink: 0; }
+:where(.rafeyos) .term .md strong { font-weight: 400; }
+:where(.rafeyos) .term .md a { color: inherit; text-decoration: underline; text-decoration-color: var(--trule); text-underline-offset: 3px; }
+:where(.rafeyos) .term .md a:hover { color: var(--thost); text-decoration-color: var(--thost); }
+/* skills: dim category column, each tool a link, wrapping under its own column */
+:where(.rafeyos) .term .skill-rows { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 3ch; }
+:where(.rafeyos) .term .skill-rows .skill { white-space: nowrap; color: inherit; text-decoration: underline; text-decoration-color: var(--trule); text-underline-offset: 3px; }
+:where(.rafeyos) .term .skill-rows .skill:hover { color: var(--thost); text-decoration-color: var(--thost); }
+/* projects: the list beside the selected project's card, and the card a choice prints */
+:where(.rafeyos) .term .picker { display: grid; grid-template-columns: 28ch minmax(0, 1fr); column-gap: 2ch; row-gap: .75em; align-items: start; max-width: 120ch; }
+:where(.rafeyos) .term .picker-row { display: flex; gap: 1ch; width: 100%; margin: 0; padding: 0 1ch 0 0; color: var(--tdim); white-space: nowrap; pointer-events: none; cursor: default; }
+:where(.rafeyos) .term .picker-row.is-selected { background: var(--tsel); color: var(--tfg); }
+:where(.rafeyos) .term .picker-tap { all: unset; display: flex; gap: 1ch; align-items: center; width: 100%; white-space: nowrap; }
+:where(.rafeyos) .term .picker-mark { width: 1ch; flex-shrink: 0; }
+:where(.rafeyos) .term .picker-preview { min-width: 0; padding: .75em 2ch; border: 1px solid color-mix(in srgb, var(--tfg) 15%, var(--tbg)); }
+:where(.rafeyos) .term .picker-preview .project-description { color: var(--tdim); }
+:where(.rafeyos) .term .project-printed { max-width: 72ch; }
+:where(.rafeyos) .term .project-card > p { margin: 0; }
+:where(.rafeyos) .term .project-card .project-description { margin-top: .5em; }
+:where(.rafeyos) .term .project-card .project-link { display: flex; align-items: baseline; gap: 2ch; min-width: 0; margin-top: 1em; }
+/* The label keeps its width; only the URL gives way, with an ellipsis */
+:where(.rafeyos) .term .project-link > .dim { flex-shrink: 0; white-space: nowrap; }
+:where(.rafeyos) .term .project-link a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: underline; text-decoration-color: var(--trule); text-underline-offset: 3px; }
+:where(.rafeyos) .term .project-link a:hover { color: var(--thost); text-decoration-color: var(--thost); }
+/* Phones have no Ctrl or arrow keys: taps stand in for them there, as on the homepage */
 :where(.rafeyos) .term .player-taps { display: none; flex-wrap: wrap; column-gap: 2ch; }
 :where(.rafeyos) .term .player-taps button { all: unset; min-height: 44px; cursor: pointer; }
 :where(.rafeyos) .term .player-taps button:active, :where(.rafeyos) .term .player-taps button:focus-visible { color: var(--thost); }
 @media (max-width: 640px) {
   :where(.rafeyos) .term .player-keys { display: none; }
   :where(.rafeyos) .term .player-taps { display: flex; }
+  :where(.rafeyos) .term .post-row { pointer-events: auto; }
+  :where(.rafeyos) .term .post-tap { grid-template-columns: 1ch 10ch minmax(0, 1fr); align-items: center; min-height: 44px; cursor: pointer; }
+  :where(.rafeyos) .term .post-row .read { display: none; }
+  :where(.rafeyos) .term .picker { grid-template-columns: minmax(0, 1fr); }
+  :where(.rafeyos) .term .picker-row { align-items: center; pointer-events: auto; }
+  :where(.rafeyos) .term .picker-tap { min-height: 44px; cursor: pointer; }
 }
+
 
 /* text editor */
 :where(.rafeyos) .editor-app { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }

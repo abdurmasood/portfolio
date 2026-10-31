@@ -4,7 +4,7 @@ import { buildVfs } from '@/components/rafeyos/core/vfs/buildVfs'
 import { createShellFs } from '@/components/rafeyos/core/vfs/shellFs'
 import { fsStoreOn, memoryStorage } from '@/tests/rafeyos/helpers/renderRafeyOS'
 import { fixtureContent, realContent, realVfs } from '@/tests/rafeyos/helpers/testVfs'
-import { PANEL_KINDS, dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
+import { PANEL_KINDS, dim, error, panel, pre } from '@/components/rafeyos/core/commands/lines'
 
 const fixtureVfs = buildVfs(fixtureContent)
 
@@ -91,31 +91,32 @@ describe('content commands', () => {
     expect(out.lines[1]).toEqual({ type: 'dim', text: "Use ↑ for history, tab to autocomplete, 'clear' to reset." })
   })
 
-  it('bio and skills print their text', () => {
+  it('bio prints its text', () => {
     expect(texts(run('bio'))).toEqual(['Bio text\n'])
-    expect(texts(run('skills'))).toEqual(['Skills text\n'])
   })
 
-  it('projects lists titles with a seven-word summary and a hint', () => {
-    const out = run('projects')
+  // The panel draws each tool as a link; text can't
+  it('skills is its panel on a terminal and its text in a pipe', () => {
+    expect(run('skills').lines).toEqual([panel(PANEL_KINDS.SKILLS, {})])
+    expect(texts(run('skills | cat'))).toEqual(['Skills text'])
+  })
 
-    expect(out.lines[0].text).toBe(
+  it('projects opens the picker on a terminal', () => {
+    expect(run('projects')).toMatchObject({ lines: [panel(PANEL_KINDS.PROJECTS_PICKER, {}, { foreground: true })], effects: [], code: 0 })
+  })
+
+  it('projects in a pipe lists titles with a seven-word summary', () => {
+    expect(texts(run('projects | cat'))).toEqual([
       `  ${'Alpha Project'.padEnd(22)}one two three four five six seven…\n  ${'Beta'.padEnd(22)}short…`,
-    )
-    expect(out.lines[1]).toEqual({ type: 'dim', text: 'Open one with: xdg-open projects/alpha-project.txt   ·   3D view: projects --3d' })
-    expect(out.effects).toEqual([])
+    ])
   })
 
-  it('projects prefers leaf-line in the hint, as the mockup does', () => {
-    expect(run('projects', '/home/rafey', { content: realContent }).lines[1].text).toBe(
-      'Open one with: xdg-open projects/leaf-line.txt   ·   3D view: projects --3d',
-    )
-  })
-
-  it('projects without any projects only mentions the 3D view', () => {
-    const empty = { ...fixtureContent, projects: [] }
-
-    expect(run('projects', '/home/rafey', { content: empty, base: fixtureVfs }).lines[1].text).toBe('3D view: projects --3d')
+  it('projects refuses anything but --3d, as on the homepage', () => {
+    expect(run('projects grid')).toMatchObject({
+      lines: [error("projects: unknown option 'grid'. Usage: projects [--3d]")],
+      effects: [],
+      code: 1,
+    })
   })
 
   it('projects --3d opens the Projects app', () => {
@@ -125,15 +126,17 @@ describe('content commands', () => {
     expect(out.effects).toEqual([{ type: 'openApp', app: 'projects' }])
   })
 
-  it('blog lists posts with reading time and a hint', () => {
-    const out = run('blog')
-
-    expect(out.lines[0].text).toBe('total 1\n2024-01-01   1 min   First Post')
-    expect(out.lines[1].text).toBe('Read it: xdg-open blog/first-post.md')
+  it('blog opens the picker on a terminal, and says total 0 with no posts', () => {
+    expect(run('blog').lines).toEqual([panel(PANEL_KINDS.BLOG_PICKER, {}, { foreground: true })])
+    expect(run('blog', '/home/rafey', { content: { ...fixtureContent, posts: [] }, base: fixtureVfs }).lines).toEqual([dim('total 0')])
   })
 
-  it('blog with no posts prints total 0 and no hint', () => {
-    const out = run('blog', '/home/rafey', { content: { ...fixtureContent, posts: [] }, base: fixtureVfs })
+  it('blog in a pipe lists posts with reading time', () => {
+    expect(texts(run('blog | cat'))).toEqual(['total 1\n2024-01-01   1 min   First Post'])
+  })
+
+  it('blog in a pipe with no posts prints total 0', () => {
+    const out = run('blog | cat', '/home/rafey', { content: { ...fixtureContent, posts: [] }, base: fixtureVfs })
 
     expect(texts(out)).toEqual(['total 0'])
   })

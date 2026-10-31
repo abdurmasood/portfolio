@@ -1,39 +1,38 @@
 // Commands that print Rafey's content: help, bio, projects, blog, skills, music, contact
-import { pre, dim } from '@/components/rafeyos/core/commands/lines'
-import { operands, result, EFFECTS } from './result'
+import { PANEL_KINDS, dim, panel, pre } from '@/components/rafeyos/core/commands/lines'
+import { failure, operands, result, EFFECTS } from './result'
 import { APP } from '@/components/rafeyos/core/catalog/apps'
 import { RAFEY_HOME } from '@/components/rafeyos/core/vfs/buildVfs'
 import { joinPath } from '@/components/rafeyos/core/vfs/paths'
 
 const PROJECT_NAME_WIDTH = 22
 const SUMMARY_WORDS = 7
-const EXAMPLE_PROJECT = 'leaf-line'
 const STORY = joinPath(RAFEY_HOME, 'Music/story.txt')
 
 const help = ({ content }) => result([pre(content.help.lines.join('\n')), dim(content.help.hint)])
 
 const bio = ({ content }) => result([pre(content.bio)])
 
-const skills = ({ content }) => result([pre(content.skills)])
+// On a terminal, the panel draws each tool as a link; in a pipe or file, the text
+const skills = ({ content, tty }) => result([tty ? panel(PANEL_KINDS.SKILLS, {}) : pre(content.skills)])
 
 const projectRow = (project) =>
   `  ${project.title.padEnd(PROJECT_NAME_WIDTH)}${project.description.split(' ').slice(0, SUMMARY_WORDS).join(' ')}…`
 
-const projects = ({ argv, content }) => {
-  if (argv.includes('--3d')) {
-    return result([pre('Opening Projects…')], [{ type: EFFECTS.OPEN_APP, app: APP.PROJECTS }])
-  }
-  const list = content.projects
-  const example = (list.find((p) => p.slug === EXAMPLE_PROJECT) ?? list[0])?.slug
-  const hint = example ? `Open one with: xdg-open projects/${example}.txt   ·   ` : ''
-  return result([pre(list.map(projectRow).join('\n')), dim(`${hint}3D view: projects --3d`)])
+// On a terminal, the picker the homepage has always shown; in a pipe or file, the list
+const projects = ({ argv, content, tty }) => {
+  const unknown = argv.find((word) => word !== '--3d')
+  if (unknown !== undefined) return failure(`projects: unknown option '${unknown}'. Usage: projects [--3d]`)
+  if (argv.length) return result([pre('Opening Projects…')], [{ type: EFFECTS.OPEN_APP, app: APP.PROJECTS }])
+  if (tty) return result([panel(PANEL_KINDS.PROJECTS_PICKER, {}, { foreground: true })])
+  return result([pre(content.projects.map(projectRow).join('\n'))])
 }
 
-const blog = ({ content }) => {
+// On a terminal, the picker the homepage has always shown; in a pipe or file, the list
+const blog = ({ content, tty }) => {
+  if (tty) return result([content.posts.length ? panel(PANEL_KINDS.BLOG_PICKER, {}, { foreground: true }) : dim('total 0')])
   const rows = content.posts.map((post) => `${post.date}   ${post.minutes} min   ${post.title}`)
-  const lines = [pre([`total ${rows.length}`, ...rows].join('\n'))]
-  if (content.posts.length) lines.push(dim(`Read it: xdg-open blog/${content.posts[0].slug}.md`))
-  return result(lines)
+  return result([pre([`total ${rows.length}`, ...rows].join('\n'))])
 }
 
 const musicUsage = ({ track, blurb }) =>
