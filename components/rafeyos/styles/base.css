@@ -14,7 +14,7 @@
   --fg: #ffffff; --fg2: rgba(255,255,255,.6); --line: rgba(255,255,255,.1);
   --btn: rgba(255,255,255,.1); --btnh: rgba(255,255,255,.16);
   --card: #353535; --menu: #383838;
-  --tbg: #1e1e1e; --tfg: #e6e6e6; --tgreen: #8ae234; --tblue: #729fcf; --tcyan: #34e2e2; --tred: #ef2929;
+  --tbg: #1e1e1e; --tfg: #e6e6e6; --tgreen: #8ae234; --tblue: #729fcf; --tcyan: #34e2e2; --tred: #ef2929; --tuser: #E3B341; --thost: #56D364;
   --shell: #2b2b2b; --shell2: #3d3d3d;
   /* Frosted top-bar popovers (quick settings, calendar); dark in both themes like --shell */
   --glass: rgba(38,36,42,.55); --glass-solid: rgba(38,36,42,.94); --glass-edge: rgba(255,255,255,.13);
@@ -24,7 +24,7 @@
   color-scheme: dark;
 }
 .rafeyos { position: fixed; inset: 0; font-family: var(--ui); font-size: 13px; line-height: 1.35; color: var(--fg); background: #1d1d1d; overflow: hidden; user-select: none; -webkit-user-select: none; cursor: default; }
-.rafeyos.light { --field: rgba(0,0,0,.06); --np-tint: #f8dccd; --np-art-a: #f7e4da; --np-art-b: #ecd2c5; --np-bar: rgba(0,0,0,.15); --win: #fafafa; --view: #ffffff; --hb: #ebebeb; --side: #ebebeb; --fg: rgba(0,0,0,.82); --fg2: rgba(0,0,0,.55); --line: rgba(0,0,0,.1); --btn: rgba(0,0,0,.07); --btnh: rgba(0,0,0,.12); --card: #ffffff; --menu: #ffffff; --tbg: #ffffff; --tfg: #171717; --tgreen: #26a269; --tblue: #1a5fb4; --tcyan: #1c71d8; --tred: #c01c28; color-scheme: light; }
+.rafeyos.light { --field: rgba(0,0,0,.06); --np-tint: #f8dccd; --np-art-a: #f7e4da; --np-art-b: #ecd2c5; --np-bar: rgba(0,0,0,.15); --win: #fafafa; --view: #ffffff; --hb: #ebebeb; --side: #ebebeb; --fg: rgba(0,0,0,.82); --fg2: rgba(0,0,0,.55); --line: rgba(0,0,0,.1); --btn: rgba(0,0,0,.07); --btnh: rgba(0,0,0,.12); --card: #ffffff; --menu: #ffffff; --tbg: #ffffff; --tfg: #171717; --tgreen: #26a269; --tblue: #1a5fb4; --tcyan: #1c71d8; --tred: #c01c28; --tuser: #9A6B00; --thost: #1F7A35; color-scheme: light; }
 .rafeyos button:where(:not(.p3d *)) { font: inherit; color: inherit; cursor: default; }
 .rafeyos svg:where(:not(.p3d *)) { display: block; }
 .rafeyos :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }

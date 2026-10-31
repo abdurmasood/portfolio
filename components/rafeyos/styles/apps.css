@@ -41,10 +41,12 @@
 :where(.rafeyos:not(.light)) .floatbar { right: 18px; bottom: 18px; }
 
 /* terminal */
-:where(.rafeyos) .term { flex: 1; background: var(--tbg); color: var(--tfg); font-family: var(--mono); font-size: 13px; line-height: 1.38; padding: 6px 8px; overflow: auto; cursor: text; }
+/* Text set like the homepage terminal: JetBrains Mono (app/layout.jsx, regular weight only), so nothing here is bold */
+:where(.rafeyos) .term { flex: 1; background: var(--tbg); color: var(--tfg); font-family: var(--font-terminal), ui-monospace, monospace; font-size: 13px; line-height: 1.5; font-variant-ligatures: none; padding: 6px 8px; overflow: auto; cursor: text; }
 :where(.rafeyos) .term pre { margin: 0; white-space: pre-wrap; font: inherit; }
-:where(.rafeyos) .term .pg { color: var(--tgreen); font-weight: 700; } :where(.rafeyos) .term .pb { color: var(--tblue); font-weight: 700; }
-:where(.rafeyos) .term .lc { color: var(--tcyan); font-weight: 700; } :where(.rafeyos) .term .er { color: var(--tred); } :where(.rafeyos) .term .dm { opacity: .55; }
+:where(.rafeyos) .term .pu { color: var(--tuser); } :where(.rafeyos) .term .ph { color: var(--thost); }
+:where(.rafeyos) .term .pb { color: var(--tblue); }
+:where(.rafeyos) .term .lc { color: var(--tcyan); } :where(.rafeyos) .term .er { color: var(--tred); } :where(.rafeyos) .term .dm { opacity: .55; }
 :where(.rafeyos) .term .ac { color: var(--accent); }
 :where(.rafeyos) .term a { color: inherit; }
 :where(.rafeyos) .tline { display: flex; flex-wrap: wrap; }

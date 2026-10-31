@@ -2,12 +2,15 @@ import { memo } from 'react'
 import { LINE_TYPES, ENTRY_KINDS, fetchRows } from '@/components/rafeyos/core/commands/lines'
 import { tilde } from '@/components/rafeyos/core/vfs/paths'
 
-/** Ubuntu's bash prompt: green user@host, blue path. */
+/** The homepage terminal's prompt: user and host coloured, @ and the path plain. */
 export const TerminalPrompt = ({ cwd }) => (
   <span>
-    <span className="pg">visitor@rafey.ai</span>:<span className="pb">{tilde(cwd)}</span>${' '}
+    <span className="pg"><span className="pu">visitor</span>@<span className="ph">rafey.ai</span></span>:<span className="cwd">{tilde(cwd)}</span>${' '}
   </span>
 )
+
+// A block drops the newline it ends with, so one more keeps a trailing blank row on screen, as a terminal shows it
+const shownText = (text) => (text.endsWith('\n') ? `${text}\n` : text)
 
 const ENTRY_CLASS = Object.freeze({ [ENTRY_KINDS.DIR]: 'pb', [ENTRY_KINDS.LINK]: 'lc', [ENTRY_KINDS.FILE]: undefined })
 
@@ -37,7 +40,7 @@ const FetchLine = ({ line }) => (
 )
 
 const RENDERERS = Object.freeze({
-  [LINE_TYPES.PRE]: ({ line }) => <pre>{line.text}</pre>,
+  [LINE_TYPES.PRE]: ({ line }) => <pre>{shownText(line.text)}</pre>,
   [LINE_TYPES.ERROR]: ({ line }) => <div className="er">{line.text}</div>,
   [LINE_TYPES.DIM]: ({ line }) => <div className="dm">{line.text}</div>,
   [LINE_TYPES.LINK]: ({ line }) => (

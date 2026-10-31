@@ -144,7 +144,28 @@ describe('Terminal app', () => {
     typeCommand(input, 'cd /home/rafey/projects')
 
     expect(win.getAttribute('aria-label')).toBe('visitor@rafey.ai: /home/rafey/projects')
-    expect(win.querySelector('.tline .pb').textContent).toBe('/home/rafey/projects')
+    expect(win.querySelector('.tline .cwd').textContent).toBe('/home/rafey/projects')
+  })
+
+  it('colours the prompt like the homepage: user and host coloured, @ and the path plain', () => {
+    const { container } = renderDesktop()
+    const { win } = openTerminal(container)
+
+    const prompt = win.querySelector('.tline')
+    expect(prompt.querySelector('.pu').textContent).toBe('visitor')
+    expect(prompt.querySelector('.ph').textContent).toBe('rafey.ai')
+    expect(prompt.querySelector('.cwd').textContent).toBe('~')
+    expect(prompt.querySelector('.pb')).toBeNull()
+  })
+
+  it('keeps the blank row a block ends with, as the homepage does', () => {
+    const { container } = renderDesktop()
+    const { win, input } = openTerminal(container)
+
+    typeCommand(input, 'help')
+
+    const block = [...log(win).querySelectorAll('pre')].find((pre) => pre.textContent.startsWith('Available commands:'))
+    expect(block.textContent.endsWith('\n\n')).toBe(true)
   })
 
   it('completes with Tab and walks history with the arrows', () => {
